@@ -5,6 +5,9 @@
     "apps/*",
     "packages/*"
   ],
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "build": "npm run build:prod",
     "build:prod": "npm run build --workspace @mmobot/shared && npm run build --workspace @mmobot/server && npm run build --workspace @mmobot/client",
