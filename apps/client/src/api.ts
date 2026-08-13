@@ -9,7 +9,7 @@ import type {
   MeResponse
 } from "@mmobot/shared";
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000";
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
 
 export async function auth(initData: string): Promise<AuthResponse> {
   return request<AuthResponse>("/auth", {

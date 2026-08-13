@@ -6,7 +6,11 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "npm run build --workspaces",
+    "build": "npm run build:prod",
+    "build:prod": "npm run build --workspace @mmobot/shared && npm run build --workspace @mmobot/server && npm run build --workspace @mmobot/client",
+    "start": "npm run start:prod",
+    "start:prod": "node apps/server/dist/index.js",
+    "start:bot": "node apps/server/dist/bot.js",
     "typecheck": "npm run typecheck --workspaces",
     "dev:client": "npm run dev --workspace @mmobot/client",
     "dev:server": "npm run dev --workspace @mmobot/server",

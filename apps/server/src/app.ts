@@ -1,5 +1,7 @@
 import cors from "cors";
 import express from "express";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import type {
   AuthRequest,
   AuthResponse,
@@ -41,6 +43,8 @@ export function createApp(): express.Express {
   const app = express();
   app.use(cors({ origin: config.clientUrl }));
   app.use(express.json());
+
+  serveClient(app);
 
   app.get("/health", (_req, res) => {
     res.json({ ok: true });
@@ -220,4 +224,27 @@ function buildLocationState(locationId: string): LocationStateResponse | null {
     recentEvents: recentEvents.map(toEventDto),
     serverTime: new Date().toISOString()
   };
+}
+
+function serveClient(app: express.Express): void {
+  const currentDir = path.dirname(fileURLToPath(import.meta.url));
+  const clientDist = path.resolve(currentDir, "../../client/dist");
+
+  app.use(express.static(clientDist));
+  app.get("*", (req, res, next) => {
+    const isApiPath =
+      req.path === "/health" ||
+      req.path === "/auth" ||
+      req.path === "/me" ||
+      req.path.startsWith("/locations");
+    if (isApiPath) {
+      next();
+      return;
+    }
+    res.sendFile(path.join(clientDist, "index.html"), (error) => {
+      if (error) {
+        next();
+      }
+    });
+  });
 }
