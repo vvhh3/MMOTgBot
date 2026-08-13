@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends python3 make g+
 COPY package.json package-lock.json ./
 COPY apps ./apps
 COPY packages ./packages
-RUN npm ci
+RUN npm ci --include=dev
 RUN npm run build:prod
 
 FROM base AS runtime
