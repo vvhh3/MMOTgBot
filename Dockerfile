@@ -5,6 +5,7 @@ ENV NODE_ENV=production
 FROM base AS build
 RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ && rm -rf /var/lib/apt/lists/*
 COPY package.json package-lock.json ./
+COPY tsconfig.base.json ./
 COPY apps ./apps
 COPY packages ./packages
 RUN npm ci --include=dev
