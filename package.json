@@ -1,0 +1,18 @@
+{
+  "name": "mmobot",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "typecheck": "npm run typecheck --workspaces",
+    "dev:client": "npm run dev --workspace @mmobot/client",
+    "dev:server": "npm run dev --workspace @mmobot/server",
+    "dev:bot": "npm run dev:bot --workspace @mmobot/server"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}

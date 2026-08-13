@@ -1,0 +1,201 @@
+:root {
+  color: #17201a;
+  background: #eef2ea;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+button {
+  font: inherit;
+}
+
+.app {
+  min-height: 100vh;
+  padding: 16px;
+}
+
+.topbar {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin: 0 auto 16px;
+  max-width: 960px;
+}
+
+.topbar strong,
+.topbar span {
+  display: block;
+}
+
+.muted {
+  color: #667365;
+  font-size: 12px;
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.stats span {
+  background: #ffffff;
+  border: 1px solid #d9e0d5;
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
+.layout {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(260px, 1fr) 320px;
+  margin: 0 auto;
+  max-width: 960px;
+}
+
+.map {
+  aspect-ratio: 4 / 3;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.5) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.5) 1px, transparent 1px),
+    #d9e5d2;
+  background-size: 52px 52px;
+  border: 1px solid #c6d0c1;
+  border-radius: 8px;
+  min-height: 320px;
+  position: relative;
+}
+
+.map-point {
+  align-items: center;
+  background: #f8fbf6;
+  border: 2px solid #2f6b4f;
+  border-radius: 999px;
+  cursor: pointer;
+  display: flex;
+  height: 28px;
+  justify-content: center;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 28px;
+}
+
+.map-point span {
+  background: #2f6b4f;
+  border-radius: 999px;
+  display: block;
+  height: 10px;
+  width: 10px;
+}
+
+.panel,
+.location-view {
+  background: #ffffff;
+  border: 1px solid #d9e0d5;
+  border-radius: 8px;
+  padding: 18px;
+}
+
+.location-view {
+  margin: 0 auto;
+  max-width: 720px;
+}
+
+h1 {
+  font-size: 28px;
+  line-height: 1.15;
+  margin: 0 0 12px;
+}
+
+h2 {
+  font-size: 16px;
+  margin: 22px 0 8px;
+}
+
+.location-list {
+  display: grid;
+  gap: 8px;
+}
+
+.location-list button {
+  background: #f7faf5;
+  border: 1px solid #d9e0d5;
+  border-radius: 8px;
+  cursor: pointer;
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  text-align: left;
+}
+
+.location-list span,
+.location-view p {
+  color: #5c685b;
+}
+
+.primary,
+.ghost {
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 10px 14px;
+}
+
+.primary {
+  background: #2f6b4f;
+  border: 1px solid #2f6b4f;
+  color: #ffffff;
+}
+
+.ghost {
+  background: transparent;
+  border: 1px solid #c6d0c1;
+  color: #2f6b4f;
+  margin-bottom: 16px;
+}
+
+.players,
+.events {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.error {
+  background: #fff4ef;
+  border: 1px solid #e5b8a5;
+  border-radius: 8px;
+  color: #883f25;
+  margin: 0 auto 16px;
+  max-width: 960px;
+  padding: 12px;
+}
+
+.empty {
+  color: #667365;
+  margin: 20vh auto 0;
+  max-width: 360px;
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .stats {
+    justify-content: flex-start;
+  }
+}
