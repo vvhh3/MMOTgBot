@@ -1,13 +1,19 @@
 import type { PlayerDto } from "@mmobot/shared";
+import { isNotNull } from "drizzle-orm";
 import { db, toPlayerDto, type PlayerRow } from "./db.js";
+import { players } from "./db/schema.js";
 
 const locationPlayers = new Map<string, Map<number, PlayerDto>>();
 
 export function hydratePresenceFromDatabase(): void {
   locationPlayers.clear();
-  const rows = db.prepare("SELECT * FROM players WHERE current_location_id IS NOT NULL").all() as PlayerRow[];
+  const rows = db
+    .select()
+    .from(players)
+    .where(isNotNull(players.currentLocationId))
+    .all() as PlayerRow[];
   for (const row of rows) {
-    addPlayerToPresence(toPlayerDto(row), row.current_location_id);
+    addPlayerToPresence(toPlayerDto(row), row.currentLocationId);
   }
 }
 

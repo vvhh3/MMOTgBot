@@ -1,3 +1,4 @@
+import { and, asc, desc, eq, sql } from "drizzle-orm";
 import cors from "cors";
 import express from "express";
 import path from "node:path";
@@ -14,18 +15,8 @@ import type {
 } from "@mmobot/shared";
 import { createSessionToken, requireAuth, validateTelegramInitData, type AuthedRequest } from "./auth.js";
 import { config } from "./config.js";
-import {
-  db,
-  initializeDatabase,
-  toEventDto,
-  toInventoryItemDto,
-  toLocationDto,
-  toPlayerDto,
-  type EventRow,
-  type InventoryItemRow,
-  type LocationRow,
-  type PlayerRow
-} from "./db.js";
+import { db, initializeDatabase, toEventDto, toInventoryItemDto, toLocationDto, toPlayerDto } from "./db.js";
+import { events, inventoryItems, locations, players } from "./db/schema.js";
 import { getPlayersInLocation, hydratePresenceFromDatabase, movePlayer } from "./presence.js";
 
 const actions = [
@@ -75,13 +66,12 @@ export function createApp(): express.Express {
         [telegramUser.first_name, telegramUser.last_name].filter(Boolean).join(" ") ??
         `Player ${telegramUser.id}`;
 
-      db.prepare(`
-        INSERT INTO players (id, name, level, points, current_location_id, created_at, last_seen_at)
-        VALUES (?, ?, 1, 0, NULL, ?, ?)
-        ON CONFLICT(id) DO UPDATE SET name = excluded.name, last_seen_at = excluded.last_seen_at
-      `).run(telegramUser.id, name, now, now);
+      db.insert(players)
+        .values({ id: telegramUser.id, name, createdAt: now, lastSeenAt: now })
+        .onConflictDoUpdate({ target: players.id, set: { name, lastSeenAt: now } })
+        .run();
 
-      const player = db.prepare("SELECT * FROM players WHERE id = ?").get(telegramUser.id) as PlayerRow;
+      const player = db.select().from(players).where(eq(players.id, telegramUser.id)).get()!;
       const response: AuthResponse = {
         token: createSessionToken(player.id),
         player: toPlayerDto(player)
@@ -95,8 +85,11 @@ export function createApp(): express.Express {
   app.get("/me", requireAuth, (req, res) => {
     const player = (req as AuthedRequest).player;
     const inventory = db
-      .prepare("SELECT * FROM inventory_items WHERE player_id = ? ORDER BY acquired_at DESC")
-      .all(player.id) as InventoryItemRow[];
+      .select()
+      .from(inventoryItems)
+      .where(eq(inventoryItems.playerId, player.id))
+      .orderBy(desc(inventoryItems.acquiredAt))
+      .all();
 
     const response: MeResponse = {
       player: toPlayerDto(player),
@@ -106,8 +99,8 @@ export function createApp(): express.Express {
   });
 
   app.get("/locations", requireAuth, (_req, res) => {
-    const locations = db.prepare("SELECT * FROM locations ORDER BY name ASC").all() as LocationRow[];
-    const response: LocationsResponse = { locations: locations.map(toLocationDto) };
+    const locationRows = db.select().from(locations).orderBy(asc(locations.name)).all();
+    const response: LocationsResponse = { locations: locationRows.map(toLocationDto) };
     res.json(response);
   });
 
@@ -123,18 +116,17 @@ export function createApp(): express.Express {
 
   app.post("/locations/:id/enter", requireAuth, (req, res) => {
     const player = (req as AuthedRequest).player;
-    const location = db.prepare("SELECT * FROM locations WHERE id = ?").get(req.params.id) as LocationRow | undefined;
+    const location = db.select().from(locations).where(eq(locations.id, req.params.id)).get();
     if (!location) {
       res.status(404).json({ error: "Location not found" });
       return;
     }
 
-    db.prepare("UPDATE players SET current_location_id = ?, last_seen_at = ? WHERE id = ?").run(
-      location.id,
-      new Date().toISOString(),
-      player.id
-    );
-    const updatedPlayer = db.prepare("SELECT * FROM players WHERE id = ?").get(player.id) as PlayerRow;
+    db.update(players)
+      .set({ currentLocationId: location.id, lastSeenAt: new Date().toISOString() })
+      .where(eq(players.id, player.id))
+      .run();
+    const updatedPlayer = db.select().from(players).where(eq(players.id, player.id)).get()!;
     movePlayer(toPlayerDto(updatedPlayer), location.id);
 
     const response: EnterLocationResponse = {
@@ -153,50 +145,57 @@ export function createApp(): express.Express {
       return;
     }
 
-    if (player.current_location_id !== req.params.id) {
+    if (player.currentLocationId !== req.params.id) {
       res.status(409).json({ error: "Enter this location before acting" });
       return;
     }
 
-    const location = db.prepare("SELECT * FROM locations WHERE id = ?").get(req.params.id) as LocationRow | undefined;
+    const location = db.select().from(locations).where(eq(locations.id, req.params.id)).get();
     if (!location) {
       res.status(404).json({ error: "Location not found" });
       return;
     }
 
     const now = new Date().toISOString();
-    db.transaction(() => {
-      db.prepare(`
-        INSERT INTO inventory_items (player_id, item_type, quantity, acquired_at)
-        VALUES (?, 'city-supply', 1, ?)
-        ON CONFLICT(player_id, item_type) DO UPDATE SET
-          quantity = quantity + 1,
-          acquired_at = excluded.acquired_at
-      `).run(player.id, now);
-      db.prepare("UPDATE players SET points = points + 1, last_seen_at = ? WHERE id = ?").run(now, player.id);
-      db.prepare("INSERT INTO events (player_id, location_id, type, created_at) VALUES (?, ?, 'scavenge', ?)").run(
-        player.id,
-        location.id,
-        now
-      );
-    })();
+    db.transaction((tx) => {
+      tx.insert(inventoryItems)
+        .values({ playerId: player.id, itemType: "city-supply", quantity: 1, acquiredAt: now })
+        .onConflictDoUpdate({
+          target: [inventoryItems.playerId, inventoryItems.itemType],
+          set: { quantity: sql`${inventoryItems.quantity} + 1`, acquiredAt: now }
+        })
+        .run();
+      tx.update(players)
+        .set({ points: sql`${players.points} + 1`, lastSeenAt: now })
+        .where(eq(players.id, player.id))
+        .run();
+      tx.insert(events).values({ playerId: player.id, locationId: location.id, type: "scavenge", createdAt: now }).run();
+    });
 
-    const updatedPlayer = db.prepare("SELECT * FROM players WHERE id = ?").get(player.id) as PlayerRow;
+    const updatedPlayer = db.select().from(players).where(eq(players.id, player.id)).get()!;
     movePlayer(toPlayerDto(updatedPlayer), location.id);
 
     const inventory = db
-      .prepare("SELECT * FROM inventory_items WHERE player_id = ? ORDER BY acquired_at DESC")
-      .all(player.id) as InventoryItemRow[];
+      .select()
+      .from(inventoryItems)
+      .where(eq(inventoryItems.playerId, player.id))
+      .orderBy(desc(inventoryItems.acquiredAt))
+      .all();
     const event = db
-      .prepare(`
-        SELECT events.*, players.name AS player_name
-        FROM events
-        JOIN players ON players.id = events.player_id
-        WHERE events.player_id = ? AND events.location_id = ?
-        ORDER BY events.created_at DESC, events.id DESC
-        LIMIT 1
-      `)
-      .get(player.id, location.id) as EventRow;
+      .select({
+        id: events.id,
+        playerId: events.playerId,
+        playerName: players.name,
+        locationId: events.locationId,
+        type: events.type,
+        createdAt: events.createdAt
+      })
+      .from(events)
+      .innerJoin(players, eq(events.playerId, players.id))
+      .where(and(eq(events.playerId, player.id), eq(events.locationId, location.id)))
+      .orderBy(desc(events.createdAt), desc(events.id))
+      .limit(1)
+      .get()!;
 
     const response: LocationActionResponse = {
       message: `Вы нашли припасы: ${location.name}.`,
@@ -211,21 +210,26 @@ export function createApp(): express.Express {
 }
 
 function buildLocationState(locationId: string): LocationStateResponse | null {
-  const location = db.prepare("SELECT * FROM locations WHERE id = ?").get(locationId) as LocationRow | undefined;
+  const location = db.select().from(locations).where(eq(locations.id, locationId)).get();
   if (!location) {
     return null;
   }
 
   const recentEvents = db
-    .prepare(`
-      SELECT events.*, players.name AS player_name
-      FROM events
-      JOIN players ON players.id = events.player_id
-      WHERE events.location_id = ?
-      ORDER BY events.created_at DESC, events.id DESC
-      LIMIT 10
-    `)
-    .all(locationId) as EventRow[];
+    .select({
+      id: events.id,
+      playerId: events.playerId,
+      playerName: players.name,
+      locationId: events.locationId,
+      type: events.type,
+      createdAt: events.createdAt
+    })
+    .from(events)
+    .innerJoin(players, eq(events.playerId, players.id))
+    .where(eq(events.locationId, locationId))
+    .orderBy(desc(events.createdAt), desc(events.id))
+    .limit(10)
+    .all();
 
   return {
     location: toLocationDto(location),

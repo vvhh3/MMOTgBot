@@ -1,7 +1,9 @@
 import crypto from "node:crypto";
+import { eq } from "drizzle-orm";
 import type { Request, Response, NextFunction } from "express";
 import { config } from "./config.js";
 import { db, type PlayerRow } from "./db.js";
+import { players } from "./db/schema.js";
 
 export type TelegramUser = {
   id: number;
@@ -81,13 +83,13 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
 
   try {
     const playerId = verifySessionToken(token);
-    const player = db.prepare("SELECT * FROM players WHERE id = ?").get(playerId) as PlayerRow | undefined;
+    const player = db.select().from(players).where(eq(players.id, playerId)).get() as PlayerRow | undefined;
     if (!player) {
       res.status(401).json({ error: "Player not found" });
       return;
     }
 
-    db.prepare("UPDATE players SET last_seen_at = ? WHERE id = ?").run(new Date().toISOString(), playerId);
+    db.update(players).set({ lastSeenAt: new Date().toISOString() }).where(eq(players.id, playerId)).run();
     (req as AuthedRequest).player = player;
     next();
   } catch {
