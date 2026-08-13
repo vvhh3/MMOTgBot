@@ -30,7 +30,9 @@ export function validateTelegramInitData(initData: string): TelegramUser {
   const secretKey = crypto.createHmac("sha256", "WebAppData").update(config.botToken).digest();
   const expectedHash = crypto.createHmac("sha256", secretKey).update(dataCheckString).digest("hex");
 
-  if (!crypto.timingSafeEqual(Buffer.from(hash, "hex"), Buffer.from(expectedHash, "hex"))) {
+  const signatureMatches =
+    hash.length === expectedHash.length && crypto.timingSafeEqual(Buffer.from(hash, "hex"), Buffer.from(expectedHash, "hex"));
+  if (!signatureMatches && !config.devBypassAuth) {
     throw new Error("Telegram initData signature mismatch");
   }
 

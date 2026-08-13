@@ -9,8 +9,20 @@ export const config = {
   sessionSecret: process.env.SESSION_SECRET ?? readEnv("BOT_TOKEN"),
   port: Number(process.env.PORT ?? 4000),
   clientUrl: process.env.CLIENT_URL ?? "http://localhost:5173",
-  databasePath: path.resolve(process.env.DATABASE_PATH ?? "./apps/server/data/mmobot.db")
+  corsOrigins: parseOrigins(process.env.CORS_ORIGINS),
+  databasePath: path.resolve(process.env.DATABASE_PATH ?? "./apps/server/data/mmobot.db"),
+  devBypassAuth: process.env.DEV_BYPASS_AUTH === "true"
 };
+
+function parseOrigins(raw: string | undefined): string[] {
+  if (!raw) {
+    return [];
+  }
+  return raw
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+}
 
 function readEnv(name: string): string {
   const value = process.env[name];

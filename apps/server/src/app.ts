@@ -41,7 +41,17 @@ export function createApp(): express.Express {
   hydratePresenceFromDatabase();
 
   const app = express();
-  app.use(cors({ origin: config.clientUrl }));
+  app.use(
+    cors({
+      origin(origin, callback) {
+        if (!origin || config.devBypassAuth || origin === config.clientUrl || config.corsOrigins.includes(origin)) {
+          callback(null, true);
+          return;
+        }
+        callback(null, false);
+      }
+    })
+  );
   app.use(express.json());
 
   serveClient(app);

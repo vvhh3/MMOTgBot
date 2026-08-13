@@ -118,57 +118,73 @@ function App() {
 
   return (
     <Shell error={error}>
-      <header className="topbar">
+      <header className="mx-auto mb-4 flex max-w-[960px] items-center justify-between gap-3 max-[760px]:flex-col max-[760px]:items-start">
         <div>
-          <span className="muted">Игрок</span>
-          <strong>{player?.name ?? "Вход..."}</strong>
+          <span className="block text-xs text-sage">Игрок</span>
+          <strong className="block">{player?.name ?? "Вход..."}</strong>
         </div>
-        <div className="stats">
-          <span>Ур. {player?.level ?? 1}</span>
-          <span>{player?.points ?? 0} очков</span>
-          <span>{inventory.reduce((sum, item) => sum + item.quantity, 0)} предметов</span>
+        <div className="flex flex-wrap justify-end gap-2 max-[760px]:justify-start">
+          <span className="rounded-lg border border-mist bg-white px-2.5 py-1.5">
+            Ур. {player?.level ?? 1}
+          </span>
+          <span className="rounded-lg border border-mist bg-white px-2.5 py-1.5">
+            {player?.points ?? 0} очков
+          </span>
+          <span className="rounded-lg border border-mist bg-white px-2.5 py-1.5">
+            {inventory.reduce((sum, item) => sum + item.quantity, 0)} предметов
+          </span>
         </div>
       </header>
 
       {screen === "map" ? (
-        <main className="layout">
-          <section className="map">
+        <main className="mx-auto grid max-w-[960px] grid-cols-[minmax(260px,1fr)_320px] gap-4 max-[760px]:grid-cols-1">
+          <section className="relative aspect-[4/3] min-h-[320px] rounded-lg border border-fog bg-moss [background-image:linear-gradient(90deg,rgba(255,255,255,0.5)_1px,transparent_1px),linear-gradient(rgba(255,255,255,0.5)_1px,transparent_1px)] [background-size:52px_52px]">
             {locations.map((location) => (
               <button
                 key={location.id}
-                className="map-point"
+                className="absolute flex h-7 w-7 -translate-x-1/2 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full border-2 border-forest bg-frost"
                 style={{ left: `${location.x}%`, top: `${location.y}%` }}
                 onClick={() => void handleEnter(location.id)}
                 disabled={busy}
                 title={location.name}
               >
-                <span />
+                <span className="block h-2.5 w-2.5 rounded-full bg-forest" />
               </button>
             ))}
           </section>
-          <section className="panel">
-            <h1>Карта города</h1>
-            <div className="location-list">
+          <section className="rounded-lg border border-mist bg-white p-[18px]">
+            <h1 className="mb-3 text-[28px] leading-[1.15]">Карта города</h1>
+            <div className="grid gap-2">
               {locations.map((location) => (
-                <button key={location.id} onClick={() => void handleEnter(location.id)} disabled={busy}>
+                <button
+                  key={location.id}
+                  onClick={() => void handleEnter(location.id)}
+                  disabled={busy}
+                  className="grid cursor-pointer gap-1 rounded-lg border border-mist bg-cream p-3 text-left"
+                >
                   <strong>{location.name}</strong>
-                  <span>{location.description}</span>
+                  <span className="text-leaf">{location.description}</span>
                 </button>
               ))}
             </div>
           </section>
         </main>
       ) : (
-        <main className="location-view">
-          <button className="ghost" onClick={() => setScreen("map")}>
+        <main className="mx-auto max-w-[720px] rounded-lg border border-mist bg-white p-[18px]">
+          <button
+            className="mb-4 cursor-pointer rounded-lg border border-fog bg-transparent px-3.5 py-2.5 text-forest"
+            onClick={() => setScreen("map")}
+          >
             Вернуться к карте
           </button>
-          <h1>{state?.location.name ?? currentLocation?.name}</h1>
-          <p>{state?.location.description ?? currentLocation?.description}</p>
+          <h1 className="mb-3 text-[28px] leading-[1.15]">
+            {state?.location.name ?? currentLocation?.name}
+          </h1>
+          <p className="text-leaf">{state?.location.description ?? currentLocation?.description}</p>
 
           <section>
-            <h2>Сейчас здесь</h2>
-            <ul className="players">
+            <h2 className="mb-2 mt-[22px] text-base">Сейчас здесь</h2>
+            <ul className="m-0 list-disc pl-5">
               {(state?.players ?? []).map((nearbyPlayer) => (
                 <li key={nearbyPlayer.id}>
                   {nearbyPlayer.name}
@@ -178,13 +194,17 @@ function App() {
             </ul>
           </section>
 
-          <button className="primary" onClick={() => void handleAction()} disabled={busy}>
+          <button
+            className="cursor-pointer rounded-lg border border-forest bg-forest px-3.5 py-2.5 text-white"
+            onClick={() => void handleAction()}
+            disabled={busy}
+          >
             {busy ? "Подождите..." : "Выполнить действие"}
           </button>
 
           <section>
-            <h2>Последние события</h2>
-            <ul className="events">
+            <h2 className="mb-2 mt-[22px] text-base">Последние события</h2>
+            <ul className="m-0 list-disc pl-5">
               {(state?.recentEvents ?? []).map((event) => (
                 <li key={event.id}>
                   {event.playerName}: {event.type}
@@ -200,9 +220,13 @@ function App() {
 
 function Shell({ children, error }: { children?: React.ReactNode; error: string | null }) {
   return (
-    <div className="app">
-      {error ? <div className="error">{error}</div> : null}
-      {children ?? <div className="empty">Загрузка...</div>}
+    <div className="min-h-screen bg-canvas p-4 font-sans text-ink">
+      {error ? (
+        <div className="mx-auto mb-4 max-w-[960px] rounded-lg border border-error-border bg-error-bg p-3 text-error-text">
+          {error}
+        </div>
+      ) : null}
+      {children ?? <div className="mx-auto mt-[20vh] max-w-[360px] text-center text-sage">Загрузка...</div>}
     </div>
   );
 }
