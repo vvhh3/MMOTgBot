@@ -1,7 +1,26 @@
 import {Progress,Box} from "@radix-ui/themes";
 import Spinner  from "./ui/Spinner/Spinner";
-export default function Loading()
-{
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+export default function Loading(){
+    const [percentProgress, setPercentProgress] = useState<number>(0);
+    const navigate = useNavigate();
+    useEffect(()=>{
+        const duration = 6000;
+        const interval = 50;
+        const step = 100 / (duration / interval);
+        const timer = setInterval(() => {
+            setPercentProgress(prev => {
+            const next = prev + step;
+            return Math.round(next >= 100 ? 100 : next);
+            });
+            if(percentProgress == 100){
+                navigate("/Home")
+            }
+        }, interval);
+
+  return () => clearInterval(timer);
+    },[percentProgress])
     return(
         <div className="min-h-screen flex justify-center items-center ">
             <div className="flex flex-col w-200 justify-center items-center h-100">
@@ -14,9 +33,9 @@ export default function Loading()
                 </div>
                 <div className="h-5 flex items-center flex-col"> 
                     <Box  width="200px">
-                        <Progress color="orange" size="3" />
+                        <Progress value={percentProgress} color="orange" size="3" />
                     </Box>
-                    <p className="text-orange-500">67 %</p>
+                    <p className="text-orange-500">{percentProgress} %</p>
                 </div>
             </div>
         </div>
