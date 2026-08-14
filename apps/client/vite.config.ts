@@ -6,8 +6,11 @@ import { fileURLToPath } from "node:url";
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  envDir: path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../.."),
+  envDir: path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../.."
+  ),
   server: {
-    port: 5173
-  }
+    port: 5173,
+  },
 });

@@ -1,6 +1,10 @@
 import { StrictMode, useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
+import "@radix-ui/themes/styles.css";
+import "./styles.css";
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import type { InventoryItemDto, LocationDto, LocationStateResponse, PlayerDto } from "@mmobot/shared";
+import Loading from'./components/Loading'
 import {
   auth,
   enterLocation,
@@ -11,6 +15,7 @@ import {
 } from "./api";
 
 import { getTelegramInitData } from "./telegram";
+import { Theme } from "@radix-ui/themes";
 
 type Screen = "map" | "location";
 
@@ -226,13 +231,19 @@ function Shell({ children, error }: { children?: React.ReactNode; error: string 
           {error}
         </div>
       ) : null}
-      {children ?? <div className="mx-auto mt-[20vh] max-w-[360px] text-center text-sage">Загрузка...</div>}
+      {children ?? <Loading/>}
     </div>
   );
 }
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <App />
+    <Theme>
+       <BrowserRouter>
+           <Routes>
+              <Route path='/' element={<Loading/>}></Route>
+           </Routes>
+           </BrowserRouter>
+    </Theme>
   </StrictMode>
 );
