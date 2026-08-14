@@ -10,17 +10,25 @@ import { locations, mobs } from "./db/schema.js";
 import type { EventRow, InventoryItemRow, LocationRow, PlayerRow,MobRow } from "./db/schema.js";
 
 
+// Создаём папку для БД, если её ещё нет (например, apps/server/data).
 fs.mkdirSync(path.dirname(config.databasePath), { recursive: true });
 
+// Открываем SQLite-файл. WAL — режим журналирования, позволяющий одновременно читать
+// и писать, не блокируя сервер. foreign_keys = ON включает проверку внешних ключей.
 const sqlite = new Database(config.databasePath);
 sqlite.pragma("journal_mode = WAL");
 sqlite.pragma("foreign_keys = ON");
 
+// drizzle — обёртка над better-sqlite3, дающая типизированные запросы к таблицам.
 export const db = drizzle(sqlite);
 
 export function initializeDatabase(): void {
+  // Применяем миграции из папки drizzle (файлы 0000_*.sql, 0001_*.sql и т.д.).
+  // drizzle следит за применёнными миграциями и выполняет только новые.
   migrate(db, { migrationsFolder: migrationsFolder() });
 
+  // Ниже — сид (начальные данные), который заносится в БД при первом запуске.
+  // Список стартовых локаций: id, название, описание и координаты.
   const seedLocations: LocationDto[] = [
     { id: "square", name: "Площадь", description: "Описание площади", x: 18, y: 72 },
     { id: "market", name: "Сити парк", description: "Описание сити парка", x: 46, y: 58 },
@@ -29,6 +37,8 @@ export function initializeDatabase(): void {
     { id: "railway", name: "Липяги", description: "Описание станции", x: 82, y: 76 }
   ];
 
+  // Стартовые мобы. locationId должен ссылаться на существующую локацию из seedLocations,
+  // иначе сработает проверка FOREIGN KEY.
   const seedMobs: MobDto[] = [
     { id: 0, name: "Крыса", description: "какое то описание", level: 1, loot: ['Кусок сыра'], pointsReward: 10, locationId: "square", maxHealth: 10, strength: 2, defense: 0, respawnSeconds: 60 },
     { id: 1, name: "Громила", description: "какое то описание", level: 2, loot: ['Кусок мяса'], pointsReward: 25, locationId: "market", maxHealth: 25, strength: 5, defense: 1, respawnSeconds: 120 },
@@ -37,13 +47,20 @@ export function initializeDatabase(): void {
     { id: 4, name: "Снайпер", description: "какое то описание", level: 5, loot: ['Снайперская винтовка'], pointsReward: 60, locationId: "railway", maxHealth: 60, strength: 12, defense: 4, respawnSeconds: 240 }
   ]
 
+  // Вставляем сид. onConflictDoNothing — если запись с таким же id/primary key уже есть,
+  // она не обновляется и не вызывает ошибку (вставка пропускается). Благодаря этому
+  // сид безопасно повторно выполняется при каждом запуске сервера.
   db.insert(locations).values(seedLocations).onConflictDoNothing().run();
-  db.insert(mobs).values(seedMobs).onConflictDoNothing().run(); // Что за onConflictDoNothing
+  db.insert(mobs).values(seedMobs).onConflictDoNothing().run();
 }
 
+// Путь к папке с миграциями: рядом с этим файлом (apps/server/src) поднимаемся на уровень выше → apps/server/drizzle.
 function migrationsFolder(): string {
   return path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../drizzle");
 }
+
+// Функции ниже превращают "сырые" строки из БД (Row-типы) в DTO — объекты, которые
+// отдаются клиенту. Это прослойка между внутренним форматом хранения и внешним API.
 
 export function toPlayerDto(row: PlayerRow): PlayerDto {
   return {
@@ -68,6 +85,7 @@ export function toMobDto(row: MobRow): MobDto{
     maxHealth: row.maxHealth,
     strength: row.strength,
     defense: row.defense,
+    // loot в БД хранится как JSON-строка, но drizzle с mode: "json" уже вернул его массивом string[].
     loot: row.loot,
     pointsReward: row.pointsReward,
     locationId: row.locationId,
