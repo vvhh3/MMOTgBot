@@ -32,9 +32,11 @@ export const mobs = sqliteTable('mobs',{
   level: integer("level").notNull(),
   maxHealth: integer("max_health").notNull(),
   strength: integer("strength").notNull(),
-  loot: text("loot").notNull(),
+  defense: integer("defense").notNull(),
+  loot: text("loot", { mode: "json" }).$type<string[]>().notNull(),
   pointsReward: integer("points_reward").notNull(),
-  locationId: text("location_id").references(() => locations.id,{onDelete: "cascade"})
+  locationId: text("location_id").notNull().references(() => locations.id,{onDelete: "cascade"}),
+  respawnSeconds: integer("respawn_seconds").notNull(),
 })
 
 export const combatSessions = sqliteTable('combat_sessions',{
@@ -86,5 +88,5 @@ export type LocationRow = typeof locations.$inferSelect;
 export type InventoryItemRow = typeof inventoryItems.$inferSelect;
 export type EventRow = typeof events.$inferSelect & { playerName: string };
 
-export type CombatSessionRow = typeof combatSessions.$inferSelect;
 export type MobRow = typeof mobs.$inferSelect
+export type CombatSessionRow = typeof combatSessions.$inferSelect;

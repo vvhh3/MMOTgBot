@@ -4,19 +4,55 @@ export type PlayerDto = {
   level: number;
   points: number;
   currentLocationId: string | null;
+  health: number
+  maxHp: number
+  strength: number
+  defense: number
 };
 
-export type Mobs = {
+export type MobDto = {
   id: number
   name: string
   description: string
   level: number
-  health: number
+  maxHealth: number
   strength: number
+  defense: number
   loot: string[]
   pointsReward: number
   locationId: string
+  respawnSeconds: number
 }
+
+
+export type CombatLogEntry = { // типо логирование
+  text: string;
+  at: string;
+};
+
+export type CombatStateResponse = { // описание боя 
+  mob: MobDto;
+  playerHp: number;
+  playerMaxHp: number;
+  mobHp: number;
+  mobMaxHp: number;
+  status: "active" | "victory" | "defeat" | "fled";
+  log: CombatLogEntry[];
+};
+
+// export type CombatStartRequest = {
+//   mobId: string;
+// }
+
+// export type CombatActionRequest = {
+//   action: "attack" | "flee";
+// }
+
+export type CombatActionResponse = {
+  state: CombatStateResponse;
+  player: PlayerDto;
+  inventory: InventoryItemDto[];
+};
 
 export type InventoryItemDto = {
   id: number;
@@ -70,6 +106,7 @@ export type LocationStateResponse = {
   location: LocationDto;
   players: PlayerDto[];
   actions: ActionDto[];
+  mobs: MobDto[];
   recentEvents: EventDto[];
   serverTime: string;
 };
