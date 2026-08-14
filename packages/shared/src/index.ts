@@ -1,4 +1,4 @@
-export type PlayerDto = {
+export type PlayerDto = { // описание игрока
   id: number;
   name: string;
   level: number;
@@ -10,11 +10,12 @@ export type PlayerDto = {
   defense: number
 };
 
-export type MobDto = {
+export type MobDto = { // описание мобов
   id: number
   name: string
   description: string
   level: number
+  health: number
   maxHealth: number
   strength: number
   defense: number
