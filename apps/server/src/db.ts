@@ -9,7 +9,6 @@ import { config } from "./config.js";
 import { locations, mobs } from "./db/schema.js";
 import type { EventRow, InventoryItemRow, LocationRow, PlayerRow,MobRow } from "./db/schema.js";
 
-// export type { EventRow, InventoryItemRow, LocationRow, PlayerRow } from "./db/schema.js";
 
 fs.mkdirSync(path.dirname(config.databasePath), { recursive: true });
 
@@ -31,15 +30,15 @@ export function initializeDatabase(): void {
   ];
 
   const seedMobs: MobDto[] = [
-    { id: 0, name: "Крыса", description: "какое то описание", level: 1, loot: ['Кусок сыра'], pointsReward: 10, locationId: "station", maxHealth: 10, strength: 2, defense: 0, respawnSeconds: 60 },
+    { id: 0, name: "Крыса", description: "какое то описание", level: 1, loot: ['Кусок сыра'], pointsReward: 10, locationId: "square", maxHealth: 10, strength: 2, defense: 0, respawnSeconds: 60 },
     { id: 1, name: "Громила", description: "какое то описание", level: 2, loot: ['Кусок мяса'], pointsReward: 25, locationId: "market", maxHealth: 25, strength: 5, defense: 1, respawnSeconds: 120 },
-    { id: 2, name: "Ржавый дрон", description: "какое то описание", level: 3, loot: ['Ржавый механизм'], pointsReward: 30, locationId: "workshop", maxHealth: 30, strength: 6, defense: 2, respawnSeconds: 120 },
-    { id: 3, name: "Страж архива", description: "какое то описание", level: 4, loot: ['Архивный документ'], pointsReward: 45, locationId: "archive", maxHealth: 45, strength: 8, defense: 3, respawnSeconds: 180 },
-    { id: 4, name: "Снайпер", description: "какое то описание", level: 5, loot: ['Снайперская винтовка'], pointsReward: 60, locationId: "tower", maxHealth: 60, strength: 12, defense: 4, respawnSeconds: 240 }
+    { id: 2, name: "Ржавый дрон", description: "какое то описание", level: 3, loot: ['Ржавый механизм'], pointsReward: 30, locationId: "park", maxHealth: 30, strength: 6, defense: 2, respawnSeconds: 120 },
+    { id: 3, name: "Страж архива", description: "какое то описание", level: 4, loot: ['Архивный документ'], pointsReward: 45, locationId: "forest", maxHealth: 45, strength: 8, defense: 3, respawnSeconds: 180 },
+    { id: 4, name: "Снайпер", description: "какое то описание", level: 5, loot: ['Снайперская винтовка'], pointsReward: 60, locationId: "railway", maxHealth: 60, strength: 12, defense: 4, respawnSeconds: 240 }
   ]
 
   db.insert(locations).values(seedLocations).onConflictDoNothing().run();
-  db.insert(mobs).values(seedMobs).onConflictDoNothing().run();
+  db.insert(mobs).values(seedMobs).onConflictDoNothing().run(); // Что за onConflictDoNothing
 }
 
 function migrationsFolder(): string {

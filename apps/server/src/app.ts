@@ -15,8 +15,8 @@ import type {
 } from "@mmobot/shared";
 import { createSessionToken, requireAuth, validateTelegramInitData, type AuthedRequest } from "./auth.js";
 import { config } from "./config.js";
-import { db, initializeDatabase, toEventDto, toInventoryItemDto, toLocationDto, toPlayerDto } from "./db.js";
-import { events, inventoryItems, locations, players } from "./db/schema.js";
+import { db, initializeDatabase, toEventDto, toInventoryItemDto, toLocationDto, toPlayerDto,toMobDto } from "./db.js";
+import { events, inventoryItems, locations, players,mobs } from "./db/schema.js";
 import { getPlayersInLocation, hydratePresenceFromDatabase, movePlayer } from "./presence.js";
 
 const actions = [
@@ -229,11 +229,13 @@ function buildLocationState(locationId: string): LocationStateResponse | null {
     .orderBy(desc(events.createdAt), desc(events.id))
     .limit(10)
     .all();
+  const locationMobs = db.select().from(mobs).where(eq(mobs.locationId,locationId)).all()// что за eq??
 
   return {
     location: toLocationDto(location),
     players: getPlayersInLocation(locationId),
     actions: [...actions],
+    mobs: locationMobs.map(toMobDto),
     recentEvents: recentEvents.map(toEventDto),
     serverTime: new Date().toISOString()
   };
