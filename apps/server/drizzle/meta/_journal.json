@@ -22,6 +22,13 @@
       "when": 1786705852170,
       "tag": "0002_crazy_spacker_dave",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1786711533090,
+      "tag": "0003_old_nekra",
+      "breakpoints": true
     }
   ]
 }
