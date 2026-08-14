@@ -175,6 +175,8 @@ CombatLogEntry = {
 }
 ```
 
+<!-- eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwbGF5ZXJJZCI6MTIzLCJpYXQiOjE3ODY3MTkwMTN9.5kIC0AZVHYKtCwEQeyvq5TxgjHoml4y0ch3bTEFeCOM -->
+
 Ошибки: `400` — неизвестное действие; `404` — локация не найдена; `409` — игрок не вошёл в эту локацию.
 
 ### `POST /combat/start`

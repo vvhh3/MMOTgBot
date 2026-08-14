@@ -234,7 +234,10 @@ export function createApp(): express.Express {
     const active = db
       .select()
       .from(combatSessions)
-      .where(eq(combatSessions.playerId, player.id))
+      .where(and(
+        eq(combatSessions.playerId, player.id),
+        eq(combatSessions.status, "active")
+      ))
       .get();
     if (active) {
       res.status(409).json({ error: "You already have an active combat" });
