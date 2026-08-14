@@ -61,9 +61,8 @@ export function createApp(): express.Express {
     try {
       const telegramUser = validateTelegramInitData(body.initData);
       const now = new Date().toISOString();
-      const name =
-        telegramUser.username ??
-        [telegramUser.first_name, telegramUser.last_name].filter(Boolean).join(" ") ??
+      const name = telegramUser.username ?? 
+      [telegramUser.first_name, telegramUser.last_name].filter(Boolean).join(" ") ??
         `Player ${telegramUser.id}`;
 
       db.insert(players)

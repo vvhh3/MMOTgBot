@@ -14,11 +14,19 @@ export type TelegramUser = {
 };
 
 export type AuthedRequest = Request & {
-  player: PlayerRow;
+  player: PlayerRow; // описание пользователя
 };
 
-export function validateTelegramInitData(initData: string): TelegramUser {
-  if (!config.devBypassAuth && !isValid(initData, config.botToken)) {
+export function validateTelegramInitData(initData: string): TelegramUser { // проверка initData от телеграма на валидность
+  if (config.devBypassAuth) {
+    const raw = new URLSearchParams(initData).get("user");
+    if (!raw) {
+      throw new Error("Telegram initData has no user");
+    }
+    return JSON.parse(raw) as TelegramUser;
+  }
+
+  if (!isValid(initData, config.botToken)) {
     throw new Error("Telegram initData signature mismatch");
   }
 
@@ -30,16 +38,16 @@ export function validateTelegramInitData(initData: string): TelegramUser {
   return user;
 }
 
-export function createSessionToken(playerId: number): string {
+export function createSessionToken(playerId: number): string { // создание токена с playerId
   return jwt.sign({ playerId }, config.sessionSecret);
 }
 
-export function verifySessionToken(token: string): number {
+export function verifySessionToken(token: string): number { // проверка токена на валидность и получение playerId
   const payload = jwt.verify(token, config.sessionSecret) as { playerId: number };
   return payload.playerId;
 }
 
-export function requireAuth(req: Request, res: Response, next: NextFunction): void {
+export function requireAuth(req: Request, res: Response, next: NextFunction): void { /// проверка авторизации по токену
   const header = req.header("authorization");
   const token = header?.startsWith("Bearer ") ? header.slice("Bearer ".length) : undefined;
 
