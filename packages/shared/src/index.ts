@@ -6,6 +6,18 @@ export type PlayerDto = {
   currentLocationId: string | null;
 };
 
+export type Mobs = {
+  id: number
+  name: string
+  description: string
+  level: number
+  health: number
+  strength: number
+  loot: string[]
+  pointsReward: number
+  locationId: string
+}
+
 export type InventoryItemDto = {
   id: number;
   itemType: string;

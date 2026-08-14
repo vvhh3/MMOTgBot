@@ -28,3 +28,9 @@
 | `src/db/schema.ts` | Drizzle-схема таблиц: `locations`, `players`, `inventory_items`, `events`. |
 | `src/presence.ts` | In-memory отслеживание игроков по локациям (кто где находится). |
 | `src/bot.ts` | Точка входа Telegram-бота: команда `/start` и кнопка открытия Mini App. |
+
+
+
+
+создать миграцию : 
+- npm run db:generate --workspace @mmobot/server
