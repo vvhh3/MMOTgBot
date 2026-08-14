@@ -9,6 +9,7 @@ import { config } from "./config.js";
 import { locations, mobs } from "./db/schema.js";
 import type { EventRow, InventoryItemRow, LocationRow, PlayerRow,MobRow } from "./db/schema.js";
 
+export type { EventRow, InventoryItemRow, LocationRow, PlayerRow, MobRow } from "./db/schema.js";
 
 // Создаём папку для БД, если её ещё нет (например, apps/server/data).
 fs.mkdirSync(path.dirname(config.databasePath), { recursive: true });
