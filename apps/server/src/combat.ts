@@ -88,13 +88,13 @@ export function moveCombatAction(
         .run();
 
     if (status === "victory" || status === "defeat") {
-        endCombatSession(status, player, mob);
+        endCombatSession(status, player, mob, session.id);
     }
 
     return buildCombatState(mob, player, mobHp, status, log);
 }
 
-function endCombatSession(status: "victory" | "defeat", player: PlayerRow, mob: MobRow): void {
+function endCombatSession(status: "victory" | "defeat", player: PlayerRow, mob: MobRow, sessionId: number): void {
     const now = new Date().toISOString();
 
     if (status === "victory") {
@@ -134,6 +134,7 @@ function endCombatSession(status: "victory" | "defeat", player: PlayerRow, mob: 
             .values({ playerId: player.id, locationId: mob.locationId, type: "death", createdAt: now })
             .run();
 
+        db.delete(combatSessions).where(eq(combatSessions.id, sessionId)) // удалить запись по окончанию битвы
         // телепортируем игрока на стартовую локацию ("square" из сида)
         movePlayer(toPlayerDto({ ...player, currentLocationId: "square" }), "square");
     }

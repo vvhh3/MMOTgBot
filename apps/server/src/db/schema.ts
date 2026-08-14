@@ -38,7 +38,6 @@ export const mobs = sqliteTable('mobs',{
   name: text("name").notNull(),
   description: text("description").notNull(),
   level: integer("level").notNull(),
-  health: integer("health").notNull(),
   maxHealth: integer("max_health").notNull(),
   strength: integer("strength").notNull(),
   defense: integer("defense").notNull(),

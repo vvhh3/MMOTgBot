@@ -1,0 +1,1 @@
+ALTER TABLE `mobs` DROP COLUMN `health`;

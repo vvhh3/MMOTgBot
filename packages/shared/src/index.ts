@@ -15,7 +15,6 @@ export type MobDto = { // описание мобов
   name: string
   description: string
   level: number
-  health: number
   maxHealth: number
   strength: number
   defense: number

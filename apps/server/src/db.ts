@@ -41,11 +41,11 @@ export function initializeDatabase(): void {
   // Стартовые мобы. locationId должен ссылаться на существующую локацию из seedLocations,
   // иначе сработает проверка FOREIGN KEY.
   const seedMobs: MobDto[] = [
-    { id: 0, name: "Крыса", description: "какое то описание", level: 1, loot: ['Кусок сыра'], pointsReward: 10, locationId: "square",health:10, maxHealth: 10, strength: 2, defense: 0, respawnSeconds: 60 },
-    { id: 1, name: "Громила", description: "какое то описание", level: 2, loot: ['Кусок мяса'], pointsReward: 25, locationId: "market", health:25 ,maxHealth: 25, strength: 5, defense: 1, respawnSeconds: 120 },
-    { id: 2, name: "Ржавый дрон", description: "какое то описание", level: 3, loot: ['Ржавый механизм'], pointsReward: 30, locationId: "park",health: 30, maxHealth: 30, strength: 6, defense: 2, respawnSeconds: 120 },
-    { id: 3, name: "Страж архива", description: "какое то описание", level: 4, loot: ['Архивный документ'], pointsReward: 45, locationId: "forest", health: 45,maxHealth: 45, strength: 8, defense: 3, respawnSeconds: 180 },
-    { id: 4, name: "Снайпер", description: "какое то описание", level: 5, loot: ['Снайперская винтовка'], pointsReward: 60, locationId: "railway", health: 60,maxHealth: 60, strength: 12, defense: 4, respawnSeconds: 240 }
+    { id: 0, name: "Крыса", description: "какое то описание", level: 1, loot: ['Кусок сыра'], pointsReward: 10, locationId: "square", maxHealth: 10, strength: 2, defense: 0, respawnSeconds: 60 },
+    { id: 1, name: "Громила", description: "какое то описание", level: 2, loot: ['Кусок мяса'], pointsReward: 25, locationId: "market" ,maxHealth: 25, strength: 5, defense: 1, respawnSeconds: 120 },
+    { id: 2, name: "Ржавый дрон", description: "какое то описание", level: 3, loot: ['Ржавый механизм'], pointsReward: 30, locationId: "park", maxHealth: 30, strength: 6, defense: 2, respawnSeconds: 120 },
+    { id: 3, name: "Страж архива", description: "какое то описание", level: 4, loot: ['Архивный документ'], pointsReward: 45, locationId: "forest",maxHealth: 45, strength: 8, defense: 3, respawnSeconds: 180 },
+    { id: 4, name: "Снайпер", description: "какое то описание", level: 5, loot: ['Снайперская винтовка'], pointsReward: 60, locationId: "railway",maxHealth: 60, strength: 12, defense: 4, respawnSeconds: 240 }
   ]
 
   // Вставляем сид. onConflictDoNothing — если запись с таким же id/primary key уже есть,
@@ -83,7 +83,6 @@ export function toMobDto(row: MobRow): MobDto{
     name: row.name,
     description: row.description,
     level: row.level,
-    health: row.health,
     maxHealth: row.maxHealth,
     strength: row.strength,
     defense: row.defense,
