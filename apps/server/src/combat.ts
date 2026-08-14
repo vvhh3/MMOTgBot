@@ -139,6 +139,12 @@ function endCombatSession(status: "victory" | "defeat", player: PlayerRow, mob: 
     }
 }
 
+// Отдаёт текущее состояние активного боя для опроса клиентом
+// (клиент периодически дёргает GET /combat/state, чтобы видеть актуальные HP).
+export function getCombatState(player: PlayerRow, session: CombatSessionRow, mob: MobRow): CombatStateResponse {
+    return buildCombatState(mob, player, session.mobHealth, "active", combatSessionsLogs.get(session.id) ?? []);
+}
+
 export function isMobAlive(mob: MobRow): boolean {
     const check = mobRespawnUntil.get(mob.id)
     return !check || Date.now() >= check // !check - если моб = undefined то true, Date.now() >= check - возродился ли моб или нет ещё

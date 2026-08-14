@@ -6,6 +6,9 @@ import { fileURLToPath } from "node:url";
 import type {
   AuthRequest,
   AuthResponse,
+  CombatActionRequest,
+  CombatActionResponse,
+  CombatStartRequest,
   EnterLocationResponse,
   LocationActionRequest,
   LocationActionResponse,
@@ -14,9 +17,10 @@ import type {
   MeResponse
 } from "@mmobot/shared";
 import { createSessionToken, requireAuth, validateTelegramInitData, type AuthedRequest } from "./auth.js";
+import { getCombatState, isMobAlive, moveCombatAction, startCombat } from "./combat.js";
 import { config } from "./config.js";
 import { db, initializeDatabase, toEventDto, toInventoryItemDto, toLocationDto, toPlayerDto, toMobDto } from "./db.js";
-import { events, inventoryItems, locations, players, mobs } from "./db/schema.js";
+import { combatSessions, events, inventoryItems, locations, players, mobs } from "./db/schema.js";
 import { getPlayersInLocation, hydratePresenceFromDatabase, movePlayer } from "./presence.js";
 
 const actions = [
@@ -205,6 +209,113 @@ export function createApp(): express.Express {
     res.json(response);
   });
 
+  // === БОЁВКА ===
+
+  // НАЧАТЬ БОЙ
+  app.post("/combat/start", requireAuth, (req, res) => {
+    const player = (req as AuthedRequest).player;
+    const body = req.body as CombatStartRequest;
+
+    // 1. Моб существует? (mobId приходит строкой из JSON, а id в БД — число)
+    const mob = db.select().from(mobs).where(eq(mobs.id, Number(body.mobId))).get();
+    if (!mob) {
+      res.status(404).json({ error: "Mob not found" });
+      return;
+    }
+
+    // 2. Игрок в той же локации, что и моб?
+    if (player.currentLocationId !== mob.locationId) {
+      res.status(409).json({ error: "Enter this location before fighting" });
+      return;
+    }
+
+    // 3. Нет ли уже активного боя? (уникальный индекс и так не даст дубль,
+    //    но лучше вернуть понятную ошибку заранее)
+    const active = db
+      .select()
+      .from(combatSessions)
+      .where(eq(combatSessions.playerId, player.id))
+      .get();
+    if (active) {
+      res.status(409).json({ error: "You already have an active combat" });
+      return;
+    }
+
+    // 4. Моб не в респауне?
+    if (!isMobAlive(mob)) {
+      res.status(409).json({ error: "This mob is defeated, come back later" });
+      return;
+    }
+
+    // 5. Начинаем бой
+    const state = startCombat(player, mob);
+    res.json(state);
+  });
+
+  // СДЕЛАТЬ ХОД: POST /combat/action  (action: "attack" | "flee")
+  app.post("/combat/action", requireAuth, (req, res) => {
+    const player = (req as AuthedRequest).player;
+    const body = req.body as CombatActionRequest;
+
+    // 1. Есть ли активная сессия боя у игрока?
+    const session = db
+      .select()
+      .from(combatSessions)
+      .where(eq(combatSessions.playerId, player.id))
+      .get();
+    if (!session || session.status !== "active") {
+      res.status(409).json({ error: "No active combat" });
+      return;
+    }
+
+    // 2. Берём моба из сессии
+    const mob = db.select().from(mobs).where(eq(mobs.id, session.mobId)).get();
+    if (!mob) {
+      res.status(404).json({ error: "Mob not found" });
+      return;
+    }
+
+    // 3. Совершаем ход: внутри обновляются HP, инвентарь, очки и события
+    const state = moveCombatAction(player, mob, session, body.action);
+
+    // 4. Перечитываем игрока и инвентарь из БД — они могли измениться после боя
+    //    (лут, очки, HP), поэтому отдаём клиенту свежие данные.
+    const updatedPlayer = db.select().from(players).where(eq(players.id, player.id)).get()!;
+    const inventory = db
+      .select()
+      .from(inventoryItems)
+      .where(eq(inventoryItems.playerId, player.id))
+      .orderBy(desc(inventoryItems.acquiredAt))
+      .all();
+
+    res.json({
+      state,
+      player: toPlayerDto(updatedPlayer),
+      inventory: inventory.map(toInventoryItemDto)
+    } satisfies CombatActionResponse);
+  });
+
+  // ТЕКУЩЕЕ СОСТОЯНИЕ БОЯ: GET /combat/state
+  // Клиент опрашивает этот роут по таймеру, чтобы видеть актуальные HP без лишних действий.
+  app.get("/combat/state", requireAuth, (req, res) => {
+    const player = (req as AuthedRequest).player;
+
+    // 1. Есть ли активная сессия?
+    const session = db
+      .select()
+      .from(combatSessions)
+      .where(eq(combatSessions.playerId, player.id))
+      .get();
+    if (!session || session.status !== "active") {
+      res.status(404).json({ error: "No active combat" });
+      return;
+    }
+
+    // 2. Берём моба и возвращаем текущее состояние
+    const mob = db.select().from(mobs).where(eq(mobs.id, session.mobId)).get()!;
+    res.json(getCombatState(player, session, mob));
+  });
+
   return app;
 }
 
@@ -232,11 +343,13 @@ function buildLocationState(locationId: string): LocationStateResponse | null {
   const locationMobs = db.select().from(mobs).where(eq(mobs.locationId, locationId)).all()// что за eq?? -  это оператор Drizzle 
   //для сравнения «колонка = значение»: 
   //where(eq(mobs.locationId, locationId)) генерирует WHERE location_id = '<локация>'
+  // Фильтруем только живых мобов: убитых прячем до респауна.
+  const aliveMobs = locationMobs.filter(isMobAlive)
   return {
     location: toLocationDto(location),
     players: getPlayersInLocation(locationId),
     actions: [...actions],
-    mobs: locationMobs.map(toMobDto),
+    mobs: aliveMobs.map(toMobDto),
     recentEvents: recentEvents.map(toEventDto),
     serverTime: new Date().toISOString()
   };
@@ -252,7 +365,8 @@ function serveClient(app: express.Express): void {
       req.path === "/health" ||
       req.path === "/auth" ||
       req.path === "/me" ||
-      req.path.startsWith("/locations");
+      req.path.startsWith("/locations") ||
+      req.path.startsWith("/combat");
     if (isApiPath) {
       next();
       return;
