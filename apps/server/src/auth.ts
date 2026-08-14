@@ -1,5 +1,6 @@
-import crypto from "node:crypto";
+import jwt from "jsonwebtoken";
 import { eq } from "drizzle-orm";
+import { isValid, parse } from "@tma.js/init-data-node";
 import type { Request, Response, NextFunction } from "express";
 import { config } from "./config.js";
 import { db, type PlayerRow } from "./db.js";
@@ -17,59 +18,25 @@ export type AuthedRequest = Request & {
 };
 
 export function validateTelegramInitData(initData: string): TelegramUser {
-  const params = new URLSearchParams(initData);
-  const hash = params.get("hash");
-  if (!hash) {
-    throw new Error("Telegram initData has no hash");
-  }
-
-  params.delete("hash");
-  const dataCheckString = [...params.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([key, value]) => `${key}=${value}`)
-    .join("\n");
-
-  const secretKey = crypto.createHmac("sha256", "WebAppData").update(config.botToken).digest();
-  const expectedHash = crypto.createHmac("sha256", secretKey).update(dataCheckString).digest("hex");
-
-  const signatureMatches =
-    hash.length === expectedHash.length && crypto.timingSafeEqual(Buffer.from(hash, "hex"), Buffer.from(expectedHash, "hex"));
-  if (!signatureMatches && !config.devBypassAuth) {
+  if (!config.devBypassAuth && !isValid(initData, config.botToken)) {
     throw new Error("Telegram initData signature mismatch");
   }
 
-  const userRaw = params.get("user");
-  if (!userRaw) {
+  const user = parse(initData).user;
+  if (!user) {
     throw new Error("Telegram initData has no user");
-  }
-
-  const user = JSON.parse(userRaw) as TelegramUser;
-  if (!user.id) {
-    throw new Error("Telegram user id is missing");
   }
 
   return user;
 }
 
 export function createSessionToken(playerId: number): string {
-  const payload = Buffer.from(JSON.stringify({ playerId, iat: Date.now() }), "utf8").toString("base64url");
-  const signature = crypto.createHmac("sha256", config.sessionSecret).update(payload).digest("base64url");
-  return `${payload}.${signature}`;
+  return jwt.sign({ playerId }, config.sessionSecret);
 }
 
 export function verifySessionToken(token: string): number {
-  const [payload, signature] = token.split(".");
-  if (!payload || !signature) {
-    throw new Error("Malformed token");
-  }
-
-  const expected = crypto.createHmac("sha256", config.sessionSecret).update(payload).digest("base64url");
-  if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) {
-    throw new Error("Bad token signature");
-  }
-
-  const parsed = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as { playerId: number };
-  return parsed.playerId;
+  const payload = jwt.verify(token, config.sessionSecret) as { playerId: number };
+  return payload.playerId;
 }
 
 export function requireAuth(req: Request, res: Response, next: NextFunction): void {

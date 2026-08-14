@@ -9,8 +9,8 @@ import {
   getMe,
   performLocationAction
 } from "./api";
+
 import { getTelegramInitData } from "./telegram";
-import "./styles.css";
 
 type Screen = "map" | "location";
 
