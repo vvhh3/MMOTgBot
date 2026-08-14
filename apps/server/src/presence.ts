@@ -3,8 +3,10 @@ import { isNotNull } from "drizzle-orm";
 import { db, toPlayerDto, type PlayerRow } from "./db.js";
 import { players } from "./db/schema.js";
 
+// in-memory реестр игроков по локациям: локация -> (id игрока -> игрок)
 const locationPlayers = new Map<string, Map<number, PlayerDto>>();
 
+// при старте сервера выгружает всех игроков с локацией из БД в память
 export function hydratePresenceFromDatabase(): void {
   locationPlayers.clear();
   const rows = db
@@ -17,6 +19,7 @@ export function hydratePresenceFromDatabase(): void {
   }
 }
 
+// переводит игрока в новую локацию: убирает из всех старых, кладёт в новую
 export function movePlayer(player: PlayerDto, locationId: string): void {
   for (const players of locationPlayers.values()) {
     players.delete(player.id);
@@ -25,11 +28,13 @@ export function movePlayer(player: PlayerDto, locationId: string): void {
   addPlayerToPresence({ ...player, currentLocationId: locationId }, locationId);
 }
 
+// возвращает массив игроков в указанной локации
 export function getPlayersInLocation(locationId: string): PlayerDto[] {
   const players = locationPlayers.get(locationId);
   return players ? [...players.values()] : [];
 }
 
+// кладёт игрока в карту его локации (null локация игнорируется)
 function addPlayerToPresence(player: PlayerDto, locationId: string | null): void {
   if (!locationId) {
     return;

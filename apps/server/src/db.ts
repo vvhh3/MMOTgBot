@@ -23,11 +23,11 @@ export function initializeDatabase(): void {
   migrate(db, { migrationsFolder: migrationsFolder() });
 
   const seedLocations: LocationDto[] = [
-    { id: "station", name: "Станция", description: "Тихая точка входа в город.", x: 18, y: 72 },
-    { id: "market", name: "Рынок", description: "Площадь с припасами и слухами.", x: 46, y: 58 },
-    { id: "workshop", name: "Мастерская", description: "Здесь чинят вещи и находят детали.", x: 70, y: 38 },
-    { id: "archive", name: "Архив", description: "Пыльные комнаты с полезными записями.", x: 32, y: 25 },
-    { id: "tower", name: "Башня", description: "Высокая обзорная точка.", x: 82, y: 76 }
+    { id: "square", name: "Площадь", description: "Описание площади", x: 18, y: 72 },
+    { id: "market", name: "Сити парк", description: "Описание сити парка", x: 46, y: 58 },
+    { id: "park", name: "Парк Победы", description: "Описание парка победы", x: 70, y: 38 },
+    { id: "forest", name: "Солдатсикй лес", description: "Описание солдатского леса", x: 32, y: 25 },
+    { id: "railway", name: "Липяги", description: "Описание станции", x: 82, y: 76 }
   ];
 
   db.insert(locations).values(seedLocations).onConflictDoNothing().run();
