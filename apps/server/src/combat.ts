@@ -33,6 +33,7 @@ const startCombatSessions = async (player: PlayerRow, mob: MobRow) => {
     }
 }
 
+
 const buildCombatState = async (mob: MobRow,player: PlayerRow,mobHp: number,status: CombatStateResponse["status"],log: CombatLogEntry[]) => {
     try{
         
