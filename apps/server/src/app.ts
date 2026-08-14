@@ -15,8 +15,8 @@ import type {
 } from "@mmobot/shared";
 import { createSessionToken, requireAuth, validateTelegramInitData, type AuthedRequest } from "./auth.js";
 import { config } from "./config.js";
-import { db, initializeDatabase, toEventDto, toInventoryItemDto, toLocationDto, toPlayerDto,toMobDto } from "./db.js";
-import { events, inventoryItems, locations, players,mobs } from "./db/schema.js";
+import { db, initializeDatabase, toEventDto, toInventoryItemDto, toLocationDto, toPlayerDto, toMobDto } from "./db.js";
+import { events, inventoryItems, locations, players, mobs } from "./db/schema.js";
 import { getPlayersInLocation, hydratePresenceFromDatabase, movePlayer } from "./presence.js";
 
 const actions = [
@@ -61,8 +61,8 @@ export function createApp(): express.Express {
     try {
       const telegramUser = validateTelegramInitData(body.initData);
       const now = new Date().toISOString();
-      const name = telegramUser.username ?? 
-      [telegramUser.first_name, telegramUser.last_name].filter(Boolean).join(" ") ??
+      const name = telegramUser.username ??
+        [telegramUser.first_name, telegramUser.last_name].filter(Boolean).join(" ") ??
         `Player ${telegramUser.id}`;
 
       db.insert(players)
@@ -229,8 +229,9 @@ function buildLocationState(locationId: string): LocationStateResponse | null {
     .orderBy(desc(events.createdAt), desc(events.id))
     .limit(10)
     .all();
-  const locationMobs = db.select().from(mobs).where(eq(mobs.locationId,locationId)).all()// что за eq??
-
+  const locationMobs = db.select().from(mobs).where(eq(mobs.locationId, locationId)).all()// что за eq?? -  это оператор Drizzle 
+  //для сравнения «колонка = значение»: 
+  //where(eq(mobs.locationId, locationId)) генерирует WHERE location_id = '<локация>'
   return {
     location: toLocationDto(location),
     players: getPlayersInLocation(locationId),
