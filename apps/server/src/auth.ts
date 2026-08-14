@@ -47,6 +47,15 @@ export function verifySessionToken(token: string): number { // проверка 
   return payload.playerId;
 }
 
+export const requireAdmin = (req: Request,res: Response,next: NextFunction) => {
+  const player = (req as AuthedRequest).player
+  if(!config.adminIds.includes(player.id)){
+    res.status(400).json({error: "Admin access required"})
+    return
+  }
+  next()
+}
+
 export function requireAuth(req: Request, res: Response, next: NextFunction): void { /// проверка авторизации по токену
   const header = req.header("authorization");
   const token = header?.startsWith("Bearer ") ? header.slice("Bearer ".length) : undefined;

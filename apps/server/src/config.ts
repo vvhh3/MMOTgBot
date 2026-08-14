@@ -11,7 +11,8 @@ export const config = {
   clientUrl: process.env.CLIENT_URL ?? "http://localhost:5173",
   corsOrigins: parseOrigins(process.env.CORS_ORIGINS),
   databasePath: path.resolve(process.env.DATABASE_PATH ?? "./apps/server/data/mmobot.db"),
-  devBypassAuth: process.env.DEV_BYPASS_AUTH === "true"
+  devBypassAuth: process.env.DEV_BYPASS_AUTH === "true",
+  adminIds: parseNumberList(process.env.ADMIN_IDS)
 };
 
 function parseOrigins(raw: string | undefined): string[] {
@@ -22,6 +23,11 @@ function parseOrigins(raw: string | undefined): string[] {
     .split(",")
     .map((origin) => origin.trim())
     .filter(Boolean);
+}
+
+function parseNumberList(raw: string| undefined): number[]{
+  if(!raw) return []
+  return raw.split(',').map((v) => Number(v.trim()))
 }
 
 function readEnv(name: string): string {
