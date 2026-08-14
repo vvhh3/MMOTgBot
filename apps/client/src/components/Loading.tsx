@@ -1,5 +1,5 @@
 import {Progress,Box} from "@radix-ui/themes";
-import Spinner  from "./ui/Spinner/Spinner.jsx";
+import Spinner  from "./ui/Spinner/Spinner";
 export default function Loading()
 {
     return(

@@ -11,10 +11,12 @@
   },
   "dependencies": {
     "@mmobot/shared": "file:../../packages/shared",
+    "@radix-ui/themes": "^3.3.0",
     "@tailwindcss/vite": "^4.3.3",
     "@vitejs/plugin-react": "^4.3.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-router-dom": "^7.18.2",
     "tailwindcss": "^4.3.3",
     "vite": "^6.0.7"
   },
