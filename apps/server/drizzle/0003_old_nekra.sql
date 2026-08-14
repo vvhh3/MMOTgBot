@@ -1,0 +1,1 @@
+ALTER TABLE `mobs` ADD `health` integer NOT NULL;
