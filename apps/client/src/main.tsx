@@ -16,6 +16,7 @@ import {
 
 import { getTelegramInitData } from "./telegram";
 import { Theme } from "@radix-ui/themes";
+import Home from "./components/Home";
 
 type Screen = "map" | "location";
 
@@ -242,6 +243,7 @@ createRoot(document.getElementById("root")!).render(
        <BrowserRouter>
            <Routes>
               <Route path='/' element={<Loading/>}></Route>
+              <Route path="/Home" element={<Home/>}></Route>
            </Routes>
            </BrowserRouter>
     </Theme>
