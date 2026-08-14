@@ -78,12 +78,7 @@ npm run dev:bot
 
 ## API
 
-- `POST /auth`
-- `GET /me`
-- `GET /locations`
-- `GET /locations/:id/state`
-- `POST /locations/:id/enter`
-- `POST /locations/:id/action`
+Полная документация API вынесена в отдельный файл: [**API.md**](./API.md).
 
 Все DTO запросов и ответов живут в `packages/shared/src/index.ts` и используются и клиентом, и сервером.
 
