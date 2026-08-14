@@ -41,13 +41,13 @@ export type CombatStateResponse = { // описание боя
   log: CombatLogEntry[];
 };
 
-// export type CombatStartRequest = {
-//   mobId: string;
-// }
+export type CombatStartRequest = {
+  mobId: string;
+}
 
-// export type CombatActionRequest = {
-//   action: "attack" | "flee";
-// }
+export type CombatActionRequest = {
+  action: "attack" | "flee";
+}
 
 export type CombatActionResponse = {
   state: CombatStateResponse;
