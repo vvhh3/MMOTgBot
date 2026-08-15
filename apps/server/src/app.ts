@@ -2,7 +2,7 @@ import { and, asc, desc, eq, sql } from "drizzle-orm";
 import cors from "cors";
 import express from "express";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath } from "node:url"
 import type {
   AuthRequest,
   AuthResponse,
@@ -15,7 +15,7 @@ import type {
   LocationStateResponse,
   LocationsResponse,
   MeResponse
-} from "@mmobot/shared";
+} from "@mmobot/shared"
 import { createSessionToken, requireAdmin, requireAuth, validateTelegramInitData, type AuthedRequest } from "./auth.js";
 import { getCombatState, isMobAlive, moveCombatAction, startCombat } from "./combat.js";
 import { config } from "./config.js";
