@@ -25,13 +25,7 @@ import { getPlayersInLocation, hydratePresenceFromDatabase, movePlayer } from ".
 
 import { createMobRoutes } from "./mobs.js";
 import { createItemRoutes } from "./items.js";
-const actions = [
-  {
-    id: "scavenge",
-    label: "Выполнить действие",
-    description: "Найти припасы в текущей локации."
-  }
-] as const;
+import { buildLocationState } from "./state.js";
 
 export function createApp(): express.Express {
   initializeDatabase();
@@ -331,43 +325,6 @@ export function createApp(): express.Express {
 
   return app;
 }
-
-function buildLocationState(locationId: string): LocationStateResponse | null {
-  const location = db.select().from(locations).where(eq(locations.id, locationId)).get();
-  if (!location) {
-    return null;
-  }
-
-  const recentEvents = db
-    .select({
-      id: events.id,
-      playerId: events.playerId,
-      playerName: players.name,
-      locationId: events.locationId,
-      type: events.type,
-      createdAt: events.createdAt
-    })
-    .from(events)
-    .innerJoin(players, eq(events.playerId, players.id))
-    .where(eq(events.locationId, locationId))
-    .orderBy(desc(events.createdAt), desc(events.id))
-    .limit(10)
-    .all();
-  const locationMobs = db.select().from(mobs).where(eq(mobs.locationId, locationId)).all()// что за eq?? -  это оператор Drizzle 
-  //для сравнения «колонка = значение»: 
-  //where(eq(mobs.locationId, locationId)) генерирует WHERE location_id = '<локация>'
-  // Фильтруем только живых мобов: убитых прячем до респауна.
-  const aliveMobs = locationMobs.filter(isMobAlive)
-  return {
-    location: toLocationDto(location),
-    players: getPlayersInLocation(locationId),
-    actions: [...actions],
-    mobs: aliveMobs.map(toMobDto),
-    recentEvents: recentEvents.map(toEventDto),
-    serverTime: new Date().toISOString()
-  };
-}
-
 
 function serveClient(app: express.Express): void {
   const currentDir = path.dirname(fileURLToPath(import.meta.url));
