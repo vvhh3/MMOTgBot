@@ -3,7 +3,7 @@ import type { Express, Request, Response } from "express";
 import { db, toMobDto } from "./db.js";
 import { locations, mobs } from "./db/schema.js";
 import { asc, eq } from "drizzle-orm";
-import { MobResponse, MobsResponse, MobUpdateRequest } from "@mmobot/shared";
+import { MobDto, MobResponse, MobsResponse } from "@mmobot/shared";
 
 export const createMobRoutes = async (app: Express) => {
 
@@ -74,7 +74,7 @@ export const createMobRoutes = async (app: Express) => {
             res.status(400).json({ error: "mob not found" })
             return
         }
-        const state = req.body as MobUpdateRequest
+        const state = req.body as MobDto
 
         if (state.locationId) {
             const location = db.select().from(locations).where(eq(locations.id, state.locationId)).get()

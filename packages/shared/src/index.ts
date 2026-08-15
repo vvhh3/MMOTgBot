@@ -24,32 +24,6 @@ export type MobDto = { // описание мобов
   respawnSeconds: number
 }
 
-export type MobCreateRequest = { // создание моба
-  name: string
-  description: string
-  level: number
-  maxHealth: number
-  strength: number
-  defense: number
-  loot: number[]
-  pointsReward: number
-  locationId: string
-  respawnSeconds: number
-}
-
-export type MobUpdateRequest = {
-  name: string
-  description: string
-  level: number
-  maxHealth: number
-  strength: number
-  defense: number
-  loot: number[]
-  pointsReward: number
-  locationId: string
-  respawnSeconds: number
-}
-
 export type MobsResponse = {
   mobs: MobDto[]
 }
@@ -62,7 +36,7 @@ export type MobResponse = {
 export type CombatLogEntry = { // типо логирование
   text: string;
   at: string;
-};
+}
 
 export type CombatStateResponse = { // описание боя 
   mob: MobDto;
@@ -72,7 +46,7 @@ export type CombatStateResponse = { // описание боя
   mobMaxHp: number;
   status: "active" | "victory" | "defeat" | "fled";
   log: CombatLogEntry[];
-};
+}
 
 export type CombatStartRequest = {
   mobId: string;
@@ -82,18 +56,40 @@ export type CombatActionRequest = {
   action: "attack" | "flee";
 }
 
+
 export type CombatActionResponse = {
   state: CombatStateResponse;
   player: PlayerDto;
   inventory: InventoryItemDto[];
-};
+}
+
+
+export type ItemDto =  {
+    id: number
+    name: string
+    description: string
+    type: "weapon" | "armor" | "consumable" | "material" | "other"
+    damage: number
+    defense: number
+    healAmount: number
+    price: number
+}
+
+export type ItemsResponse = {
+  items: ItemDto[]
+}
+
+export type ItemResponse = {
+  item: ItemDto
+}
+
 
 export type InventoryItemDto = {
   id: number;
   itemType: number;
   quantity: number;
   acquiredAt: string;
-};
+}
 
 export type LocationDto = {
   id: string;
@@ -101,7 +97,7 @@ export type LocationDto = {
   description: string;
   x: number;
   y: number;
-};
+}
 
 export type ActionDto = {
   id: string;

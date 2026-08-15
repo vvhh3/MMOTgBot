@@ -24,6 +24,7 @@ import { combatSessions, events, inventoryItems, locations, players, mobs } from
 import { getPlayersInLocation, hydratePresenceFromDatabase, movePlayer } from "./presence.js";
 
 import { createMobRoutes } from "./mobs.js";
+import { createItemRoutes } from "./items.js";
 const actions = [
   {
     id: "scavenge",
@@ -55,6 +56,10 @@ export function createApp(): express.Express {
   //Мобы
   app.use("/mobs",requireAuth,requireAdmin)
   createMobRoutes(app)
+
+  //Предметы
+  app.use("/items",requireAuth,requireAdmin)
+  createItemRoutes(app)
   
   app.get("/health", (_req, res) => {
     res.json({ ok: true });

@@ -4,12 +4,12 @@ import { fileURLToPath } from "node:url";
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
-import type { EventDto, InventoryItemDto, LocationDto, PlayerDto,MobDto } from "@mmobot/shared";
+import type { EventDto, InventoryItemDto, LocationDto, PlayerDto, MobDto, ItemDto } from "@mmobot/shared";
 import { config } from "./config.js";
 import { locations, mobs } from "./db/schema.js";
-import type { EventRow, InventoryItemRow, LocationRow, PlayerRow,MobRow } from "./db/schema.js";
+import type { EventRow, InventoryItemRow, LocationRow, PlayerRow, MobRow, ItemRow } from "./db/schema.js";
 
-export type { EventRow, InventoryItemRow, LocationRow, PlayerRow, MobRow } from "./db/schema.js";
+export type { EventRow, InventoryItemRow, LocationRow, PlayerRow, MobRow, ItemRow } from "./db/schema.js";
 
 // Создаём папку для БД, если её ещё нет (например, apps/server/data).
 fs.mkdirSync(path.dirname(config.databasePath), { recursive: true });
@@ -92,6 +92,19 @@ export function toMobDto(row: MobRow): MobDto{
     locationId: row.locationId,
     respawnSeconds: row.respawnSeconds
   }
+}
+
+export function toItemDto(row: ItemRow): ItemDto {
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    type: row.type,
+    damage: row.damage,
+    defense: row.defense,
+    healAmount: row.healAmount,
+    price: row.price
+  };
 }
 
 export function toLocationDto(row: LocationRow): LocationDto {
