@@ -31,7 +31,7 @@ export default function Loading(){
                         <p className="font-thin">Инициализация...</p>    
                     </div>
                 </div>
-                <div className="h-5 flex items-center flex-col"> 
+                <div className="h-5 flex items-center flex-col mt-3" > 
                     <Box  width="200px">
                         <Progress value={percentProgress} color="orange" size="3" />
                     </Box>
