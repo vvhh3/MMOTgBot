@@ -4,11 +4,10 @@ import "@radix-ui/themes/styles.css";
 import "./styles.css";
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import type { InventoryItemDto, LocationDto, LocationStateResponse, PlayerDto } from "@mmobot/shared";
-import Loading from'./components/Loading'
+import Loading from './components/Loading'
 import {
   auth,
   enterLocation,
-  getLocationState,
   getLocations,
   getMe,
   performLocationAction
@@ -17,6 +16,9 @@ import {
 import { getTelegramInitData } from "./telegram";
 import { Theme } from "@radix-ui/themes";
 import Home from "./components/Home";
+
+import { connectSocket, getSocket } from "./socket";
+
 
 type Screen = "map" | "location";
 
@@ -45,52 +47,50 @@ function App() {
         const [meData, locationsData] = await Promise.all([getMe(authData.token), getLocations(authData.token)]);
         setPlayer(meData.player);
         setInventory(meData.inventory);
-        setLocations(locationsData.locations);
+        setLocations(locationsData.locations)
+        connectSocket(authData.token)
       })
       .catch((err: unknown) => setError(err instanceof Error ? err.message : "Не удалось войти"));
-  }, []);
+  }, [])
 
   useEffect(() => {
-    if (!token || !selectedLocationId || screen !== "location") {
-      return;
+    const socket = getSocket()
+    if (!socket) {
+      return
     }
 
-    let active = true;
-    const load = () => {
-      getLocationState(token, selectedLocationId)
-        .then((nextState) => {
-          if (active) {
-            setState(nextState);
-          }
-        })
-        .catch((err: unknown) => setError(err instanceof Error ? err.message : "Не удалось обновить локацию"));
+    const onLocationState = (nextState: LocationStateResponse) => {
+      setState(nextState)
+      setSelectedLocationId(nextState.location.id)
     };
 
-    load();
-    const timer = window.setInterval(load, 3000);
+    socket.on("locationState", onLocationState);
     return () => {
-      active = false;
-      window.clearInterval(timer);
+      socket.off("locationState", onLocationState);
     };
-  }, [screen, selectedLocationId, token]);
+  }, [])
+
 
   const currentLocation = useMemo(
     () => locations.find((location) => location.id === selectedLocationId) ?? null,
     [locations, selectedLocationId]
-  );
+  )
 
   async function handleEnter(locationId: string) {
     if (!token) {
-      return;
+      return
     }
 
-    setBusy(true);
-    setError(null);
+    setBusy(true)
+    setError(null)
     try {
       const result = await enterLocation(token, locationId);
       setPlayer(result.player);
       setSelectedLocationId(locationId);
-      setState(result.state);
+      setState(result.state)
+
+      getSocket()?.emit("joinLocation",locationId)
+      
       setScreen("location");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Не удалось войти в локацию");
@@ -110,7 +110,7 @@ function App() {
       const result = await performLocationAction(token, selectedLocationId);
       setPlayer(result.player);
       setInventory(result.inventory);
-      setState(await getLocationState(token, selectedLocationId));
+      // setState(await getLocationState(token, selectedLocationId));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Действие не выполнено");
     } finally {
@@ -179,8 +179,12 @@ function App() {
         <main className="mx-auto max-w-[720px] rounded-lg border border-mist bg-white p-[18px]">
           <button
             className="mb-4 cursor-pointer rounded-lg border border-fog bg-transparent px-3.5 py-2.5 text-forest"
-            onClick={() => setScreen("map")}
-          >
+            onClick={() => {
+              if(selectedLocationId){
+                getSocket()?.emit("leaveLocation",selectedLocationId)
+              }
+              setScreen("map")
+            }}>
             Вернуться к карте
           </button>
           <h1 className="mb-3 text-[28px] leading-[1.15]">
@@ -232,7 +236,7 @@ function Shell({ children, error }: { children?: React.ReactNode; error: string 
           {error}
         </div>
       ) : null}
-      {children ?? <Loading/>}
+      {children ?? <Loading />}
     </div>
   );
 }
@@ -240,12 +244,12 @@ function Shell({ children, error }: { children?: React.ReactNode; error: string 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Theme>
-       <BrowserRouter>
-           <Routes>
-              <Route path='/' element={<Loading/>}></Route>
-              <Route path="/Home" element={<Home/>}></Route>
-           </Routes>
-           </BrowserRouter>
+      <BrowserRouter>
+        <Routes>
+          <Route path='/' element={<Loading />}></Route>
+          <Route path="/Home" element={<Home />}></Route>
+        </Routes>
+      </BrowserRouter>
     </Theme>
   </StrictMode>
 );

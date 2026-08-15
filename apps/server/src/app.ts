@@ -27,6 +27,8 @@ import { createMobRoutes } from "./mobs.js";
 import { createItemRoutes } from "./items.js";
 import { buildLocationState } from "./state.js";
 
+import { broadcastLocation, emitToPlayer } from "./realTime.js";
+
 export function createApp(): express.Express {
   initializeDatabase();
   hydratePresenceFromDatabase();
@@ -48,13 +50,13 @@ export function createApp(): express.Express {
   serveClient(app);
 
   //Мобы
-  app.use("/mobs",requireAuth,requireAdmin)
+  app.use("/mobs", requireAuth, requireAdmin)
   createMobRoutes(app)
 
   //Предметы
-  app.use("/items",requireAuth,requireAdmin)
+  app.use("/items", requireAuth, requireAdmin)
   createItemRoutes(app)
-  
+
   app.get("/health", (_req, res) => {
     res.json({ ok: true });
   });
@@ -136,6 +138,8 @@ export function createApp(): express.Express {
     const updatedPlayer = db.select().from(players).where(eq(players.id, player.id)).get()!;
     movePlayer(toPlayerDto(updatedPlayer), location.id);
 
+    broadcastLocation(location.id)
+
     const response: EnterLocationResponse = {
       player: toPlayerDto(updatedPlayer),
       state: buildLocationState(location.id)!
@@ -210,6 +214,9 @@ export function createApp(): express.Express {
       inventory: inventory.map(toInventoryItemDto),
       event: toEventDto(event)
     };
+
+    broadcastLocation(location.id)
+
     res.json(response);
   });
 
@@ -255,8 +262,11 @@ export function createApp(): express.Express {
     }
 
     // 5. Начинаем бой
-    const state = startCombat(player, mob);
-    res.json(state);
+    const state = startCombat(player, mob)
+
+    emitToPlayer(player.id, "combatState", state)
+
+    res.json(state)
   });
 
   // СДЕЛАТЬ ХОД: POST /combat/action  (action: "attack" | "flee")
@@ -287,13 +297,18 @@ export function createApp(): express.Express {
 
     // 4. Перечитываем игрока и инвентарь из БД — они могли измениться после боя
     //    (лут, очки, HP), поэтому отдаём клиенту свежие данные.
-    const updatedPlayer = db.select().from(players).where(eq(players.id, player.id)).get()!;
+    const updatedPlayer = db.select().from(players).where(eq(players.id, player.id)).get()!
     const inventory = db
       .select()
       .from(inventoryItems)
       .where(eq(inventoryItems.playerId, player.id))
       .orderBy(desc(inventoryItems.acquiredAt))
       .all();
+
+    emitToPlayer(player.id, "combatState", state)
+    emitToPlayer(player.id, "player", toPlayerDto(updatedPlayer))
+    emitToPlayer(player.id, "inventory", inventory)
+    broadcastLocation(mob.locationId)
 
     res.json({
       state,
@@ -330,7 +345,7 @@ function serveClient(app: express.Express): void {
   const currentDir = path.dirname(fileURLToPath(import.meta.url));
   const clientDist = path.resolve(currentDir, "../../client/dist");
 
-  app.use(express.static(clientDist)); 
+  app.use(express.static(clientDist));
   app.get("*", (req, res, next) => { //объяснить это вообще что и зачем
     const isApiPath =
       req.path === "/health" ||
