@@ -41,10 +41,24 @@ export const mobs = sqliteTable('mobs',{
   maxHealth: integer("max_health").notNull(),
   strength: integer("strength").notNull(),
   defense: integer("defense").notNull(),
-  loot: text("loot", { mode: "json" }).$type<string[]>().notNull(),
+  loot: text("loot", { mode: "json" }).$type<number[]>().notNull(),
   pointsReward: integer("points_reward").notNull(),
   locationId: text("location_id").notNull().references(() => locations.id,{onDelete: "cascade"}),
   respawnSeconds: integer("respawn_seconds").notNull(),
+})
+
+// Каталог предметов игры: оружие, броня, расходники и материалы.
+// id — числовой ключ. Лут мобов (mobs.loot) и инвентарь игрока (inventoryItems.itemType)
+// ссылаются на него по числовому id.
+export const items = sqliteTable("items", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  type: text("type", { enum: ["weapon", "armor", "consumable", "material", "other"] as const }).notNull(),
+  damage: integer("damage").notNull().default(0),
+  defense: integer("defense").notNull().default(0),
+  healAmount: integer("heal_amount").notNull().default(0),
+  price: integer("price").notNull().default(0)
 })
 
 // Сессии боя: у игрока в каждый момент может быть максимум один активный бой с мобом.
@@ -72,7 +86,7 @@ export const inventoryItems = sqliteTable("inventory_items",
     playerId: integer("player_id")
       .notNull()
       .references(() => players.id, { onDelete: "cascade" }),
-    itemType: text("item_type").notNull(),
+    itemType: integer("item_type").notNull(),
     quantity: integer("quantity").notNull(),
     acquiredAt: text("acquired_at").notNull()
   },
@@ -107,4 +121,5 @@ export type InventoryItemRow = typeof inventoryItems.$inferSelect;
 export type EventRow = typeof events.$inferSelect & { playerName: string };
 
 export type MobRow = typeof mobs.$inferSelect
+export type ItemRow = typeof items.$inferSelect
 export type CombatSessionRow = typeof combatSessions.$inferSelect;

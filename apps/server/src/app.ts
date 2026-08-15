@@ -167,7 +167,7 @@ export function createApp(): express.Express {
     const now = new Date().toISOString();
     db.transaction((tx) => {
       tx.insert(inventoryItems)
-        .values({ playerId: player.id, itemType: "city-supply", quantity: 1, acquiredAt: now })
+        .values({ playerId: player.id, itemType: 1, quantity: 1, acquiredAt: now })
         .onConflictDoUpdate({
           target: [inventoryItems.playerId, inventoryItems.itemType],
           set: { quantity: sql`${inventoryItems.quantity} + 1`, acquiredAt: now }

@@ -102,7 +102,7 @@ function endCombatSession(status: "victory" | "defeat", player: PlayerRow, mob: 
         for (const item of mob.loot) {
             db.insert(inventoryItems)
                 .values({ playerId: player.id, itemType: item, quantity: 1, acquiredAt: now })
-                .onConflictDoUpdate({
+                .onConflictDoUpdate({ // Если уже существует строка с таким же playerId + itemType, не создавать новую строку, а обновить существующую
                     target: [inventoryItems.playerId, inventoryItems.itemType],
                     set: { quantity: sql`${inventoryItems.quantity} + 1`, acquiredAt: now }
                 })
@@ -120,10 +120,10 @@ function endCombatSession(status: "victory" | "defeat", player: PlayerRow, mob: 
 
         markMobDead(mob);
     } else {
+
         db.update(players)
             .set({
-                points: sql`${players.points} / 10`,
-                health: 1,
+                health: 0,
                 currentLocationId: "square",
                 lastSeenAt: now
             })

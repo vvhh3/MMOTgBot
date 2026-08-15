@@ -18,7 +18,7 @@ export type MobDto = { // описание мобов
   maxHealth: number
   strength: number
   defense: number
-  loot: string[]
+  loot: number[]
   pointsReward: number
   locationId: string
   respawnSeconds: number
@@ -31,7 +31,7 @@ export type MobCreateRequest = { // создание моба
   maxHealth: number
   strength: number
   defense: number
-  loot: string[]
+  loot: number[]
   pointsReward: number
   locationId: string
   respawnSeconds: number
@@ -44,7 +44,7 @@ export type MobUpdateRequest = {
   maxHealth: number
   strength: number
   defense: number
-  loot: string[]
+  loot: number[]
   pointsReward: number
   locationId: string
   respawnSeconds: number
@@ -90,7 +90,7 @@ export type CombatActionResponse = {
 
 export type InventoryItemDto = {
   id: number;
-  itemType: string;
+  itemType: number;
   quantity: number;
   acquiredAt: string;
 };
