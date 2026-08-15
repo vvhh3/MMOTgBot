@@ -16,13 +16,14 @@ import type {
   LocationsResponse,
   MeResponse
 } from "@mmobot/shared";
-import { createSessionToken, requireAuth, validateTelegramInitData, type AuthedRequest } from "./auth.js";
+import { createSessionToken, requireAdmin, requireAuth, validateTelegramInitData, type AuthedRequest } from "./auth.js";
 import { getCombatState, isMobAlive, moveCombatAction, startCombat } from "./combat.js";
 import { config } from "./config.js";
 import { db, initializeDatabase, toEventDto, toInventoryItemDto, toLocationDto, toPlayerDto, toMobDto } from "./db.js";
 import { combatSessions, events, inventoryItems, locations, players, mobs } from "./db/schema.js";
 import { getPlayersInLocation, hydratePresenceFromDatabase, movePlayer } from "./presence.js";
 
+import { createMobRoutes } from "./mobs.js";
 const actions = [
   {
     id: "scavenge",
@@ -51,6 +52,10 @@ export function createApp(): express.Express {
 
   serveClient(app);
 
+  //Мобы
+  app.use("/mobs",requireAuth,requireAdmin)
+  createMobRoutes(app)
+  
   app.get("/health", (_req, res) => {
     res.json({ ok: true });
   });
@@ -358,17 +363,19 @@ function buildLocationState(locationId: string): LocationStateResponse | null {
   };
 }
 
+
 function serveClient(app: express.Express): void {
   const currentDir = path.dirname(fileURLToPath(import.meta.url));
   const clientDist = path.resolve(currentDir, "../../client/dist");
 
-  app.use(express.static(clientDist));
-  app.get("*", (req, res, next) => {
+  app.use(express.static(clientDist)); 
+  app.get("*", (req, res, next) => { //объяснить это вообще что и зачем
     const isApiPath =
       req.path === "/health" ||
       req.path === "/auth" ||
       req.path === "/me" ||
       req.path.startsWith("/locations") ||
+      req.path.startsWith("/mobs") ||
       req.path.startsWith("/combat");
     if (isApiPath) {
       next();

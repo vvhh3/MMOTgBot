@@ -47,7 +47,8 @@ export function verifySessionToken(token: string): number { // проверка 
   return payload.playerId;
 }
 
-export const requireAdmin = (req: Request,res: Response,next: NextFunction) => {
+//проверка на админов
+export const requireAdmin = (req: Request,res: Response,next: NextFunction) => { 
   const player = (req as AuthedRequest).player
   if(!config.adminIds.includes(player.id)){
     res.status(400).json({error: "Admin access required"})

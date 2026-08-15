@@ -24,6 +24,40 @@ export type MobDto = { // описание мобов
   respawnSeconds: number
 }
 
+export type MobCreateRequest = { // создание моба
+  name: string
+  description: string
+  level: number
+  maxHealth: number
+  strength: number
+  defense: number
+  loot: string[]
+  pointsReward: number
+  locationId: string
+  respawnSeconds: number
+}
+
+export type MobUpdateRequest = {
+  name: string
+  description: string
+  level: number
+  maxHealth: number
+  strength: number
+  defense: number
+  loot: string[]
+  pointsReward: number
+  locationId: string
+  respawnSeconds: number
+}
+
+export type MobsResponse = {
+  mobs: MobDto[]
+}
+
+export type MobResponse = {
+  mob: MobDto
+}
+
 
 export type CombatLogEntry = { // типо логирование
   text: string;
