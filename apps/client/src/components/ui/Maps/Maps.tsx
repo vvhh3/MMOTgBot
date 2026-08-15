@@ -4,7 +4,8 @@ import {
   TransformComponent
 } from "react-zoom-pan-pinch";
 
-import map from "./map3.png";
+// import map from "./map3.png";
+import map from "./mapMat.png"
 
 
 const locations = [
