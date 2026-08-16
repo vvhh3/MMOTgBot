@@ -1,17 +1,11 @@
-import { StrictMode, useEffect, useMemo, useState } from "react";
+import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "@radix-ui/themes/styles.css";
 import "./styles.css";
-import { BrowserRouter, Routes, Route, Link} from "react-router-dom";
-import type { InventoryItemDto, LocationDto, LocationStateResponse, PlayerDto } from "@mmobot/shared";
+import { BrowserRouter, Routes, Route,Link} from "react-router-dom";
+import type { CombatStateResponse, InventoryItemDto, LocationStateResponse, PlayerDto } from "@mmobot/shared";
 import Loading from './components/Loading'
-import {
-  auth,
-  enterLocation,
-  getLocations,
-  getMe,
-  performLocationAction
-} from "./api";
+import { auth, getMe } from "./api";
 
 import { getTelegramInitData } from "./telegram";
 import { Theme } from "@radix-ui/themes";
@@ -21,20 +15,17 @@ import Map from "./components/ui/Maps/Maps";
 import { connectSocket, getSocket } from "./socket";
 import Home from "./components/Home";
 
+import { connectSocket, getSocket } from "./socket";
 
 
 type Screen = "map" | "location";
 
 function App() {
-  const [token, setToken] = useState<string | null>(null);
   const [player, setPlayer] = useState<PlayerDto | null>(null);
   const [inventory, setInventory] = useState<InventoryItemDto[]>([]);
-  const [locations, setLocations] = useState<LocationDto[]>([]);
-  const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
-  const [state, setState] = useState<LocationStateResponse | null>(null);
-  const [screen, setScreen] = useState<Screen>("map");
+  const [locationState, setLocationState] = useState<LocationStateResponse | null>(null);
+  const [combat, setCombat] = useState<CombatStateResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     const initData = getTelegramInitData();
@@ -45,85 +36,41 @@ function App() {
 
     auth(initData)
       .then(async (authData) => {
-        setToken(authData.token);
         setPlayer(authData.player);
-        const [meData, locationsData] = await Promise.all([getMe(authData.token), getLocations(authData.token)]);
+        const [meData] = await Promise.all([getMe(authData.token)]);
         setPlayer(meData.player);
         setInventory(meData.inventory);
-        setLocations(locationsData.locations)
-        connectSocket(authData.token)
+        connectSocket(authData.token);
       })
       .catch((err: unknown) => setError(err instanceof Error ? err.message : "Не удалось войти"));
-  }, [])
+  }, []);
 
   useEffect(() => {
-    const socket = getSocket()
-    if (!socket) {
-      return
-    }
+    if (!player) return;
+    const socket = getSocket();
+    if (!socket) return;
 
-    const onLocationState = (nextState: LocationStateResponse) => {
-      setState(nextState)
-      setSelectedLocationId(nextState.location.id)
-    };
+    const onConnectError = (err: Error) => setError(err.message);
+    const onLocationState = (nextState: LocationStateResponse) => setLocationState(nextState);
+    const onPlayer = (nextPlayer: PlayerDto) => setPlayer(nextPlayer);
+    const onInventory = (nextInventory: InventoryItemDto[]) => setInventory(nextInventory);
+    const onCombatState = (combatState: CombatStateResponse) => setCombat(combatState);
 
+    socket.on("connect_error", onConnectError);
     socket.on("locationState", onLocationState);
+    socket.on("player", onPlayer);
+    socket.on("inventory", onInventory);
+    socket.on("combatState", onCombatState);
+    
     return () => {
+      socket.off("connect_error", onConnectError);
       socket.off("locationState", onLocationState);
+      socket.off("player", onPlayer);
+      socket.off("inventory", onInventory);
+      socket.off("combatState", onCombatState);
     };
-  }, [])
+  }, [player]);
 
-
-  const currentLocation = useMemo(
-    () => locations.find((location) => location.id === selectedLocationId) ?? null,
-    [locations, selectedLocationId]
-  )
-
-  async function handleEnter(locationId: string) {
-    if (!token) {
-      return
-    }
-
-    setBusy(true)
-    setError(null)
-    try {
-      const result = await enterLocation(token, locationId);
-      setPlayer(result.player);
-      setSelectedLocationId(locationId);
-      setState(result.state)
-
-      getSocket()?.emit("joinLocation", locationId)
-
-      setScreen("location");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Не удалось войти в локацию");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function handleAction() {
-    if (!token || !selectedLocationId) {
-      return;
-    }
-
-    setBusy(true);
-    setError(null);
-    try {
-      const result = await performLocationAction(token, selectedLocationId);
-      setPlayer(result.player);
-      setInventory(result.inventory);
-      // setState(await getLocationState(token, selectedLocationId));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Действие не выполнено");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  if (error && !token) {
-    return <Shell error={error} />;
-  }
 
   return (
     // <Shell error={error}>

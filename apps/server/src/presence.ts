@@ -44,3 +44,15 @@ function addPlayerToPresence(player: PlayerDto, locationId: string | null): void
   players.set(player.id, player);
   locationPlayers.set(locationId, players);
 }
+
+export function removePlayerFromLocation(playerId: number) {
+    for(const [locationId,player] of locationPlayers){
+      if(player.delete(playerId)){
+        if(player.size === 0){
+          locationPlayers.delete(locationId)
+        }
+        return locationId
+      }
+    }
+    return null
+}
