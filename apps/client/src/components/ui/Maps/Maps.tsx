@@ -3,10 +3,10 @@ import {
   TransformWrapper,
   TransformComponent
 } from "react-zoom-pan-pinch";
-
+import { Flex, Card,Text, Button,Box,Progress,Inset,Strong, Grid} from "@radix-ui/themes";
 // import map from "./map3.png";
-import map from "./mapMat.png"
-
+import map from "./Mapmat.png"
+import fon from "../../../public/Home.svg"
 
 const locations = [
   {
@@ -31,8 +31,8 @@ export default function GameMap() {
   const goToLocation = (loc:any) => {
 
     mapRef.current.setTransform(
-      -loc.x * 3.7,
-      -loc.y * 6.4 ,
+      -loc.x ,
+      -loc.y * 8 ,
       loc.zoom,
       600
     );
@@ -130,7 +130,7 @@ export default function GameMap() {
 
       {selectedLocation && (
 
-        <div
+        <Card
           style={{
             position:"fixed",
             top:"50%",
@@ -143,6 +143,10 @@ export default function GameMap() {
             width:300
           }}
         >
+          <Inset>
+            <img src={fon} style={{padding:"10px",borderRadius:"16px"}}
+            />
+          </Inset>
 
           <h2 className="text-xl font-bold">
             {selectedLocation.name}
@@ -187,7 +191,7 @@ export default function GameMap() {
 
           </div>
 
-        </div>
+        </Card>
 
       )}
 

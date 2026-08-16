@@ -1,5 +1,5 @@
-import player from '../public/playerM.png'
-import map from '../components/ui/Maps/mapMat.png'
+import player from '../public/playerM.svg'
+import map from '../components/ui/Maps/Mapmat.png'
 import bag from '../public/bag.svg'
 import { useState, useRef } from "react";
 import { Flex, Card,Text, Button,Box,Progress,Inset,Strong, Grid} from "@radix-ui/themes";
