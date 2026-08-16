@@ -1,3 +1,4 @@
+import axios, { type AxiosError } from "axios";
 import type {
   AuthRequest,
   AuthResponse,
@@ -11,61 +12,54 @@ import type {
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
 
+const api = axios.create({
+  baseURL: apiBaseUrl,
+  headers: { "content-type": "application/json" }
+});
+
+api.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError<{ error?: string }>) => {
+    const message = error.response?.data?.error ?? error.message;
+    return Promise.reject(new Error(message));
+  }
+);
+
 export async function auth(initData: string): Promise<AuthResponse> {
-  return request<AuthResponse>("/auth", {
-    method: "POST",
-    body: { initData } satisfies AuthRequest
-  });
+  const response = await api.post<AuthResponse>("/auth", { initData } satisfies AuthRequest);
+  return response.data;
 }
 
 export async function getMe(token: string): Promise<MeResponse> {
-  return request<MeResponse>("/me", { token });
+  const response = await api.get<MeResponse>("/me", { headers: authHeader(token) });
+  return response.data;
 }
 
 export async function getLocations(token: string): Promise<LocationsResponse> {
-  return request<LocationsResponse>("/locations", { token });
+  const response = await api.get<LocationsResponse>("/locations", { headers: authHeader(token) })
+  return response.data
 }
 
 export async function enterLocation(token: string, locationId: string): Promise<EnterLocationResponse> {
-  return request<EnterLocationResponse>(`/locations/${locationId}/enter`, {
-    method: "POST",
-    token
-  });
+  const response = await api.post<EnterLocationResponse>(`/locations/${locationId}/enter`, undefined, {
+    headers: authHeader(token)
+  })
+  return response.data;
 }
 
 export async function getLocationState(token: string, locationId: string): Promise<LocationStateResponse> {
-  return request<LocationStateResponse>(`/locations/${locationId}/state`, { token });
+  const response = await api.get<LocationStateResponse>(`/locations/${locationId}/state`, { headers: authHeader(token) });
+  return response.data;
 }
 
 export async function performLocationAction(token: string, locationId: string): Promise<LocationActionResponse> {
-  return request<LocationActionResponse>(`/locations/${locationId}/action`, {
-    method: "POST",
-    token,
-    body: { actionId: "scavenge" } satisfies LocationActionRequest
-  });
+  const response = await api.post<LocationActionResponse>(
+    `/locations/${locationId}/action`,
+    { actionId: "scavenge" } satisfies LocationActionRequest,
+    { headers: authHeader(token) })
+  return response.data;
 }
 
-async function request<T>(
-  path: string,
-  options: { method?: string; token?: string; body?: unknown } = {}
-): Promise<T> {
-  const response = await fetch(`${apiBaseUrl}${path}`, {
-    method: options.method ?? "GET",
-    headers: {
-      "content-type": "application/json",
-      ...(options.token ? { authorization: `Bearer ${options.token}` } : {})
-    },
-    body: options.body ? JSON.stringify(options.body) : undefined
-  });
-
-  const payload = (await response.json()) as T | { error: string };
-  if (!response.ok) {
-    throw new Error(isApiError(payload) ? payload.error : "API request failed");
-  }
-
-  return payload as T;
-}
-
-function isApiError(payload: unknown): payload is { error: string } {
-  return typeof payload === "object" && payload !== null && "error" in payload;
+function authHeader(token: string): { authorization: string } {
+  return { authorization: `Bearer ${token}` };
 }

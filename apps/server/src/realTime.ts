@@ -1,6 +1,10 @@
 import type { Server as HttpServer } from "node:http"
 import { Server, type Socket } from "socket.io"
 import { eq } from "drizzle-orm"
+import type { ClientToServerEvents, ServerToClientEvents } from "@mmobot/shared"
+
+type AppServer = Server<ClientToServerEvents, ServerToClientEvents>
+type AppSocket = Socket<ClientToServerEvents, ServerToClientEvents>
 
 import { config } from "./config.js"
 import { verifySessionToken } from "./auth.js"
@@ -11,18 +15,18 @@ import { removePlayerFromLocation } from "./presence.js"
 
 // Глобальный экземпляр Socket.IO сервера
 // До вызова initRealTime() здесь null
-let io: Server | null = null
+let io: AppServer | null = null
 
 // Храним все сокеты каждого игрока
 // Один игрок может открыть игру в нескольких вкладках или на нескольких устройствах
 //
 // Пример
 // 15 -> { socketA, socketB }
-const playerSockets = new Map<number, Set<Socket>>()
+const playerSockets = new Map<number, Set<AppSocket>>()
 
-export function initRealTime(httpServer: HttpServer): Server {
+export function initRealTime(httpServer: HttpServer): AppServer {
   // Создаём Socket.IO сервер поверх обычного HTTP сервера
-  io = new Server(httpServer, {
+  io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
     cors: {
       origin(origin, callback) {
         // Проверяем разрешён ли origin клиента
@@ -96,7 +100,10 @@ export function initRealTime(httpServer: HttpServer): Server {
     
     if(player?.currentLocationId){
       socket.join(`location:${player.currentLocationId}`)
-      socket.emit(`locationState`,buildLocationState(player.currentLocationId))
+      const state = buildLocationState(player.currentLocationId)
+      if (state) {
+        socket.emit(`locationState`, state)
+      }
     }
 
     // Получаем уже существующие сокеты игрока
@@ -141,7 +148,7 @@ export function initRealTime(httpServer: HttpServer): Server {
 // Возвращает Socket.IO сервер
 // Если realtime ещё не был инициализирован
 // выбрасываем понятную ошибку
-export function getIo(): Server {
+export function getIo(): AppServer {
   if (!io) {
     throw new Error("Realtime not initialized")
   }
@@ -190,11 +197,15 @@ export function moveSocketToLocation(playerId: number,locationId: string | null)
 // вкладки, устройства и так далее
 //
 // Пример
-// emitToPlayer(15, "inventoryUpdated", inventory)
-export function emitToPlayer(playerId: number,event: string,payload: unknown): void {
+// emitToPlayer(15, "player", playerDto)
+export function emitToPlayer<K extends keyof ServerToClientEvents>(
+  playerId: number,
+  event: K,
+  ...args: Parameters<ServerToClientEvents[K]>
+): void {
   getIo()
     .to(`player:${playerId}`)
-    .emit(event, payload)
+    .emit(event, ...args)
 }
 
 // Отправляет актуальное состояние локации

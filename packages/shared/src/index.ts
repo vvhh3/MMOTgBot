@@ -160,3 +160,18 @@ export type LocationActionResponse = {
 export type ApiErrorResponse = {
   error: string;
 };
+
+// === Типизированные socket.io события ===
+// ServerToClientEvents — что сервер отправляет клиенту
+// ClientToServerEvents — что клиент отправляет серверу
+
+export type ServerToClientEvents = {
+  locationState: (state: LocationStateResponse) => void;
+  combatState: (state: CombatStateResponse) => void;
+  player: (player: PlayerDto) => void;
+  inventory: (inventory: InventoryItemDto[]) => void;
+};
+
+export type ClientToServerEvents = {
+  // пока пусто — комнатами локаций управляет сервер
+};

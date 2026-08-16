@@ -33,7 +33,8 @@ export function buildLocationState(locationId: string): LocationStateResponse | 
         .where(eq(events.locationId, locationId))
         .orderBy(desc(events.createdAt), desc(events.id))
         .limit(10)
-        .all();
+        .all()
+        
     const locationMobs = db.select().from(mobs).where(eq(mobs.locationId, locationId)).all();
     const aliveMobs = locationMobs.filter(isMobAlive);
     return {

@@ -1,28 +1,30 @@
-import {io, type Socket} from "socket.io-client"
+import { io, type Socket } from "socket.io-client"
+import type { ClientToServerEvents, ServerToClientEvents } from "@mmobot/shared"
 
-let socket: Socket| null = null
-let socketToken: string|null = null
+type AppSocket = Socket<ServerToClientEvents, ClientToServerEvents>
 
-export function connectSocket(token: string): Socket{
-   
-    if(socket && socketToken === token){
+let socket: AppSocket | null = null
+let socketToken: string | null = null
+
+export function connectSocket(token: string): AppSocket {
+    if (socket && socketToken === token) {
         return socket
     }
     socketToken = token
-    
-    if(socket){
-        socket.auth = {token}
+
+    if (socket) {
+        socket.auth = { token }
         socket.disconnect()
         socket.connect()
         return socket
     }
-    
+
     socket = io(import.meta.env.VITE_API_BASE_URL ?? "", {
-        auth: {token}
-    })
+        auth: { token }
+    }) as AppSocket
     return socket
 }
 
-export function getSocket(): Socket| null{
+export function getSocket(): AppSocket | null {
     return socket
 }
