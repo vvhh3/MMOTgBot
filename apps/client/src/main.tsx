@@ -2,7 +2,7 @@ import { StrictMode, useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "@radix-ui/themes/styles.css";
 import "./styles.css";
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link} from "react-router-dom";
 import type { InventoryItemDto, LocationDto, LocationStateResponse, PlayerDto } from "@mmobot/shared";
 import Loading from './components/Loading'
 import {
@@ -15,9 +15,12 @@ import {
 
 import { getTelegramInitData } from "./telegram";
 import { Theme } from "@radix-ui/themes";
+import MainLayout from "./components/MainLayout";
+import Profile from "./components/Profile";
+import Map from "./components/ui/Maps/Maps";
+import { connectSocket, getSocket } from "./socket";
 import Home from "./components/Home";
 
-import { connectSocket, getSocket } from "./socket";
 
 
 type Screen = "map" | "location";
@@ -226,14 +229,15 @@ function App() {
     //   )}
     // </Shell>
     <>
-
       <Theme>
-        <BrowserRouter>
           <Routes>
-            <Route path='/' element={<Loading />}></Route>
-            <Route path="/Home" element={<Home />}></Route>
+            <Route path="" element={<MainLayout />}>
+              <Route path="/" element={<Home />}/>
+              <Route path="Map" element={<Map />}/>
+              <Route path="Profile" element={<Profile />}/>
+            </Route>
+
           </Routes>
-        </BrowserRouter>
       </Theme>
     </>
   );
@@ -254,6 +258,8 @@ function Shell({ children, error }: { children?: React.ReactNode; error: string 
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <App />
+    <BrowserRouter>
+        <App />
+    </BrowserRouter>
   </StrictMode>
 );

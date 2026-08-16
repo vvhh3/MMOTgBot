@@ -15,7 +15,7 @@ export default function Loading(){
             return Math.round(next >= 100 ? 100 : next);
             });
             if(percentProgress == 100){
-                navigate("/Home")
+                navigate("/")
             }
         }, interval);
 
