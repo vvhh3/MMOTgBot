@@ -50,7 +50,6 @@ export default function GameMap() {
 
   return (
     <div className="flex items-center justify-center min-h-[80vh]">
-
       <TransformWrapper
         ref={mapRef}
         minScale={1.5}
@@ -59,11 +58,10 @@ export default function GameMap() {
           setScale(ref.state.scale);
         }}
       >
-
         <TransformComponent>
-
+          
           <div style={{position:"relative"}}>
-
+            
             <img
               src={map}
               style={{
