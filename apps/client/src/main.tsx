@@ -54,21 +54,36 @@ function App() {
   }, [])
 
   useEffect(() => {
-    const socket = getSocket()
-    if (!socket) {
-      return
-    }
+    if (!token) return;
+    const socket = getSocket();
+    if (!socket) return;
+
+    const onConnectError = (err: Error) => setError(err.message);
 
     const onLocationState = (nextState: LocationStateResponse) => {
-      setState(nextState)
-      setSelectedLocationId(nextState.location.id)
+      setState(nextState);
+      setSelectedLocationId(nextState.location.id);
     };
 
-    socket.on("locationState", onLocationState);
+    const onPlayer = (nextPlayer: PlayerDto) => setPlayer(nextPlayer)
+
+    const onInventory = (nextInventory: InventoryItemDto[]) => setInventory(nextInventory)
+
+    const onCombatState = (combatState: LocationStateResponse) => setState(combatState)
+
+    socket.on("connect_error", onConnectError)
+    socket.on("locationState", onLocationState)
+    socket.on("player", onPlayer)
+    socket.on("inventory", onInventory)
+    socket.on("combatState", onCombatState)
     return () => {
+      socket.off("connect_error", onConnectError);
       socket.off("locationState", onLocationState);
-    };
-  }, [])
+      socket.off("player", onPlayer);
+      socket.off("inventory", onInventory);
+      socket.off("combatState", onCombatState);
+    }
+  }, [token])
 
 
   const currentLocation = useMemo(
@@ -88,9 +103,6 @@ function App() {
       setPlayer(result.player);
       setSelectedLocationId(locationId);
       setState(result.state)
-
-      getSocket()?.emit("joinLocation", locationId)
-
       setScreen("location");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Не удалось войти в локацию");
@@ -109,8 +121,7 @@ function App() {
     try {
       const result = await performLocationAction(token, selectedLocationId);
       setPlayer(result.player);
-      setInventory(result.inventory);
-      // setState(await getLocationState(token, selectedLocationId));
+      setInventory(result.inventory)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Действие не выполнено");
     } finally {

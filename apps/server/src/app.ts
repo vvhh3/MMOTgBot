@@ -27,13 +27,14 @@ import { createMobRoutes } from "./mobs.js";
 import { createItemRoutes } from "./items.js";
 import { buildLocationState } from "./state.js";
 
-import { broadcastLocation, emitToPlayer } from "./realTime.js";
+import { broadcastLocation, emitToPlayer, moveSocketToLocation } from "./realTime.js";
 
 export function createApp(): express.Express {
   initializeDatabase();
   hydratePresenceFromDatabase();
 
   const app = express();
+
   app.use(
     cors({
       origin(origin, callback) {
@@ -46,8 +47,6 @@ export function createApp(): express.Express {
     })
   );
   app.use(express.json());
-
-  serveClient(app);
 
   //Мобы
   app.use("/mobs", requireAuth, requireAdmin)
@@ -71,9 +70,7 @@ export function createApp(): express.Express {
     try {
       const telegramUser = validateTelegramInitData(body.initData);
       const now = new Date().toISOString();
-      const name = telegramUser.username ??
-        [telegramUser.first_name, telegramUser.last_name].filter(Boolean).join(" ") ??
-        `Player ${telegramUser.id}`;
+      const name = telegramUser.username || [telegramUser.first_name, telegramUser.last_name].filter(Boolean).join(" ") || `Player ${telegramUser.id}`;
 
       db.insert(players)
         .values({ id: telegramUser.id, name, createdAt: now, lastSeenAt: now })
@@ -138,6 +135,7 @@ export function createApp(): express.Express {
     const updatedPlayer = db.select().from(players).where(eq(players.id, player.id)).get()!;
     movePlayer(toPlayerDto(updatedPlayer), location.id);
 
+    moveSocketToLocation(player.id, location.id)
     broadcastLocation(location.id)
 
     const response: EnterLocationResponse = {
@@ -278,9 +276,12 @@ export function createApp(): express.Express {
     const session = db
       .select()
       .from(combatSessions)
-      .where(eq(combatSessions.playerId, player.id))
-      .get();
-    if (!session || session.status !== "active") {
+      .where(and(
+        eq(combatSessions.playerId, player.id),
+        eq(combatSessions.status, "active")))
+      .get()
+
+    if (!session) {
       res.status(409).json({ error: "No active combat" });
       return;
     }
@@ -307,7 +308,7 @@ export function createApp(): express.Express {
 
     emitToPlayer(player.id, "combatState", state)
     emitToPlayer(player.id, "player", toPlayerDto(updatedPlayer))
-    emitToPlayer(player.id, "inventory", inventory)
+    emitToPlayer(player.id, "inventory", inventory.map(toInventoryItemDto))
     broadcastLocation(mob.locationId)
 
     res.json({
@@ -326,8 +327,10 @@ export function createApp(): express.Express {
     const session = db
       .select()
       .from(combatSessions)
-      .where(eq(combatSessions.playerId, player.id))
-      .get();
+      .where(and(
+        eq(combatSessions.playerId, player.id),
+        eq(combatSessions.status, "active")))
+      .get()
     if (!session || session.status !== "active") {
       res.status(404).json({ error: "No active combat" });
       return;
@@ -338,6 +341,8 @@ export function createApp(): express.Express {
     res.json(getCombatState(player, session, mob));
   });
 
+  serveClient(app);
+  
   return app;
 }
 

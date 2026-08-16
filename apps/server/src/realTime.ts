@@ -1,76 +1,212 @@
-import type { Server as HttpServer } from "node:http";
-import { Server } from "socket.io";
-import { eq } from "drizzle-orm";
-import { config } from "./config.js";
-import { verifySessionToken } from "./auth.js";
-import { db } from "./db.js";
-import { players } from "./db/schema.js";
-import { buildLocationState } from "./state.js";
+import type { Server as HttpServer } from "node:http"
+import { Server, type Socket } from "socket.io"
+import { eq } from "drizzle-orm"
 
-let io: Server | null = null;
+import { config } from "./config.js"
+import { verifySessionToken } from "./auth.js"
+import { db } from "./db.js"
+import { players } from "./db/schema.js"
+import { buildLocationState } from "./state.js"
+
+// Глобальный экземпляр Socket.IO сервера
+// До вызова initRealTime() здесь null
+let io: Server | null = null
+
+// Храним все сокеты каждого игрока
+// Один игрок может открыть игру в нескольких вкладках или на нескольких устройствах
+//
+// Пример
+// 15 -> { socketA, socketB }
+const playerSockets = new Map<number, Set<Socket>>()
 
 export function initRealTime(httpServer: HttpServer): Server {
+  // Создаём Socket.IO сервер поверх обычного HTTP сервера
   io = new Server(httpServer, {
     cors: {
       origin(origin, callback) {
-        if (!origin || config.devBypassAuth || origin === config.clientUrl || config.corsOrigins.includes(origin)) {
-          callback(null, true);
-          return;
-        }
-        callback(null, false);
+        // Проверяем разрешён ли origin клиента
+        const allowed = !origin || config.devBypassAuth || origin === config.clientUrl || config.corsOrigins.includes(origin)
+        // Если origin разрешён пропускаем подключение
+        // Иначе возвращаем ошибку CORS
+        callback(allowed ? null : new Error("Not allowed by CORS"), allowed)
       }
     }
-  });
+  })
 
+  // Middleware авторизации
+  // Выполняется до события connection
   io.use((socket, next) => {
-    const token = socket.handshake.auth?.token as string | undefined;
+    // Токен приходит с клиента через
+    // io(url, { auth: { token } })
+    const token = socket.handshake.auth?.token as string | undefined
+
+    // Без токена подключение запрещаем
     if (!token) {
-      next(new Error("Missing bearer token"));
-      return;
+      next(new Error("Missing auth token"))
+      return
     }
+
+    let playerId: number
+
     try {
-      const playerId = verifySessionToken(token);
-      const player = db.select().from(players).where(eq(players.id, playerId)).get();
-      if (!player) {
-        next(new Error("Player not found"));
-        return;
-      }
-      socket.data.playerId = player.id;
-      socket.join(`player:${player.id}`);
-      next();
+      // Проверяем токен и получаем id игрока
+      playerId = verifySessionToken(token)
     } catch {
-      next(new Error("Invalid bearer token"));
+      // Если токен неправильный или просроченный
+      // запрещаем подключение
+      next(new Error("Invalid auth token"))
+      return
     }
-  });
 
+    // Проверяем что игрок с таким id существует в БД
+    const player = db
+      .select()
+      .from(players)
+      .where(eq(players.id, playerId))
+      .get()
+
+    if (!player) {
+      next(new Error("Player not found"))
+      return
+    }
+
+    // Сохраняем id игрока внутри socket
+    // Потом не нужно снова проверять токен
+    socket.data.playerId = player.id
+
+    // Авторизация прошла успешно
+    next()
+  })
+
+  // Срабатывает после успешной авторизации
   io.on("connection", (socket) => {
-    socket.on("joinLocation", (locationId: string) => {
-      socket.join(`location:${locationId}`);
-    });
-    socket.on("leaveLocation", (locationId: string) => {
-      socket.leave(`location:${locationId}`);
-    });
-  });
+    const playerId = socket.data.playerId as number
 
-  return io;
+    // Добавляем сокет в персональную комнату игрока
+    //
+    // Например
+    // player:15
+    //
+    // Благодаря этому можно отправить событие
+    // сразу во все вкладки и устройства одного игрока
+    socket.join(`player:${playerId}`)
+
+    // Получаем уже существующие сокеты игрока
+    let sockets = playerSockets.get(playerId)
+
+    // Если игрок подключается впервые
+    // создаём для него новый Set
+    if (!sockets) {
+      sockets = new Set()
+      playerSockets.set(playerId, sockets)
+    }
+
+    // Добавляем текущий сокет игрока
+    sockets.add(socket)
+
+    // Когда конкретный сокет отключается
+    socket.on("disconnect", () => {
+      const sockets = playerSockets.get(playerId)
+
+      if (!sockets) {
+        return
+      }
+
+      // Удаляем только этот конкретный сокет
+      sockets.delete(socket)
+
+      // Если у игрока больше не осталось активных сокетов
+      // полностью удаляем его из Map
+      if (sockets.size === 0) {
+        playerSockets.delete(playerId)
+      }
+    })
+  })
+
+  return io
 }
 
+// Возвращает Socket.IO сервер
+// Если realtime ещё не был инициализирован
+// выбрасываем понятную ошибку
 export function getIo(): Server {
   if (!io) {
-    throw new Error("Realtime not initialized");
+    throw new Error("Realtime not initialized")
   }
-  return io;
+
+  return io
 }
 
-// Отправка события конкретному игроку (например, состояние боя)
-export function emitToPlayer(playerId: number, event: string, payload: unknown): void {
-  getIo().to(`player:${playerId}`).emit(event, payload);
+// Перемещает все сокеты игрока в новую location-комнату
+//
+// Например
+//
+// location:forest
+//        ↓
+// location:castle
+//
+// locationId === null означает
+// что игрок должен выйти из всех location-комнат
+export function moveSocketToLocation(playerId: number,locationId: string | null): void {
+  const sockets = playerSockets.get(playerId)
+
+  // Игрок сейчас не подключён
+  if (!sockets) {
+    return
+  }
+
+  // Проходим по всем вкладкам и устройствам игрока
+  for (const socket of sockets) {
+    // Удаляем сокет из предыдущих location-комнат
+    // Комнату player:ID не трогаем
+    for (const room of socket.rooms) {
+      if (room.startsWith("location:")) {
+        socket.leave(room)
+      }
+    }
+
+    // Если указана новая локация
+    // добавляем сокет в её комнату
+    if (locationId) {
+      socket.join(`location:${locationId}`)
+    }
+  }
 }
 
-// Рассылка актуального состояния локации всем, кто в неё вошёл
+// Отправляет событие конкретному игроку
+// Событие получат все его активные сокеты
+// вкладки, устройства и так далее
+//
+// Пример
+// emitToPlayer(15, "inventoryUpdated", inventory)
+export function emitToPlayer(playerId: number,event: string,payload: unknown): void {
+  getIo()
+    .to(`player:${playerId}`)
+    .emit(event, payload)
+}
+
+// Отправляет актуальное состояние локации
+// всем игрокам которые сейчас находятся в ней
+//
+// Например
+//
+// location:forest
+//   ├── player 1
+//   ├── player 2
+//   └── player 3
+//
+// Все они получат событие locationState
 export function broadcastLocation(locationId: string): void {
-  const state = buildLocationState(locationId);
-  if (state) {
-    getIo().to(`location:${locationId}`).emit("locationState", state);
+  // Собираем текущее состояние локации
+  const state = buildLocationState(locationId)
+
+  // Если локация не найдена или состояние не удалось собрать
+  // ничего не отправляем
+  if (!state) {
+    return
   }
+
+  // Отправляем состояние всем сокетам
+  // находящимся в этой location-комнате
+  getIo().to(`location:${locationId}`).emit("locationState", state)
 }

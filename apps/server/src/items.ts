@@ -7,7 +7,7 @@ import { items } from "./db/schema.js";
 import { stat } from "node:fs";
 import { error } from "node:console";
 
-export const createItemRoutes = async (app: Express) => {
+export const createItemRoutes = (app: Express) => {
 
     // получить все предметы
     app.get("/items", (req: Request, res: Response) => {

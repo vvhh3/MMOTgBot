@@ -5,7 +5,7 @@ import { locations, mobs } from "./db/schema.js";
 import { asc, eq } from "drizzle-orm";
 import { MobDto, MobResponse, MobsResponse } from "@mmobot/shared";
 
-export const createMobRoutes = async (app: Express) => {
+export const createMobRoutes = (app: Express) => {
 
     // получить всех мобов
     app.get("/mobs", (req: Request, res: Response) => {
