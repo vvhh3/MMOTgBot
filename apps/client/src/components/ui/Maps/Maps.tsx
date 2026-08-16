@@ -49,7 +49,7 @@ export default function GameMap() {
 
 
   return (
-    <>
+    <div className="flex items-center justify-center min-h-[80vh]">
 
       <TransformWrapper
         ref={mapRef}
@@ -193,6 +193,6 @@ export default function GameMap() {
 
       )}
 
-    </>
+    </div>
   );
 }
