@@ -7,6 +7,7 @@ import { verifySessionToken } from "./auth.js"
 import { db } from "./db.js"
 import { players } from "./db/schema.js"
 import { buildLocationState } from "./state.js"
+import { removePlayerFromLocation } from "./presence.js"
 
 // Глобальный экземпляр Socket.IO сервера
 // До вызова initRealTime() здесь null
@@ -91,6 +92,13 @@ export function initRealTime(httpServer: HttpServer): Server {
     // сразу во все вкладки и устройства одного игрока
     socket.join(`player:${playerId}`)
 
+    const player = db.select().from(players).where(eq(players.id,playerId)).get()
+    
+    if(player?.currentLocationId){
+      socket.join(`location:${player.currentLocationId}`)
+      socket.emit(`locationState`,buildLocationState(player.currentLocationId))
+    }
+
     // Получаем уже существующие сокеты игрока
     let sockets = playerSockets.get(playerId)
 
@@ -114,11 +122,15 @@ export function initRealTime(httpServer: HttpServer): Server {
 
       // Удаляем только этот конкретный сокет
       sockets.delete(socket)
-
       // Если у игрока больше не осталось активных сокетов
       // полностью удаляем его из Map
       if (sockets.size === 0) {
         playerSockets.delete(playerId)
+        const localtionId = removePlayerFromLocation(playerId)
+        db.update(players).set({currentLocationId: null}).where(eq(players.id,playerId)).run()
+        if(localtionId){
+          broadcastLocation(localtionId)
+        }
       }
     })
   })
