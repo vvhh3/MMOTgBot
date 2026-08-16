@@ -15,7 +15,6 @@ import Map from "./components/ui/Maps/Maps";
 import { connectSocket, getSocket } from "./socket";
 import Home from "./components/Home";
 
-import { connectSocket, getSocket } from "./socket";
 
 
 type Screen = "map" | "location";
