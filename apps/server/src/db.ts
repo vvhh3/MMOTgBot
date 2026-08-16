@@ -122,7 +122,8 @@ export function toInventoryItemDto(row: InventoryItemRow): InventoryItemDto {
     id: row.id,
     itemType: row.itemType,
     quantity: row.quantity,
-    acquiredAt: row.acquiredAt
+    acquiredAt: row.acquiredAt,
+    equiped: row.equiped
   };
 }
 

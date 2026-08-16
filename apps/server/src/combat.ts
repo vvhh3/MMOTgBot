@@ -1,9 +1,9 @@
 import type { CombatLogEntry, CombatStateResponse } from "@mmobot/shared";
 import { db, toMobDto, toPlayerDto } from "./db.js";
-import { combatSessions, events, inventoryItems, players } from "./db/schema.js";
+import { combatSessions, events, inventoryItems, items, players } from "./db/schema.js";
 import type { CombatSessionRow, MobRow, PlayerRow } from "./db/schema.js";
 import { movePlayer } from "./presence.js";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql,and, inArray } from "drizzle-orm";
 
 // когда моб "мёртв" до респауна: mobId -> время (мс), когда он снова появится
 const mobRespawnUntil = new Map<number, number>();
@@ -48,13 +48,15 @@ export function moveCombatAction(
     let mobHp = session.mobHealth;
     let status = session.status;
 
+    const statPlayer = getPlayerStats(player)
+
     if (action === "attack") {
-        const dmgToMob = Math.max(1, player.strength + randomInt(0, player.strength) - mob.defense);
+        const dmgToMob = Math.max(1, statPlayer.strength + randomInt(0, statPlayer.strength) - mob.defense);
         mobHp = Math.max(0, mobHp - dmgToMob);
         log.push({ text: `Вы нанесли ${dmgToMob} урона ${mob.name}`, at: now });
 
         if (mobHp > 0) {
-            const dmgToPlayer = Math.max(1, mob.strength + randomInt(0, mob.strength) - player.defense);
+            const dmgToPlayer = Math.max(1, mob.strength + randomInt(0, mob.strength) - statPlayer.defense);
             playerHp = Math.max(0, playerHp - dmgToPlayer);
             log.push({ text: `${mob.name} нанёс вам ${dmgToPlayer} урона`, at: now });
             if (playerHp <= 0) {
@@ -68,7 +70,7 @@ export function moveCombatAction(
             status = "fled";
             log.push({ text: "Вы убежали с поля боя", at: now });
         } else {
-            const dmgToPlayer = Math.max(1, mob.strength - player.defense);
+            const dmgToPlayer = Math.max(1, mob.strength - statPlayer.defense);
             playerHp = Math.max(0, playerHp - dmgToPlayer);
             log.push({ text: `Побег не удался, ${mob.name} наносит ${dmgToPlayer} урона`, at: now });
             if (playerHp <= 0) {
@@ -170,7 +172,25 @@ function buildCombatState(
         mobMaxHp: mob.maxHealth,
         status,
         log
-    };
+    }
 }
 
+
+const getPlayerStats = (player: PlayerRow) => {
+
+    const equiped = db.select().from(inventoryItems)
+    .where(and(
+        eq(inventoryItems.playerId,player.id),
+        eq(inventoryItems.equiped,true)
+    )).all()
+
+    const catalog = equiped.length
+    ? db.select().from(items).where(inArray(items.id, equiped.map((e) => e.itemType))).all()
+    : []
+
+    return {
+        strength: player.strength + catalog.reduce((acc,item) => acc + item.damage, 0),
+        defense: player.defense + catalog.reduce((acc,item) => acc + item.defense, 0)
+    }
+}
 

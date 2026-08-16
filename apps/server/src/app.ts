@@ -28,6 +28,7 @@ import { createItemRoutes } from "./items.js";
 import { buildLocationState } from "./state.js";
 
 import { broadcastLocation, emitToPlayer, moveSocketToLocation } from "./realTime.js";
+import { InventoryRoutes } from "./inventory.js";
 
 export function createApp(): express.Express {
   initializeDatabase();
@@ -55,6 +56,10 @@ export function createApp(): express.Express {
   //Предметы
   app.use("/items", requireAuth, requireAdmin)
   createItemRoutes(app)
+
+  //Инвентарь
+  app.use("/inventory",requireAuth)
+  InventoryRoutes(app)
 
   app.get("/health", (_req, res) => {
     res.json({ ok: true });

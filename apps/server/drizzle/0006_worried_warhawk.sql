@@ -1,0 +1,1 @@
+ALTER TABLE `inventory_items` ADD `equiped` integer DEFAULT false NOT NULL;

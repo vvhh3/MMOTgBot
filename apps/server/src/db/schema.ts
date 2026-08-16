@@ -86,9 +86,10 @@ export const inventoryItems = sqliteTable("inventory_items",
     playerId: integer("player_id")
       .notNull()
       .references(() => players.id, { onDelete: "cascade" }),
-    itemType: integer("item_type").notNull(),
+    itemType: integer("item_type").notNull(), // id предмета 
     quantity: integer("quantity").notNull(),
-    acquiredAt: text("acquired_at").notNull()
+    acquiredAt: text("acquired_at").notNull(),
+    equiped: integer("equiped" ,{mode: "boolean"}).notNull().default(false)
   },
   (table) => [uniqueIndex("inventory_items_player_item_unique").on(table.playerId, table.itemType)]
 );

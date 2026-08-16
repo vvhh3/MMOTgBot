@@ -85,10 +85,11 @@ export type ItemResponse = {
 
 
 export type InventoryItemDto = {
-  id: number;
-  itemType: number;
-  quantity: number;
-  acquiredAt: string;
+  id: number
+  itemType: number
+  quantity: number
+  acquiredAt: string
+  equiped: boolean
 }
 
 export type LocationDto = {

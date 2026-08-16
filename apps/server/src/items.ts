@@ -4,8 +4,6 @@ import { asc, eq } from "drizzle-orm";
 import { ItemResponse, ItemsResponse } from "@mmobot/shared";
 import { db, toItemDto } from "./db.js";
 import { items } from "./db/schema.js";
-import { stat } from "node:fs";
-import { error } from "node:console";
 
 export const createItemRoutes = (app: Express) => {
 
