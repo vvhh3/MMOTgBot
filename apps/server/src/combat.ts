@@ -32,7 +32,7 @@ export function startCombat(player: PlayerRow, mob: MobRow): CombatStateResponse
     const log: CombatLogEntry[] = [{ text: `Вы начали бой с ${mob.name}`, at: now }];
     combatSessionsLogs.set(Number(result.lastInsertRowid), log);
 
-    return buildCombatState(mob, player, mob.maxHealth, "active", log);
+    return buildCombatState(mob, player,player.health, mob.maxHealth, "active", log);
 }
 
 export function moveCombatAction(
@@ -93,7 +93,7 @@ export function moveCombatAction(
         endCombatSession(status, player, mob, session.id);
     }
 
-    return buildCombatState(mob, player, mobHp, status, log);
+    return buildCombatState(mob, player,playerHp, mobHp, status, log);
 }
 
 function endCombatSession(status: "victory" | "defeat", player: PlayerRow, mob: MobRow, sessionId: number): void {
@@ -145,7 +145,7 @@ function endCombatSession(status: "victory" | "defeat", player: PlayerRow, mob: 
 // Отдаёт текущее состояние активного боя для опроса клиентом
 // (клиент периодически дёргает GET /combat/state, чтобы видеть актуальные HP).
 export function getCombatState(player: PlayerRow, session: CombatSessionRow, mob: MobRow): CombatStateResponse {
-    return buildCombatState(mob, player, session.mobHealth, "active", combatSessionsLogs.get(session.id) ?? []);
+    return buildCombatState(mob, player, session.playerHealth ,session.mobHealth, "active", combatSessionsLogs.get(session.id) ?? []);
 }
 
 export function isMobAlive(mob: MobRow): boolean {
@@ -160,13 +160,14 @@ function markMobDead(mob: MobRow): void {
 function buildCombatState(
     mob: MobRow,
     player: PlayerRow,
+    playerHp: number,
     mobHp: number,
     status: CombatStateResponse["status"],
     log: CombatLogEntry[]
 ): CombatStateResponse {
     return {
         mob: toMobDto(mob),
-        playerHp: player.health,
+        playerHp: playerHp,
         playerMaxHp: player.maxHealth,
         mobHp,
         mobMaxHp: mob.maxHealth,
