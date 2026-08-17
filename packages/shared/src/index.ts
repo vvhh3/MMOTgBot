@@ -1,9 +1,10 @@
 export type PlayerDto = { // описание игрока
-  id: number;
-  name: string;
-  level: number;
-  points: number;
-  currentLocationId: string | null;
+  id: number
+  name: string
+  level: number
+  xp: number
+  points: number
+  currentLocationId: string | null
   health: number
   maxHp: number
   strength: number

@@ -4,6 +4,7 @@ import { combatSessions, events, inventoryItems, items, players } from "./db/sch
 import type { CombatSessionRow, MobRow, PlayerRow } from "./db/schema.js";
 import { movePlayer } from "./presence.js";
 import { eq, sql,and, inArray } from "drizzle-orm";
+import { addXpForPlayer } from "./level.js";
 
 // когда моб "мёртв" до респауна: mobId -> время (мс), когда он снова появится
 const mobRespawnUntil = new Map<number, number>();
@@ -110,7 +111,8 @@ function endCombatSession(status: "victory" | "defeat", player: PlayerRow, mob: 
                 })
                 .run();
         }
-
+        
+        addXpForPlayer(player.id, mob.pointsReward) // добавить опыт
         db.update(players)
             .set({ points: sql`${players.points} + ${mob.pointsReward}` })
             .where(eq(players.id, player.id))
@@ -177,7 +179,7 @@ function buildCombatState(
 }
 
 
-const getPlayerStats = (player: PlayerRow) => {
+export const getPlayerStats = (player: PlayerRow) => {
 
     const equiped = db.select().from(inventoryItems)
     .where(and(
