@@ -15,10 +15,17 @@ import Map from "./components/ui/Maps/Maps";
 import { connectSocket, getSocket } from "./socket";
 import Home from "./components/Home";
 import Tasks from "./components/Tasks";
+import { useLocation } from "react-router-dom";
 
+export default function ScrollToTop() {
+  const { pathname } = useLocation();
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
 
-type Screen = "map" | "location";
+  return null;
+}
 
 function App() {
   const [player, setPlayer] = useState<PlayerDto | null>(null)
@@ -75,6 +82,7 @@ function App() {
   return (
     <>
       <Theme>
+         <ScrollToTop/>
           <Routes>
             <Route path="" element={<MainLayout />}>
               <Route path="/" element={<Home />}/>
