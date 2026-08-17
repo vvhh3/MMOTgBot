@@ -5,8 +5,8 @@ import Profile from "./Profile";
 import { Link, Outlet } from "react-router-dom";
 export default function MainLayout(){
     return(
-        <div className="flex flex-col min-h-[100vh]">
-            <div className="flex justify-between items-center p-1 shrink-0" >
+        <div className="h-screen flex flex-col overflow-hidden">
+            <div className="flex justify-between items-center p-1 shrink-0 " >
                 <Link to="/">
                     <header className="font-bold pl-3">MMONSK</header>
                 </Link>
@@ -20,7 +20,7 @@ export default function MainLayout(){
                 </Link>
             </div>
 
-            <div className="flex-1 relative">
+            <div className="flex-1 min-h-0 relative overflow-y-auto overflow-x-hidden">
                <Outlet></Outlet>
             </div>
 

@@ -84,7 +84,7 @@ export default function GameMap() {
 
 
   return (
-    <div ref={containerRef} className="absolute inset-0 overflow-hidden">
+    <div ref={containerRef} className="relative w-full h-full overflow-hidden">
 
       {ready && (
         <TransformWrapper
@@ -183,7 +183,7 @@ export default function GameMap() {
 
             <button
               onClick={closeLocation}
-              className=" mt-4bg-red-500text-white px-4 py-2 rounded ">
+              className=" mt-4 bg-red-400 text-white px-4 py-2 rounded">
               Закрыть
             </button>
 
