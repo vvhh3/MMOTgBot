@@ -1,7 +1,7 @@
-import { StrictMode, useEffect, useState } from "react";
-import { createRoot } from "react-dom/client";
-import "@radix-ui/themes/styles.css";
-import "./styles.css";
+import { StrictMode, useEffect, useState } from "react"
+import { createRoot } from "react-dom/client"
+import "@radix-ui/themes/styles.css"
+import "./styles.css"
 import { BrowserRouter, Routes, Route,Link} from "react-router-dom";
 import type { CombatStateResponse, InventoryItemDto, LocationStateResponse, PlayerDto } from "@mmobot/shared";
 import Loading from './components/Loading'
@@ -20,7 +20,7 @@ import Home from "./components/Home";
 type Screen = "map" | "location";
 
 function App() {
-  const [player, setPlayer] = useState<PlayerDto | null>(null);
+  const [player, setPlayer] = useState<PlayerDto | null>(null)
   const [inventory, setInventory] = useState<InventoryItemDto[]>([]);
   const [locationState, setLocationState] = useState<LocationStateResponse | null>(null);
   const [combat, setCombat] = useState<CombatStateResponse | null>(null);
@@ -80,7 +80,6 @@ function App() {
               <Route path="Map" element={<Map />}/>
               <Route path="Profile" element={<Profile />}/>
             </Route>
-
           </Routes>
       </Theme>
     </>

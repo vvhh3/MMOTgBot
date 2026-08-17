@@ -1,12 +1,14 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useLayoutEffect } from "react";
 import {
   TransformWrapper,
   TransformComponent
 } from "react-zoom-pan-pinch";
-import { Flex, Card,Text, Button,Box,Progress,Inset,Strong, Grid} from "@radix-ui/themes";
-// import map from "./map3.png";
+import { Card, Inset } from "@radix-ui/themes";
 import map from "./mapMat.png"
 import fon from "../../../public/Home.svg"
+
+const IMG_W = 1622;
+const IMG_H = 970;
 
 const locations = [
   {
@@ -15,7 +17,7 @@ const locations = [
     description: "Тут происходит нечто странное",
     x: 31,
     y: 40,
-    zoom: 2
+    zoom: 1.5
   }
 ];
 
@@ -23,24 +25,57 @@ const locations = [
 export default function GameMap() {
 
   const mapRef = useRef<any>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const [selectedLocation, setSelectedLocation] = useState<any>(null);
   const [activeLocation, setActiveLocation] = useState<any>(null);
-  const [scale, setScale] = useState(1.5);
+  const [scale, setScale] = useState(1);
+  const [ready, setReady] = useState(false);
+  const [view, setView] = useState({ scale: 1, x: 0, y: 0 });
 
-  const goToLocation = (loc:any) => {
+  useLayoutEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
 
-    mapRef.current.setTransform(
-      -loc.x ,
-      -loc.y * 8 ,
-      loc.zoom,
-      600
-    );
+    const measure = () => {
+      const cw = el.clientWidth;
+      const ch = el.clientHeight;
+      if (cw === 0 || ch === 0) return;
+
+      const cover = Math.max(cw / IMG_W, ch / IMG_H);
+      const x = (IMG_W * cover - cw) / 2;
+      const y = (IMG_H * cover - ch) / 2;
+
+      const next = { scale: cover, x: -x, y: -y };
+      setView(next);
+      setScale(cover);
+      setReady(true);
+
+      if (mapRef.current) {
+        mapRef.current.setTransform(next.x, next.y, next.scale, 0);
+      }
+    };
+
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+
+  const goToLocation = (loc: any) => {
+    const el = containerRef.current;
+    if (!el || !mapRef.current) return;
+
+    const cw = el.clientWidth;
+    const ch = el.clientHeight;
+    const targetScale = view.scale * (loc.zoom ?? 1);
+    const tx = (loc.x / 100) * IMG_W * targetScale - cw / 2;
+    const ty = (loc.y / 100) * IMG_H * targetScale - ch / 2;
+
+    mapRef.current.setTransform(-tx, -ty, targetScale, 600);
 
     setSelectedLocation(loc);
     setActiveLocation(loc.id);
   };
-
 
   const closeLocation = () => {
     setSelectedLocation(null);
@@ -49,102 +84,88 @@ export default function GameMap() {
 
 
   return (
-    <div className="flex items-center justify-center min-h-[80vh]">
-      <TransformWrapper
-        ref={mapRef}
-        minScale={1.5}
-        maxScale={3}
-        onTransform={(ref) => {
-          setScale(ref.state.scale);
-        }}
-      >
-        <TransformComponent>
-          
-          <div style={{position:"relative"}}>
-            
-            <img
-              src={map}
-              style={{
-                width:"3000px",
-                height:"470px",
-                display:"block"
-                
-                
-              }}
-            />
+    <div ref={containerRef} className="absolute inset-0 overflow-hidden">
 
+      {ready && (
+        <TransformWrapper
+          ref={mapRef}
+          initialScale={view.scale}
+          initialPositionX={view.x}
+          initialPositionY={view.y}
+          minScale={view.scale}
+          maxScale={view.scale * 5}
+          limitToBounds
+          onTransform={(ref) => {
+            setScale(ref.state.scale);
+          }}
+        >
+          <TransformComponent wrapperStyle={{ width: "100%", height: "100%" }}>
 
-            {locations.map(loc => (
-            <div key={loc.id} >
-                <button
-                  onClick={() => goToLocation(loc)}
-                  style={{
-                    position: "absolute",
-                    left: `${loc.x}%`,
-                    top: `${loc.y}%`,
-                    transform: `translate(-50%, -50%) scale(${1 / scale})`,
-                    transformOrigin: "center"
-                  }}
-                  className={`
-                    rounded-full
-                    w-3
-                    h-3
-                    transition-colors
-                    duration-300
-                    ${
-                      activeLocation === loc.id
-                        ? "bg-[#E8603C]"
-                        : "bg-white"
-                    }
-                  `}
-                />
-               <p
-                style={{
-                  position: "absolute",
-                  left: `${loc.x}%`,
-                  top: `${loc.y + 1}%`,
-                  transform: `translateX(-50%) scale(${1 / scale})`,
-                  transformOrigin: "top center"
-                }}
-                className="
-                  text-black
-                  text-[10px]
-                  font-bold
-                  whitespace-nowrap
-              "
-              >
-                {loc.name}
-              </p>
+            <div className="relative" style={{ width: IMG_W, height: IMG_H }}>
+
+              <img
+                src={map}
+                alt="Карта"
+                className="block h-full w-full" />
+
+              {locations.map(loc => (
+                <div key={loc.id} >
+                  <button
+                    onClick={() => goToLocation(loc)}
+                    style={{
+                      position: "absolute",
+                      left: `${loc.x}%`,
+                      top: `${loc.y}%`,
+                      transform: `translate(-50%, -50%) scale(${1 / scale})`,
+                      transformOrigin: "center"
+                    }}
+                    className={`rounded-full w-3 h-3 transition-colors duration-300
+                      ${activeLocation === loc.id ? "bg-[#E8603C]" : "bg-white"}`} />
+                  <p
+                    style={{
+                      position: "absolute",
+                      left: `${loc.x}%`,
+                      top: `${loc.y + 1}%`,
+                      transform: `translateX(-50%) scale(${1 / scale})`,
+                      transformOrigin: "top center"
+                    }}
+                    className="
+                      text-black
+                      text-[10px]
+                      font-bold
+                      whitespace-nowrap
+                  "
+                  >
+                    {loc.name}
+                  </p>
+
+                </div>
+              ))}
 
             </div>
-            ))}
 
+          </TransformComponent>
 
-          </div>
-
-        </TransformComponent>
-
-      </TransformWrapper>
-
-
+        </TransformWrapper>
+      )}
 
       {selectedLocation && (
 
         <Card
           style={{
-            position:"fixed",
-            top:"50%",
-            left:"50%",
-            transform:"translate(-50%, -50%)",
-            background:"white",
-            padding:30,
-            borderRadius:20,
-            zIndex:1000,
-            width:300
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            background: "white",
+            padding: 30,
+            borderRadius: 20,
+            zIndex: 1000,
+            width: 300
           }}
         >
           <Inset>
-            <img src={fon} style={{padding:"10px",borderRadius:"16px"}}
+            <img src={fon} style={{ padding: "10px", borderRadius: "16px" }}
             />
           </Inset>
 
@@ -162,30 +183,14 @@ export default function GameMap() {
 
             <button
               onClick={closeLocation}
-              className="
-                mt-4
-                bg-red-500
-                text-white
-                px-4
-                py-2
-                rounded
-              "
-            >
+              className=" mt-4bg-red-500text-white px-4 py-2 rounded ">
               Закрыть
             </button>
 
 
             <button
               onClick={closeLocation}
-              className="
-                mt-4
-                bg-green-500
-                text-white
-                px-4
-                py-2
-                rounded
-              "
-            >
+              className="mt-4 bg-green-500 text-white px-4 py-2 rounded">
               Выбрать
             </button>
 

@@ -20,7 +20,7 @@ export default function MainLayout(){
                 </Link>
             </div>
 
-            <div className=" flex-1">
+            <div className="flex-1 relative">
                <Outlet></Outlet>
             </div>
 

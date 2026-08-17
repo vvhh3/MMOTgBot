@@ -1,7 +1,6 @@
 import player from '../public/playerM.svg'
 import map from '../components/ui/Maps/mapMat.png'
 import bag from '../public/bag.svg'
-import { useState, useRef } from "react";
 import { Flex, Card,Text, Button,Box,Progress,Inset,Strong, Grid} from "@radix-ui/themes";
 import { Link } from 'react-router-dom';
 export default function Profile(){
@@ -10,7 +9,7 @@ export default function Profile(){
         <div className='flex flex-col items-center h-full'>
             <div className='flex flex-col justify-center items-center '>
                 <p className='font-bold'>Mirbll</p>
-                <img className='h-[200px]' src={player} />
+                <img className='h-50' src={player} />
             </div>
             <Grid columns="2"  gap="3">
                 <button>
