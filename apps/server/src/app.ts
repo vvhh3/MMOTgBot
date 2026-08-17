@@ -19,7 +19,7 @@ import type {
 import { createSessionToken, requireAdmin, requireAuth, validateTelegramInitData, type AuthedRequest } from "./auth.js";
 import { getCombatState, isMobAlive, moveCombatAction, startCombat } from "./combat.js";
 import { config } from "./config.js";
-import { db, initializeDatabase, toEventDto, toInventoryItemDto, toLocationDto, toPlayerDto, toMobDto } from "./db.js";
+import { db, initializeDatabase, toEventDto, toInventoryItemDto, toLocationDto, toPlayerDto, toMobDto, toPlayerDtoEquipped } from "./db.js";
 import { combatSessions, events, inventoryItems, locations, players, mobs } from "./db/schema.js";
 import { getPlayersInLocation, hydratePresenceFromDatabase, movePlayer } from "./presence.js";
 
@@ -29,6 +29,7 @@ import { buildLocationState } from "./state.js";
 
 import { broadcastLocation, emitToPlayer, moveSocketToLocation } from "./realTime.js";
 import { InventoryRoutes } from "./inventory.js";
+import { addXpForPlayer } from "./level.js";
 
 export function createApp(): express.Express {
   initializeDatabase();
@@ -85,7 +86,7 @@ export function createApp(): express.Express {
       const player = db.select().from(players).where(eq(players.id, telegramUser.id)).get()!;
       const response: AuthResponse = {
         token: createSessionToken(player.id),
-        player: toPlayerDto(player)
+        player: toPlayerDtoEquipped(player)
       };
       res.json(response);
     } catch (error) {
@@ -103,7 +104,7 @@ export function createApp(): express.Express {
       .all();
 
     const response: MeResponse = {
-      player: toPlayerDto(player),
+      player: toPlayerDtoEquipped(player),
       inventory: inventory.map(toInventoryItemDto)
     };
     res.json(response);
@@ -178,11 +179,15 @@ export function createApp(): express.Express {
           target: [inventoryItems.playerId, inventoryItems.itemType],
           set: { quantity: sql`${inventoryItems.quantity} + 1`, acquiredAt: now }
         })
-        .run();
+        .run()
+
       tx.update(players)
         .set({ points: sql`${players.points} + 1`, lastSeenAt: now })
         .where(eq(players.id, player.id))
-        .run();
+        .run()
+
+      addXpForPlayer(player.id,5) // начислить опыт за выполненно действие
+
       tx.insert(events).values({ playerId: player.id, locationId: location.id, type: "scavenge", createdAt: now }).run();
     });
 
@@ -318,7 +323,7 @@ export function createApp(): express.Express {
 
     res.json({
       state,
-      player: toPlayerDto(updatedPlayer),
+      player: toPlayerDtoEquipped(updatedPlayer),
       inventory: inventory.map(toInventoryItemDto)
     } satisfies CombatActionResponse);
   });

@@ -8,6 +8,7 @@ import type { EventDto, InventoryItemDto, LocationDto, PlayerDto, MobDto, ItemDt
 import { config } from "./config.js";
 import { locations, mobs } from "./db/schema.js";
 import type { EventRow, InventoryItemRow, LocationRow, PlayerRow, MobRow, ItemRow } from "./db/schema.js";
+import { getPlayerStats } from "./combat.js";
 
 export type { EventRow, InventoryItemRow, LocationRow, PlayerRow, MobRow, ItemRow } from "./db/schema.js";
 
@@ -63,18 +64,27 @@ function migrationsFolder(): string {
 // Функции ниже превращают "сырые" строки из БД (Row-типы) в DTO — объекты, которые
 // отдаются клиенту. Это прослойка между внутренним форматом хранения и внешним API.
 
+//получить дефолтные статы игрока
 export function toPlayerDto(row: PlayerRow): PlayerDto {
   return {
     id: row.id,
     name: row.name,
     level: row.level,
+    xp: row.xp,
     points: row.points,
     currentLocationId: row.currentLocationId,
     health: row.health,
     maxHp: row.maxHealth,
     strength: row.strength,
     defense: row.defense
-  };
+  }
+}
+
+// получить данные игрока с экипировкой 
+export function toPlayerDtoEquipped(row: PlayerRow): PlayerDto {
+  const dto = toPlayerDto(row)
+  const statsEquiped = getPlayerStats(row) 
+  return {...dto,strength: statsEquiped.strength, defense: statsEquiped.defense}
 }
 
 export function toMobDto(row: MobRow): MobDto{

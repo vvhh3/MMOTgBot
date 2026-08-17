@@ -20,7 +20,8 @@ export const players = sqliteTable("players",
     strength: integer('strength').notNull().default(10),
     defense: integer("defense").notNull().default(5),
     level: integer("level").notNull().default(1),
-    points: integer("points").notNull().default(0),
+    xp: integer("xp").notNull().default(0), // очки опыта 
+    points: integer("points").notNull().default(0), // Зачем я сделал очки? Хз надо разобраться
     currentLocationId: text("current_location_id").references(() => locations.id),
     createdAt: text("created_at").notNull(),
     lastSeenAt: text("last_seen_at").notNull()
