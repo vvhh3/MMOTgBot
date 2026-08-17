@@ -11,7 +11,7 @@ export default function Profile(){
                 <p className='font-bold'>Mirbll</p>
                 <img className='h-50' src={player} />
             </div>
-            <Grid columns="2"  gap="3">
+            <Grid columns="2"  gap="3" style={{padding:"20px"}}>
                 <button>
                 <Card variant="surface"  >
                     <Text as="div" size="2" weight="bold">
