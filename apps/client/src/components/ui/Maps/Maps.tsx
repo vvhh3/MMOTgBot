@@ -5,7 +5,7 @@ import {
 } from "react-zoom-pan-pinch";
 import { Flex, Card,Text, Button,Box,Progress,Inset,Strong, Grid} from "@radix-ui/themes";
 // import map from "./map3.png";
-import map from "./Mapmat.png"
+import map from "./mapMat.png"
 import fon from "../../../public/Home.svg"
 
 const locations = [
