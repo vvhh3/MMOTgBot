@@ -14,6 +14,7 @@ import Profile from "./components/Profile";
 import Map from "./components/ui/Maps/Maps";
 import { connectSocket, getSocket } from "./socket";
 import Home from "./components/Home";
+import Tasks from "./components/Tasks";
 
 
 
@@ -79,6 +80,7 @@ function App() {
               <Route path="/" element={<Home />}/>
               <Route path="Map" element={<Map />}/>
               <Route path="Profile" element={<Profile />}/>
+              <Route path="Tasks" element={<Tasks/>}/>
             </Route>
           </Routes>
       </Theme>
