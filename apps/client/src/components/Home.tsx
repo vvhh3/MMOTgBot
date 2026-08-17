@@ -5,7 +5,7 @@ import fon from "../public/Home.svg"
 export default function Home(){
     return(
         <div className="flex flex-col justify-center items-center ">
-            <div className="flex flex-col justify-center items-center w-full h-full object-contain bg-bottom " 
+            <div className="flex flex-col justify-center items-center w-full h-full object-contain bg-bottom border-b-2" 
             style={{backgroundImage:`url(${fon})`}}>
                  <div className="bg-[#00000074] rounded-[16px] pr-[10px] pl-[10px] m-[3px]">
                     <header className="text-[#E85D2F] font-[800px]">Площадь</header>
@@ -23,7 +23,10 @@ export default function Home(){
                     </Box>
                     <img className='h-[150px] min-w-[140px]' src={player} />
                 </div>
-                 <div className='flex flex-col justify-center items-center pr-[5px] pl-[5px]'>
+                <div className='flex flex-col justify-center items-center '>
+                    <button className="flex justify-center items-center rounded-4xl h-4 w-4 bg-[#E85D2F] text-amber-50 " >+</button>
+                </div>
+                {/* <div className='flex flex-col justify-center items-center pr-[5px] pl-[5px]'>
                      <div className="bg-[#00000074] rounded-[16px] pr-[10px] pl-[10px] m-[3px]"> 
                         <p className='font-medium text-[#ffffff65]  '>Xz</p>
                     </div>
@@ -31,7 +34,7 @@ export default function Home(){
                         <Progress style={{background:"white"}} size="1" color='green' value={69}/>
                     </Box>
                     <img className='h-[150px] min-w-[140px]' src={player2} />
-                </div>
+                </div> */}
             </Grid>
             </div>
             <Grid columns="2" rows="2" maxWidth="700px" gap="2" style={{padding:"20px"}}>

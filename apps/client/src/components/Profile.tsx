@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 export default function Profile(){
     
     return(
-        <div className='flex flex-col items-center h-full'>
+        <div className='flex flex-col items-center h-full ' >
             <div className='flex flex-col justify-center items-center '>
                 <p className='font-bold'>Mirbll</p>
                 <img className='h-50' src={player} />
@@ -46,7 +46,7 @@ export default function Profile(){
             <Box >
                 <Link to="/Map">
                     <Card size="2">
-                    <Inset clip="padding-box" side="top" pb="current">
+                    <Inset clip="padding-box" side="top" pb="current" style={{borderBottom:"solid 2px"}} >
                         <img
                             src={map}
                             alt="Bold typography"

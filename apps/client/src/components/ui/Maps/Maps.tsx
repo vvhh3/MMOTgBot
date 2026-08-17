@@ -157,7 +157,6 @@ export default function GameMap() {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            background: "white",
             padding: 30,
             borderRadius: 20,
             zIndex: 1000,

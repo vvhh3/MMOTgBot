@@ -1,4 +1,8 @@
 @import "tailwindcss";
 * {
     font-family: "Unbounded", sans-serif;
+    
+}
+.rt-Card {
+    border: solid 2px;
 }
