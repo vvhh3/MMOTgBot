@@ -152,6 +152,7 @@ export function createApp(): express.Express {
     res.json(response);
   });
 
+  
   // Описание действий на локации + награды за действия 
   const locationActions: Record<string, {
     itemTypes: number[];
