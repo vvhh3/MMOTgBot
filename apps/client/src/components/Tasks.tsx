@@ -3,7 +3,7 @@ export default function Tasks(){
     return(
         <div className=' h-full ' >
             <Tabs.Root defaultValue="active" className="flex flex-col items-center">
-            <Tabs.List color="orange" size="2" className="flex w-full max-w-[600px] justify-center">
+            <Tabs.List color="orange" size="2" className="flex w-full max-w-[600px] justify-center" style={{justifyContent:"center"}}>
                 <Tabs.Trigger className="w-1/2" value="active">Активные</Tabs.Trigger>
                 <Tabs.Trigger className="w-1/2" value="unfinished">Незавершенные</Tabs.Trigger>
             </Tabs.List>
