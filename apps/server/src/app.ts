@@ -10,6 +10,7 @@ import type {
   CombatActionResponse,
   CombatStartRequest,
   EnterLocationResponse,
+  LeaderBoardResponse,
   LocationActionRequest,
   LocationActionResponse,
   LocationStateResponse,
@@ -151,11 +152,39 @@ export function createApp(): express.Express {
     res.json(response);
   });
 
+  // Описание действий на локации + награды за действия 
+  const locationActions: Record<string, {
+    itemTypes: number[];
+    dropChance: number;
+    xp: number;
+    points: number;
+    eventType: string;
+    message: (locationName: string) => string;
+  }> = {
+    fight: {
+      itemTypes: [],
+      dropChance: 0,
+      xp: 0,
+      points: 2,
+      eventType: "fight",
+      message: (name) => `Вы сразились с мобами: ${name}.`
+    },
+    walk: {
+      itemTypes: [1, 2, 3],
+      dropChance: 0.1,
+      xp: 2,
+      points: 1,
+      eventType: "walk",
+      message: (name) => `Вы прогулялись по локации: ${name}.`
+    }
+  }
+
   app.post("/locations/:id/action", requireAuth, (req, res) => {
     const player = (req as AuthedRequest).player;
     const body = req.body as LocationActionRequest;
 
-    if (body.actionId !== "scavenge") {
+    const action = locationActions[body.actionId];
+    if (!action) {
       res.status(400).json({ error: "Unknown action" });
       return;
     }
@@ -173,22 +202,25 @@ export function createApp(): express.Express {
 
     const now = new Date().toISOString();
     db.transaction((tx) => {
-      tx.insert(inventoryItems)
-        .values({ playerId: player.id, itemType: 1, quantity: 1, acquiredAt: now })
-        .onConflictDoUpdate({
-          target: [inventoryItems.playerId, inventoryItems.itemType],
-          set: { quantity: sql`${inventoryItems.quantity} + 1`, acquiredAt: now }
-        })
-        .run()
+      if (action.itemTypes.length > 0 && Math.random() < action.dropChance) { // Выдача предмета
+        const itemType = action.itemTypes[Math.floor(Math.random() * action.itemTypes.length)];
+        tx.insert(inventoryItems)
+          .values({ playerId: player.id, itemType, quantity: 1, acquiredAt: now })
+          .onConflictDoUpdate({
+            target: [inventoryItems.playerId, inventoryItems.itemType],
+            set: { quantity: sql`${inventoryItems.quantity} + 1`, acquiredAt: now }
+          })
+          .run()
+      }
 
       tx.update(players)
-        .set({ points: sql`${players.points} + 1`, lastSeenAt: now })
+        .set({ points: sql`${players.points} + ${action.points}`, lastSeenAt: now })
         .where(eq(players.id, player.id))
         .run()
 
-      addXpForPlayer(player.id,5) // начислить опыт за выполненно действие
+      addXpForPlayer(player.id, action.xp) // начислить опыт за выполненно действие
 
-      tx.insert(events).values({ playerId: player.id, locationId: location.id, type: "scavenge", createdAt: now }).run();
+      tx.insert(events).values({ playerId: player.id, locationId: location.id, type: action.eventType, createdAt: now }).run();
     });
 
     const updatedPlayer = db.select().from(players).where(eq(players.id, player.id)).get()!;
@@ -217,7 +249,7 @@ export function createApp(): express.Express {
       .get()!;
 
     const response: LocationActionResponse = {
-      message: `Вы нашли припасы: ${location.name}.`,
+      message: action.message(location.name),
       player: toPlayerDto(updatedPlayer),
       inventory: inventory.map(toInventoryItemDto),
       event: toEventDto(event)
@@ -350,6 +382,20 @@ export function createApp(): express.Express {
     const mob = db.select().from(mobs).where(eq(mobs.id, session.mobId)).get()!;
     res.json(getCombatState(player, session, mob));
   });
+
+
+
+  app.get("/leaderboard", requireAuth, (_req, res) => {
+    const leaders = db.select().from(players)
+      .orderBy(desc(players.points))
+      .limit(10)
+      .all()
+
+    const response: LeaderBoardResponse = {
+      entries: leaders.map((p) => ({ player: toPlayerDto(p), points: p.points }))
+    }
+    res.json(response)
+  })
 
   serveClient(app);
   

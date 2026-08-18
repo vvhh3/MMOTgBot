@@ -5,6 +5,7 @@ import type { Request, Response, NextFunction } from "express";
 import { config } from "./config.js";
 import { db, type PlayerRow } from "./db.js";
 import { players } from "./db/schema.js";
+import { RegenHealth } from "./regen.js";
 
 export type TelegramUser = {
   id: number;
@@ -74,6 +75,9 @@ export function requireAuth(req: Request, res: Response, next: NextFunction): vo
       return;
     }
 
+    const newHealth = RegenHealth(playerId)
+    player.health = newHealth
+    
     db.update(players).set({ lastSeenAt: new Date().toISOString() }).where(eq(players.id, playerId)).run();
     (req as AuthedRequest).player = player;
     next();

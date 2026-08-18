@@ -12,15 +12,16 @@ REST API на Express. Базовый URL: `http://localhost:4000` (задаёт
 
 ```ts
 PlayerDto = {
-  id: number;            // telegram user id
+  id: number;                // telegram user id
   name: string;
   level: number;
+  xp: number;
   points: number;
   currentLocationId: string | null;
   health: number;
   maxHp: number;
-  strength: number;
-  defense: number;
+  strength: number;          // с учётом экипировки
+  defense: number;           // с учётом экипировки
 }
 
 MobDto = {
@@ -28,14 +29,24 @@ MobDto = {
   name: string;
   description: string;
   level: number;
-  health: number;
   maxHealth: number;
   strength: number;
   defense: number;
-  loot: string[];          // предметы, выпадающие при победе
-  pointsReward: number;    // очки за убийство
+  loot: number[];            // id предметов, выпадающих при победе
+  pointsReward: number;      // очки за убийство
   locationId: string;
-  respawnSeconds: number;  // время до респауна после смерти
+  respawnSeconds: number;    // время до респауна после смерти
+}
+
+ItemDto = {
+  id: number;
+  name: string;
+  description: string;
+  type: "weapon" | "armor" | "consumable" | "material" | "other";
+  damage: number;            // бонус к силе в бою
+  defense: number;           // бонус к защите в бою
+  healAmount: number;        // сколько HP лечит consumable
+  price: number;
 }
 
 LocationDto = {
@@ -48,9 +59,10 @@ LocationDto = {
 
 InventoryItemDto = {
   id: number;
-  itemType: string;
+  itemType: number;          // id предмета из каталога items
   quantity: number;
-  acquiredAt: string;   // ISO timestamp
+  acquiredAt: string;        // ISO timestamp
+  equiped: boolean;
 }
 
 EventDto = {
@@ -58,8 +70,8 @@ EventDto = {
   playerId: number;
   playerName: string;
   locationId: string;
-  type: string;         // например "scavenge", "kill", "death", "entered"
-  createdAt: string;    // ISO timestamp
+  type: string;              // например "fight", "walk", "kill", "death"
+  createdAt: string;         // ISO timestamp
 }
 
 ActionDto = {
@@ -71,6 +83,21 @@ ActionDto = {
 CombatLogEntry = {
   text: string;
   at: string;   // ISO timestamp
+}
+
+CombatStateResponse = {
+  mob: MobDto;
+  playerHp: number;
+  playerMaxHp: number;
+  mobHp: number;
+  mobMaxHp: number;
+  status: "active" | "victory" | "defeat" | "fled";
+  log: CombatLogEntry[];
+}
+
+LeaderBoardToDto = {
+  player: PlayerDto;
+  points: number;
 }
 ```
 
@@ -156,28 +183,93 @@ CombatLogEntry = {
 
 ### `POST /locations/:id/action`
 
-Действие в локации. Сейчас доступно только `actionId: "scavenge"` (поиск припасов): добавляет `city-supply` в инвентарь, +1 очко, пишет событие `scavenge`. Требует авторизацию.
+Действие в локации. Доступные `actionId`: `fight` (сражение: +очки, предметы не выпадают) и `walk` (прогулка: +XP, небольшой шанс получить случайный предмет). Требует авторизацию.
 
 Запрос:
 
 ```json
-{ "actionId": "scavenge" }
+{ "actionId": "fight" | "walk" }
 ```
 
 Ответ:
 
 ```json
 {
-  "message": "Вы нашли припасы: <локация>.",
+  "message": "строка о результате действия",
   "player": PlayerDto,
   "inventory": InventoryItemDto[],
   "event": EventDto
 }
 ```
 
-<!-- eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwbGF5ZXJJZCI6MTIzLCJpYXQiOjE3ODY3MTkwMTN9.5kIC0AZVHYKtCwEQeyvq5TxgjHoml4y0ch3bTEFeCOM -->
-
 Ошибки: `400` — неизвестное действие; `404` — локация не найдена; `409` — игрок не вошёл в эту локацию.
+
+### `GET /leaderboard`
+
+Топ-10 игроков по очкам (`points`), отсортированных по убыванию. Требует авторизацию.
+
+```json
+200 → {
+  "entries": LeaderBoardToDto[]
+}
+```
+
+### `POST /inventory/equip`
+
+Надеть предмет (оружие или броню) из инвентаря. При надевании предмета того же типа старый снимается автоматически. Требует авторизацию.
+
+Запрос:
+
+```json
+{ "itemType": 2 }
+```
+
+Ответ:
+
+```json
+200 → { "inventory": InventoryItemDto[] }
+```
+
+Ошибки: `400` — предмета нет в инвентаре или это не оружие/броня.
+
+### `POST /inventory/unequip`
+
+Снять надетый предмет. Требует авторизацию.
+
+Запрос:
+
+```json
+{ "itemType": 2 }
+```
+
+Ответ:
+
+```json
+200 → { "inventory": InventoryItemDto[] }
+```
+
+Ошибки: `400` — предмет не надет.
+
+### `POST /inventory/use`
+
+Использовать расходный предмет (consumable): лечит `healAmount` HP, одна единица расходуется. Требует авторизацию.
+
+Запрос:
+
+```json
+{ "itemType": 6 }
+```
+
+Ответ:
+
+```json
+200 → {
+  "player": PlayerDto,
+  "inventory": InventoryItemDto[]
+}
+```
+
+Ошибки: `400` — предмета нет, это не consumable или HP уже полное.
 
 ### `POST /combat/start`
 
@@ -192,15 +284,7 @@ CombatLogEntry = {
 Ответ:
 
 ```json
-CombatStateResponse = {
-  "mob": MobDto,
-  "playerHp": number,
-  "playerMaxHp": number,
-  "mobHp": number,
-  "mobMaxHp": number,
-  "status": "active" | "victory" | "defeat" | "fled",
-  "log": CombatLogEntry[]
-}
+200 → CombatStateResponse
 ```
 
 Ошибки: `404` — моб не найден; `409` — игрок не в той локации, уже есть активный бой или моб мёртв (в респауне).
@@ -225,7 +309,7 @@ CombatStateResponse = {
 }
 ```
 
-Победа: лут моба попадает в инвентарь, начисляются `pointsReward` очков, моб уходит в респаун, пишется событие `kill`. Поражение: очки делятся на 10, HP = 1, игрок телепортируется на стартовую локацию, пишется событие `death`.
+Победа: лут моба попадает в инвентарь, начисляются `pointsReward` очков и XP, моб уходит в респаун, пишется событие `kill`. Поражение: HP = 0, игрок телепортируется на стартовую локацию (`square`), пишется событие `death`.
 
 Ошибки: `404` — моб не найден; `409` — нет активного боя.
 
@@ -241,4 +325,83 @@ CombatStateResponse = {
 
 ---
 
-**Примечание:** логи боя и респаун-таймеры мобов хранятся в памяти сервера (не в БД) и сбрасываются при перезапуске. Лут в БД хранится как JSON-строка в колонке `loot`, но через drizzle (`mode: "json"`) отдаётся как `string[]`.
+**Админ-эндпоинты** (`/mobs` и `/items`) доступны только администраторам (id из `config.adminIds`) и покрывают CRUD:
+
+### `GET /mobs` · `GET /mobs/:id`
+
+Все мобы или один по id (сортировка по уровню).
+
+```json
+200 → { "mobs": MobDto[] }   // или { "mob": MobDto }
+```
+
+### `POST /mobs`
+
+Создание моба. `loot` — массив id предметов.
+
+Запрос:
+
+```json
+{
+  "name": "Крыса",
+  "description": "описание",
+  "level": 1,
+  "maxHealth": 10,
+  "strength": 2,
+  "defense": 0,
+  "loot": [1],
+  "pointsReward": 10,
+  "locationId": "square",
+  "respawnSeconds": 60
+}
+```
+
+### `PUT /mobs/:id`
+
+Частичное обновление моба (можно передать только нужные поля).
+
+### `DELETE /mobs/:id`
+
+Удаление моба. `200` с пустым телом.
+
+### `GET /items` · `GET /items/:id`
+
+Все предметы или один по id (сортировка по id).
+
+```json
+200 → { "items": ItemDto[] }   // или { "item": ItemDto }
+```
+
+### `POST /items`
+
+Создание предмета.
+
+Запрос:
+
+```json
+{
+  "name": "Аптечка",
+  "description": "описание",
+  "type": "consumable",
+  "damage": 0,
+  "defense": 0,
+  "healAmount": 30,
+  "price": 50
+}
+```
+
+### `PUT /items/:id`
+
+Частичное обновление предмета.
+
+### `DELETE /items/:id`
+
+Удаление предмета. `200` с пустым телом.
+
+---
+
+**Примечания:**
+
+- Логи боя и респаун-таймеры мобов хранятся в памяти сервера (не в БД) и сбрасываются при перезапуске.
+- Лут в БД хранится как JSON-строка в колонке `loot`, но через drizzle (`mode: "json"`) отдаётся как `number[]`.
+- Здоровье игрока восстанавливается пассивно: **1 HP за 10 секунд** (ленивый расчёт при каждом авторизованном запросе через `regen.ts`, таймер сбрасывается только при фактическом регене).

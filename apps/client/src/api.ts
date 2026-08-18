@@ -52,10 +52,10 @@ export async function getLocationState(token: string, locationId: string): Promi
   return response.data;
 }
 
-export async function performLocationAction(token: string, locationId: string): Promise<LocationActionResponse> {
+export async function performLocationAction(token: string, locationId: string, actionId: LocationActionRequest["actionId"]): Promise<LocationActionResponse> {
   const response = await api.post<LocationActionResponse>(
     `/locations/${locationId}/action`,
-    { actionId: "scavenge" } satisfies LocationActionRequest,
+    { actionId } satisfies LocationActionRequest,
     { headers: authHeader(token) })
   return response.data;
 }
