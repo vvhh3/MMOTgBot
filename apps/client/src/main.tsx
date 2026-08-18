@@ -16,6 +16,8 @@ import { connectSocket, getSocket } from "./socket";
 import Home from "./components/Home";
 import Tasks from "./components/Tasks";
 import { useLocation } from "react-router-dom";
+import Team from "./components/Team";
+import Fight from "./components/Fight";
 
 export default function ScrollToTop() {
   const { pathname } = useLocation();
@@ -89,7 +91,9 @@ function App() {
               <Route path="Map" element={<Map />}/>
               <Route path="Profile" element={<Profile />}/>
               <Route path="Tasks" element={<Tasks/>}/>
+              <Route path="Team" element={<Team/>}/>
             </Route>
+            <Route path="/Fight" element={<Fight/>}/>
           </Routes>
       </Theme>
     </>

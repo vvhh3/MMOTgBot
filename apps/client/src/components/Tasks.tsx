@@ -3,7 +3,7 @@ export default function Tasks(){
     return(
         <div className=' h-full ' >
             <Tabs.Root defaultValue="active" className="flex flex-col items-center">
-            <Tabs.List color="orange" size="2" className="flex w-full max-w-[600px] justify-center">
+            <Tabs.List color="orange" size="2" className="flex w-full max-w-[600px] justify-center" style={{justifyContent:"center"}}>
                 <Tabs.Trigger className="w-1/2" value="active">Активные</Tabs.Trigger>
                 <Tabs.Trigger className="w-1/2" value="unfinished">Незавершенные</Tabs.Trigger>
             </Tabs.List>
@@ -16,7 +16,7 @@ export default function Tasks(){
                                         <Text as="div" size="3" weight="bold">
                                             Тайна Жигулёвского завода
                                         </Text>
-                                        <div className="pl-1 pr-1 bg-[#E8603C] text-[#ffff] h-[21px] w-[80px] text-[10px] flex justify-center items-center font-extrabold rounded-[10px]">
+                                        <div className="pl-1 pr-1 bg-[#E8603C] text-[#ffff] h-[21px] w-[80px] text-[8px] flex justify-center items-center font-extrabold rounded-[10px]">
                                             <p>+50 монет</p>
                                         </div>
                                     </div>
@@ -40,7 +40,7 @@ export default function Tasks(){
                                         <Text as="div" size="3" weight="bold">
                                             Прогулка по набережной
                                         </Text>
-                                        <div className="pl-1 pr-1 bg-[#E8603C] text-[#ffff] h-[21px] w-[80px] text-[10px] flex justify-center items-center font-extrabold rounded-[10px]">
+                                        <div className="pl-1 pr-1 bg-[#E8603C] text-[#ffff] h-[21px] w-[80px] text-[8px] flex justify-center items-center font-extrabold rounded-[10px]">
                                             <p>+50 опыта</p>
                                         </div>
                                     </div>
@@ -64,7 +64,7 @@ export default function Tasks(){
                                         <Text as="div" size="3" weight="bold">
                                             Найти бункер
                                         </Text>
-                                        <div className="pl-1 pr-1 bg-[#E8603C] text-[#ffff] h-[21px] w-[80px] text-[10px] flex justify-center items-center font-extrabold rounded-[10px]">
+                                        <div className="pl-1 pr-1 bg-[#E8603C] text-[#ffff] h-[21px] w-[80px] text-[8px] flex justify-center items-center font-extrabold rounded-[10px]">
                                             <p>меч</p>
                                         </div>
                                     </div>
