@@ -1,21 +1,19 @@
 import fightImage from "../public/fight.svg"
 import player from "../public/playerM.svg"
 import monstr from "../public/monstr.svg"
-import { Button, Card,Progress,Text } from "@radix-ui/themes"
+import { Button, Card,Progress,Text,Grid } from "@radix-ui/themes"
 import { Link } from "react-router-dom"
 export default function Fight(){
     return(
-        <div className="flex "
-            style={{
+        <div className="flex ">
+            <div className="flex w-full flex-col justify-end"  style={{
                 backgroundImage: `url(${fightImage})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
                 height:"100vh"
-            }}
-            >
-            <div className="flex w-full flex-col justify-end">
-                <div className="flex justify-around flex-row">
+            }}>
+                <div className="flex justify-around flex-row" >
                     <div className="flex flex-col">
                         <div>
                             <Card>
@@ -55,14 +53,33 @@ export default function Fight(){
                 </div>
                 <div>
                 <Card >
-                    <div className=" flex flex-col gap-2">
-                        <Button style={{width:"100%"}} color="orange">
-                            Ударить
-                        </Button>
+                    <Grid rows="2" columns="2" gap="3" >
+                        <Card>
+                            <div className="flex justify-center items-center">
+                                <Text size="4">Битва</Text>
+                            </div>
+                        </Card>
+                        <Card>
+                            <div className="flex justify-center items-center">
+                                <Text size="4">Инвентарь</Text>
+                            </div>
+                        </Card>
+                        <Card>
+                            <div className="flex justify-center items-center">
+                                <Text size="4">хз</Text>
+                            </div>
+                        </Card>
                         <Link to="/">
-                            <Button style={{width:"100%"}}>Выйти</Button>
+                            <Card>
+                                <div className="flex justify-center items-center">
+                                    <Text size="4">Cбежать</Text>
+                                </div>
+                            </Card>
                         </Link>
-                    </div>
+                    </Grid>
+                        
+                        
+                    
                 </Card>
                 </div>
             </div>
