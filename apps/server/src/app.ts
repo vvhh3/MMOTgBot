@@ -150,9 +150,8 @@ export function createApp(): express.Express {
       state: buildLocationState(location.id)!
     };
     res.json(response);
-  });
+  })
 
-  
   // Описание действий на локации + награды за действия 
   const locationActions: Record<string, {
     itemTypes: number[];
