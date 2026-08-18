@@ -1,7 +1,7 @@
 import {Avatar, Card, Grid, TextField,Text ,Badge} from "@radix-ui/themes"
 export default function Team(){
     return(
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full ">
             <div className="flex justify-center items-center pl-[10px] pr-[10px] gap-1 pt-4">
                 <TextField.Root radius="large" placeholder="Искать по нику или коду...." className="flex w-full max-w-[600px]  justify-center">
                     <TextField.Slot>
@@ -12,7 +12,8 @@ export default function Team(){
                     <svg className="h-[15px] w-[15px]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" fill="#fff"><path d="M157.9767 0C103.5064 0 59.0821 44.424 59.0821 98.8945s44.4243 98.8965 98.8946 98.8965 98.8965-44.426 98.8965-98.8965S212.447 0 157.9767 0Zm0 25c40.9592 0 73.8965 32.9349 73.8965 73.8945s-32.9373 73.8964-73.8965 73.8965-73.8946-32.9369-73.8946-73.8965S117.0175 25 157.9767 25Zm42.3808 175v200h200V200h-200Zm-42.3906 13.6328C70.2152 200.6548.0715 279.1693-.3065 374.4492L-.3575 387h176.7148v-25H25.3085c5.9893-77.1106 63.5961-136.3444 132.6582-136.3672h.01c6.2307 0 12.3661.4909 18.3809 1.4258v-25.2461c-6.029-.769-12.1615-1.1788-18.3868-1.1797Zm67.3906 11.3672h150v27.3672l-14.5234-12.2442-74.127 87.9199-49.6953-41.8965-11.6543 13.8223v-74.9687Zm150 36.6797v113.3203h-150v-65.9786l45.2344 38.1348 19.1133 16.1153 16.1152-19.1133 69.5371-82.4785Z"/></svg>                
                 </button>
             </div>
-            <Grid columns="1" rows="1" gap='3' style={{padding:"20px",paddingTop:"10px",display:"flex",flexDirection:"column",alignItems:"center",minWidth:"230px",maxWidth:"800px"}}>
+            <div className="flex flex-col w-full justify-center items-center">
+                <Grid columns="1" rows="1" gap='3' style={{padding:"20px",paddingTop:"10px",display:"flex",flexDirection:"column",alignItems:"center",minWidth:"230px",justifyItems:"center", maxWidth:"800px",width:"100%"}}>
                 <Card className="w-full">
                     <div className="flex flex-row  items-center justify-between">
                         <div className="flex flex-row gap-5">
@@ -111,6 +112,7 @@ export default function Team(){
                 </Card>
                 
             </Grid>
+            </div>
         </div>
     )
 }
