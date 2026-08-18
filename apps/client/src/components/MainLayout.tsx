@@ -5,7 +5,7 @@ import Profile from "./Profile";
 import { Link, Outlet } from "react-router-dom";
 export default function MainLayout(){
     return(
-        <div className="h-screen flex flex-col overflow-hidden ">
+        <div className="h-screen flex flex-col overflow-hidden pt-[20px] ">
             <div className="flex justify-between items-center p-1 shrink-0 border-b-2" >
                 <Link to="/">
                     <header className="font-bold pl-3">MMONSK</header>
