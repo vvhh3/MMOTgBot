@@ -24,7 +24,8 @@ export const players = sqliteTable("players",
     points: integer("points").notNull().default(0), // Зачем я сделал очки? Хз надо разобраться
     currentLocationId: text("current_location_id").references(() => locations.id),
     createdAt: text("created_at").notNull(),
-    lastSeenAt: text("last_seen_at").notNull()
+    lastSeenAt: text("last_seen_at").notNull(), // что это за поле?
+    lastRegenTime: text("last_regen_time").notNull().$defaultFn(() => new Date().toISOString())
   },
   // Индекс ускоряет поиск игроков по текущей локации (напр. "кто сейчас на площади").
   (table) => [index("players_current_location_idx").on(table.currentLocationId)]

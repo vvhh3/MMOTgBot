@@ -7,9 +7,14 @@ import { getPlayersInLocation } from "./presence.js";
 
 const actions = [
     {
-        id: "scavenge",
-        label: "Выполнить действие",
-        description: "Найти припасы в текущей локации."
+        id: "fight",
+        label: "Сражаться",
+        description: "Сражатся с мобами на локации"
+    },
+    {
+        id: "walk",
+        label: "Прогуляться",
+        description: "Прогуляться по локации"
     }
 ] as const;
 

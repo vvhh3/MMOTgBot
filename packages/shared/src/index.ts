@@ -65,15 +65,15 @@ export type CombatActionResponse = {
 }
 
 
-export type ItemDto =  {
-    id: number
-    name: string
-    description: string
-    type: "weapon" | "armor" | "consumable" | "material" | "other"
-    damage: number
-    defense: number
-    healAmount: number
-    price: number
+export type ItemDto = {
+  id: number
+  name: string
+  description: string
+  type: "weapon" | "armor" | "consumable" | "material" | "other"
+  damage: number
+  defense: number
+  healAmount: number
+  price: number
 }
 
 export type ItemsResponse = {
@@ -149,7 +149,7 @@ export type EnterLocationResponse = {
 };
 
 export type LocationActionRequest = {
-  actionId: "scavenge";
+  actionId: "fight" | "walk"; // сражаться | прогуляться
 };
 
 export type LocationActionResponse = {
@@ -176,4 +176,14 @@ export type ServerToClientEvents = {
 
 export type ClientToServerEvents = {
   // пока пусто — комнатами локаций управляет сервер
-};
+}
+
+
+
+export type LeaderBoardToDto = {
+  player: PlayerDto
+  points: number
+}
+export type LeaderBoardResponse = {
+  entries: LeaderBoardToDto[]
+}
