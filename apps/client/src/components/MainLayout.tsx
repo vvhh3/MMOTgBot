@@ -3,18 +3,16 @@ import { Header } from "@radix-ui/themes/components/table";
 import Map from "./ui/Maps/Maps";
 import Profile from "./Profile";
 import { Link, Outlet } from "react-router-dom";
-import { StrictMode, useEffect, useState } from "react"
+import { StrictMode, useEffect, useState,useRef } from "react"
 export default function MainLayout(){
     useEffect(() => {
-    const tg = window.Telegram?.WebApp;
+        const tg = window.Telegram?.WebApp;
 
-    if (!tg) return;
-
-    tg.ready?.();
-    tg.expand?.();
-  }, []);
+        tg?.ready?.();
+        tg?.expand?.();
+    }, []);
     return(
-        <div className="flex flex-col w-full overflow-hidden" style={{minHeight: "var(--tg-viewport-stable-height, 100dvh)",}}>
+        <div className="flex flex-col w-full overflow-hidden" style={{height: "var(--tg-viewport-stable-height, 100dvh)",}}>
             <div className="flex justify-between items-center p-1 shrink-0 border-b-2"style={{paddingTop:"calc(var(--tg-safe-area-inset-top, 0px) + var(--tg-content-safe-area-inset-top, 0px) + 4px)",}}>
                 <Link to="/">
                     <header className="font-bold pl-3">MMONSK</header>
@@ -29,7 +27,7 @@ export default function MainLayout(){
                 </Link>
             </div>
 
-            <div className="flex-1 min-h-0 relative overflow-y-auto overflow-x-hidden ">
+            <div  className="relative w-full min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
                <Outlet></Outlet>
             </div>
 
