@@ -1,4 +1,4 @@
-import {Tabs,Text,Box,Card, Progress,Badge} from "@radix-ui/themes"
+import {Tabs,Text,Box,Card, Progress,Badge, Grid} from "@radix-ui/themes"
 import player from "../public/playerM.svg"
 export default function Inventory(){
     return(
@@ -87,15 +87,64 @@ export default function Inventory(){
             </div>
             <Box pt="3">
                 <Tabs.Content value="All">
-                    <div>
-                       
-                    </div>
+                   <div className="p-[10px] items-center justify-center flex">
+                        <Grid rows="5" columns="5" gap="3">
+                            {Array.from({ length: 25 }).map((_, index) => (
+                                <div
+                                    key={index}
+                                    className="border-[#898888] border h-[40px] w-[40px]"
+                                />
+                            ))}
+                        </Grid>
+                   </div>
                 </Tabs.Content>
-                <Tabs.Content value="documents">
-                    <Text size="2">Access and update your documents.</Text>
+                <Tabs.Content value="Arming">
+                    <div className="p-[10px] items-center justify-center flex">
+                        <Grid rows="5" columns="5" gap="3">
+                            {Array.from({ length: 25 }).map((_, index) => (
+                                <div
+                                    key={index}
+                                    className="border-[#898888] border h-[40px] w-[40px]"
+                                />
+                            ))}
+                        </Grid>
+                   </div>
                 </Tabs.Content>
-                <Tabs.Content value="settings">
-                    <Text size="2">Edit your profile or update contact information.</Text>
+                <Tabs.Content value="Armor">
+                    <div className="p-[10px] items-center justify-center flex">
+                        <Grid rows="5" columns="5" gap="3">
+                            {Array.from({ length: 25 }).map((_, index) => (
+                                <div
+                                    key={index}
+                                    className="border-[#898888] border h-[40px] w-[40px]"
+                                />
+                            ))}
+                        </Grid>
+                   </div>
+                </Tabs.Content>
+                <Tabs.Content value="Potions">
+                     <div className="p-[10px] items-center justify-center flex">
+                        <Grid rows="5" columns="5" gap="3">
+                            {Array.from({ length: 25 }).map((_, index) => (
+                                <div
+                                    key={index}
+                                    className="border-[#898888] border h-[40px] w-[40px]"
+                                />
+                            ))}
+                        </Grid>
+                   </div>
+                </Tabs.Content>
+                <Tabs.Content value="Other">
+                     <div className="p-[10px] items-center justify-center flex">
+                        <Grid rows="5" columns="5" gap="3">
+                            {Array.from({ length: 25 }).map((_, index) => (
+                                <div
+                                    key={index}
+                                    className="border-[#898888] border h-[40px] w-[40px]"
+                                />
+                            ))}
+                        </Grid>
+                   </div>
                 </Tabs.Content>
             </Box>
             </Tabs.Root>
