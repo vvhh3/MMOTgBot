@@ -132,7 +132,7 @@ export type MeResponse = {
 
 export type LocationsResponse = {
   locations: LocationDto[];
-};
+}
 
 export type LocationStateResponse = {
   location: LocationDto;
@@ -141,27 +141,27 @@ export type LocationStateResponse = {
   mobs: MobDto[];
   recentEvents: EventDto[];
   serverTime: string;
-};
+}
 
 export type EnterLocationResponse = {
   player: PlayerDto;
   state: LocationStateResponse;
-};
+}
 
 export type LocationActionRequest = {
   actionId: "fight" | "walk"; // сражаться | прогуляться
-};
+}
 
 export type LocationActionResponse = {
   message: string;
   player: PlayerDto;
   inventory: InventoryItemDto[];
   event: EventDto;
-};
+}
 
 export type ApiErrorResponse = {
   error: string;
-};
+}
 
 // === Типизированные socket.io события ===
 // ServerToClientEvents — что сервер отправляет клиенту
@@ -187,3 +187,32 @@ export type LeaderBoardToDto = {
 export type LeaderBoardResponse = {
   entries: LeaderBoardToDto[]
 }
+
+export type QuestsDifficulty = "easy" | "medium" | "hard"
+export type QuestsStatus = "waiting" | "completed" | "claimed"
+export type QuestsObjectiveType = "kill" | "walk" | "collect" | "visit"
+
+
+export type QuestsDto = {
+  id: number
+  title: string
+  description: string
+  difficulty: QuestsDifficulty
+  objectiveType: QuestsObjectiveType
+  targetId: string | null
+  targetCount: number
+  targetXp: number
+  targetPoints: number
+}
+export type PlayerQuestDto = {
+  id: number
+  quest: QuestsDto
+  progress: number
+  status: QuestsStatus
+  assignedDay: string
+}
+
+export type QuestsResponse = { quests: QuestsDto[] }
+export type QuestResponse = { quest: QuestsDto }
+export type DailyQuestsResponse = { quests: PlayerQuestDto[] }
+export type ClaimQuestResponse = { player: PlayerDto; claimed: boolean }

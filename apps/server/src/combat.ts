@@ -3,6 +3,8 @@ import { db, toMobDto, toPlayerDto } from "./db.js";
 import { combatSessions, events, inventoryItems, items, players } from "./db/schema.js";
 import type { CombatSessionRow, MobRow, PlayerRow } from "./db/schema.js";
 import { movePlayer } from "./presence.js";
+import { progressQuests } from "./quests.js";
+import { nowGameTime, nowGameTimeMs } from "./time.js";
 import { eq, sql,and, inArray } from "drizzle-orm";
 import { addXpForPlayer } from "./level.js";
 
@@ -18,7 +20,7 @@ function randomInt(min: number, max: number): number {
 }
 
 export function startCombat(player: PlayerRow, mob: MobRow): CombatStateResponse {
-    const now = new Date().toISOString();
+    const now = nowGameTime();
 
     const result = db.insert(combatSessions).values({
         playerId: player.id,
@@ -42,7 +44,7 @@ export function moveCombatAction(
     session: CombatSessionRow,
     action: "attack" | "flee"
 ): CombatStateResponse {
-    const now = new Date().toISOString();
+    const now = nowGameTime();
     const log = combatSessionsLogs.get(session.id) ?? [];
 
     let playerHp = session.playerHealth;
@@ -98,7 +100,7 @@ export function moveCombatAction(
 }
 
 function endCombatSession(status: "victory" | "defeat", player: PlayerRow, mob: MobRow, sessionId: number): void {
-    const now = new Date().toISOString();
+    const now = nowGameTime();
 
     if (status === "victory") {
         // кладём каждый предмет из лута моба в инвентарь (quantity растёт, дубли не создаются)
@@ -117,6 +119,8 @@ function endCombatSession(status: "victory" | "defeat", player: PlayerRow, mob: 
             .set({ points: sql`${players.points} + ${mob.pointsReward}` })
             .where(eq(players.id, player.id))
             .run();
+
+        progressQuests(player.id, "kill", mob.id)
 
         db.insert(events)
             .values({ playerId: player.id, locationId: mob.locationId, type: "kill", createdAt: now })
@@ -152,11 +156,11 @@ export function getCombatState(player: PlayerRow, session: CombatSessionRow, mob
 
 export function isMobAlive(mob: MobRow): boolean {
     const check = mobRespawnUntil.get(mob.id)
-    return !check || Date.now() >= check // !check - если моб = undefined то true, Date.now() >= check - возродился ли моб или нет ещё
+    return !check || nowGameTimeMs() >= check // !check - если моб = undefined то true, Date.now() >= check - возродился ли моб или нет ещё
 }
 
 function markMobDead(mob: MobRow): void {
-    mobRespawnUntil.set(mob.id, Date.now() + mob.respawnSeconds * 1000);
+    mobRespawnUntil.set(mob.id, nowGameTimeMs() + mob.respawnSeconds * 1000);
 }
 
 function buildCombatState(

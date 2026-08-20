@@ -2,6 +2,8 @@ import axios, { type AxiosError } from "axios";
 import type {
   AuthRequest,
   AuthResponse,
+  ClaimQuestResponse,
+  DailyQuestsResponse,
   EnterLocationResponse,
   LocationActionRequest,
   LocationActionResponse,
@@ -57,6 +59,18 @@ export async function performLocationAction(token: string, locationId: string, a
     `/locations/${locationId}/action`,
     { actionId } satisfies LocationActionRequest,
     { headers: authHeader(token) })
+  return response.data;
+}
+
+export async function getDailyQuests(token: string): Promise<DailyQuestsResponse> {
+  const response = await api.get<DailyQuestsResponse>("/quests/daily", { headers: authHeader(token) });
+  return response.data;
+}
+
+export async function claimQuest(token: string, questId: number): Promise<ClaimQuestResponse> {
+  const response = await api.post<ClaimQuestResponse>(`/quests/${questId}/claim`, undefined, {
+    headers: authHeader(token)
+  });
   return response.data;
 }
 

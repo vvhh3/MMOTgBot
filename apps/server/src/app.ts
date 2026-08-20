@@ -26,11 +26,13 @@ import { getPlayersInLocation, hydratePresenceFromDatabase, movePlayer } from ".
 
 import { createMobRoutes } from "./mobs.js";
 import { createItemRoutes } from "./items.js";
+import { createQuestRoutes, progressQuests } from "./quests.js";
 import { buildLocationState } from "./state.js";
 
 import { broadcastLocation, emitToPlayer, moveSocketToLocation } from "./realTime.js";
 import { InventoryRoutes } from "./inventory.js";
 import { addXpForPlayer } from "./level.js";
+import { nowGameTime } from "./time.js";
 
 export function createApp(): express.Express {
   initializeDatabase();
@@ -63,6 +65,10 @@ export function createApp(): express.Express {
   app.use("/inventory",requireAuth)
   InventoryRoutes(app)
 
+  //Квесты
+  app.use("/quests", requireAuth)
+  createQuestRoutes(app)
+
   app.get("/health", (_req, res) => {
     res.json({ ok: true });
   });
@@ -76,7 +82,7 @@ export function createApp(): express.Express {
 
     try {
       const telegramUser = validateTelegramInitData(body.initData);
-      const now = new Date().toISOString();
+      const now = nowGameTime();
       const name = telegramUser.username || [telegramUser.first_name, telegramUser.last_name].filter(Boolean).join(" ") || `Player ${telegramUser.id}`;
 
       db.insert(players)
@@ -136,7 +142,7 @@ export function createApp(): express.Express {
     }
 
     db.update(players)
-      .set({ currentLocationId: location.id, lastSeenAt: new Date().toISOString() })
+      .set({ currentLocationId: location.id, lastSeenAt: nowGameTime() })
       .where(eq(players.id, player.id))
       .run();
     const updatedPlayer = db.select().from(players).where(eq(players.id, player.id)).get()!;
@@ -144,6 +150,8 @@ export function createApp(): express.Express {
 
     moveSocketToLocation(player.id, location.id)
     broadcastLocation(location.id)
+
+    progressQuests(player.id, "visit", location.id)
 
     const response: EnterLocationResponse = {
       player: toPlayerDto(updatedPlayer),
@@ -200,7 +208,7 @@ export function createApp(): express.Express {
       return;
     }
 
-    const now = new Date().toISOString();
+    const now = nowGameTime();
     db.transaction((tx) => {
       if (action.itemTypes.length > 0 && Math.random() < action.dropChance) { // Выдача предмета
         const itemType = action.itemTypes[Math.floor(Math.random() * action.itemTypes.length)];
@@ -211,7 +219,10 @@ export function createApp(): express.Express {
             set: { quantity: sql`${inventoryItems.quantity} + 1`, acquiredAt: now }
           })
           .run()
+        progressQuests(player.id, "collect", itemType)
       }
+
+      progressQuests(player.id, "walk")
 
       tx.update(players)
         .set({ points: sql`${players.points} + ${action.points}`, lastSeenAt: now })
@@ -414,6 +425,7 @@ function serveClient(app: express.Express): void {
       req.path === "/me" ||
       req.path.startsWith("/locations") ||
       req.path.startsWith("/mobs") ||
+      req.path.startsWith("/quests") ||
       req.path.startsWith("/combat");
     if (isApiPath) {
       next();

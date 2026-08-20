@@ -4,6 +4,7 @@ import { db, toEventDto, toLocationDto, toMobDto } from "./db.js";
 import { events, locations, mobs, players } from "./db/schema.js";
 import { isMobAlive } from "./combat.js";
 import { getPlayersInLocation } from "./presence.js";
+import { nowGameTime } from "./time.js";
 
 const actions = [
     {
@@ -48,6 +49,6 @@ export function buildLocationState(locationId: string): LocationStateResponse | 
         actions: [...actions],
         mobs: aliveMobs.map(toMobDto),
         recentEvents: recentEvents.map(toEventDto),
-        serverTime: new Date().toISOString()
+        serverTime: nowGameTime()
     };
 }
