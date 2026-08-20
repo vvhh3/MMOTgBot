@@ -57,10 +57,10 @@ export const items = sqliteTable("items", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   description: text("description").notNull(),
-  type: text("type", { enum: ["weapon", "armor", "consumable", "material", "other"] as const }).notNull(),
+  type: text("type", { enum: ["weapon", "armor", "potion", "material", "other"] as const }).notNull(),
   damage: integer("damage").notNull().default(0),
   defense: integer("defense").notNull().default(0),
-  healAmount: integer("heal_amount").notNull().default(0),
+  healAmount: integer("heal_amount").notNull().default(0), // зачем это поле? Это поле для показа сколько захилит предмет
   price: integer("price").notNull().default(0)
 })
 

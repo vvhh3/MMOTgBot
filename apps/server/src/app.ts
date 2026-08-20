@@ -18,7 +18,7 @@ import type {
   MeResponse
 } from "@mmobot/shared"
 import { createSessionToken, requireAdmin, requireAuth, validateTelegramInitData, type AuthedRequest } from "./auth.js";
-import { getCombatState, isMobAlive, moveCombatAction, startCombat } from "./combat.js";
+import { getCombatState, isMobAlive, moveCombatAction, startCombat, usePotion } from "./combat.js";
 import { config } from "./config.js";
 import { db, initializeDatabase, toEventDto, toInventoryItemDto, toLocationDto, toPlayerDto, toMobDto, toPlayerDtoEquipped } from "./db.js";
 import { combatSessions, events, inventoryItems, locations, players, mobs } from "./db/schema.js";
@@ -322,34 +322,42 @@ export function createApp(): express.Express {
     res.json(state)
   });
 
-  // СДЕЛАТЬ ХОД: POST /combat/action  (action: "attack" | "flee")
-  app.post("/combat/action", requireAuth, (req, res) => {
-    const player = (req as AuthedRequest).player;
-    const body = req.body as CombatActionRequest;
+// СДЕЛАТЬ ХОД: POST /combat/action  (action: "attack" | "flee" | "use")
+    app.post("/combat/action", requireAuth, (req, res) => {
+      const player = (req as AuthedRequest).player;
+      const body = req.body as CombatActionRequest;
 
-    // 1. Есть ли активная сессия боя у игрока?
-    const session = db
-      .select()
-      .from(combatSessions)
-      .where(and(
-        eq(combatSessions.playerId, player.id),
-        eq(combatSessions.status, "active")))
-      .get()
+      // 1. Есть ли активная сессия боя у игрока?
+      const session = db
+        .select()
+        .from(combatSessions)
+        .where(and(
+          eq(combatSessions.playerId, player.id),
+          eq(combatSessions.status, "active")))
+        .get()
 
-    if (!session) {
-      res.status(409).json({ error: "No active combat" });
-      return;
-    }
+      if (!session) {
+        res.status(409).json({ error: "No active combat" });
+        return;
+      }
 
-    // 2. Берём моба из сессии
-    const mob = db.select().from(mobs).where(eq(mobs.id, session.mobId)).get();
-    if (!mob) {
-      res.status(404).json({ error: "Mob not found" });
-      return;
-    }
+      // 2. Берём моба из сессии
+      const mob = db.select().from(mobs).where(eq(mobs.id, session.mobId)).get();
+      if (!mob) {
+        res.status(404).json({ error: "Mob not found" });
+        return;
+      }
 
-    // 3. Совершаем ход: внутри обновляются HP, инвентарь, очки и события
-    const state = moveCombatAction(player, mob, session, body.action);
+      // 3. Совершаем ход: внутри обновляются HP, инвентарь, очки и события
+      //    use — выпить зелье в бою, остальное — обычные ходы
+      const state = body.action === "use"
+        ? usePotion(player, Number(body.itemType), session, mob)
+        : moveCombatAction(player, mob, session, body.action);
+
+      if (!state) {
+        res.status(400).json({ error: "Нет такого зелья в инвентаре" });
+        return;
+      }
 
     // 4. Перечитываем игрока и инвентарь из БД — они могли измениться после боя
     //    (лут, очки, HP), поэтому отдаём клиенту свежие данные.
@@ -372,7 +380,7 @@ export function createApp(): express.Express {
       inventory: inventory.map(toInventoryItemDto)
     } satisfies CombatActionResponse);
   });
-
+  
   // ТЕКУЩЕЕ СОСТОЯНИЕ БОЯ: GET /combat/state
   // Клиент опрашивает этот роут по таймеру, чтобы видеть актуальные HP без лишних действий.
   app.get("/combat/state", requireAuth, (req, res) => {

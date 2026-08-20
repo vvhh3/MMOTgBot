@@ -54,7 +54,8 @@ export type CombatStartRequest = {
 }
 
 export type CombatActionRequest = {
-  action: "attack" | "flee";
+  action: "attack" | "flee" | "use";
+  itemType?: number;
 }
 
 
@@ -69,7 +70,7 @@ export type ItemDto = {
   id: number
   name: string
   description: string
-  type: "weapon" | "armor" | "consumable" | "material" | "other"
+  type: "weapon" | "armor" | "potion" | "material" | "other"
   damage: number
   defense: number
   healAmount: number
