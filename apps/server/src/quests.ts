@@ -13,18 +13,14 @@ import { requireAdmin } from "./auth.js";
 import { db, toPlayerDtoEquipped, toQuestDto } from "./db.js";
 import { playerQuests, players, quests } from "./db/schema.js";
 import { addXpForPlayer } from "./level.js";
+import { nowGameTime, todayGameDate } from "./time.js";
 
 const DIFFICULTIES = ["easy", "medium", "hard"] as const;
-
-// дата выдачи квеста: "2026-08-20" (UTC — день одинаковый для всех игроков)
-function today(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 // Выдаёт игроку дневные квесты (по 1 на каждую сложность, случайный выбор),
 // если на сегодня их ещё нет. Вызывается при запросе GET /quests/daily.
 function assignDailyQuests(playerId: number): void {
-  const day = today();
+  const day = todayGameDate();
   const existing = db
     .select()
     .from(playerQuests)
@@ -71,7 +67,7 @@ export function progressQuests(
       .set({
         progress,
         status: done ? "completed" : "waiting",
-        completedAt: done ? new Date().toISOString() : null
+        completedAt: done ? nowGameTime() : null
       })
       .where(eq(playerQuests.id, pq.id))
       .run();
@@ -90,7 +86,7 @@ export const createQuestRoutes = (app: Express) => {
     const rows = db
       .select()
       .from(playerQuests)
-      .where(and(eq(playerQuests.playerId, player.id), eq(playerQuests.assignedDay, today())))
+      .where(and(eq(playerQuests.playerId, player.id), eq(playerQuests.assignedDay, todayGameDate())))
       .all();
 
     const response: DailyQuestsResponse = {
@@ -138,7 +134,7 @@ export const createQuestRoutes = (app: Express) => {
       return;
     }
 
-    const now = new Date().toISOString();
+    const now = nowGameTime();
     db.transaction((tx) => {
       tx.update(playerQuests)
         .set({ status: "claimed", claimedAt: now })

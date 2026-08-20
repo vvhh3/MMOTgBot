@@ -222,7 +222,9 @@ export function createApp(): express.Express {
         progressQuests(player.id, "collect", itemType)
       }
 
-      progressQuests(player.id, "walk")
+      if (body.actionId === "walk") {
+        progressQuests(player.id, "walk")
+      }
 
       tx.update(players)
         .set({ points: sql`${players.points} + ${action.points}`, lastSeenAt: now })

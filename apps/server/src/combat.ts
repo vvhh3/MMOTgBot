@@ -92,14 +92,14 @@ export function moveCombatAction(
         .where(eq(players.id, player.id))
         .run();
 
-    if (status === "victory" || status === "defeat") {
+    if (status === "victory" || status === "defeat" || status === "fled") {
         endCombatSession(status, player, mob, session.id);
     }
 
     return buildCombatState(mob, player,playerHp, mobHp, status, log);
 }
 
-function endCombatSession(status: "victory" | "defeat", player: PlayerRow, mob: MobRow, sessionId: number): void {
+function endCombatSession(status: "victory" | "defeat" | "fled", player: PlayerRow, mob: MobRow, sessionId: number): void {
     const now = nowGameTime();
 
     if (status === "victory") {
@@ -127,7 +127,7 @@ function endCombatSession(status: "victory" | "defeat", player: PlayerRow, mob: 
             .run();
 
         markMobDead(mob);
-    } else {
+    } else if (status === "defeat") {
 
         db.update(players)
             .set({
@@ -142,10 +142,14 @@ function endCombatSession(status: "victory" | "defeat", player: PlayerRow, mob: 
             .values({ playerId: player.id, locationId: mob.locationId, type: "death", createdAt: now })
             .run();
 
-        db.delete(combatSessions).where(eq(combatSessions.id, sessionId)) // удалить запись по окончанию битвы
         // телепортируем игрока на стартовую локацию ("square" из сида)
         movePlayer(toPlayerDto({ ...player, currentLocationId: "square" }), "square");
     }
+
+    // В любом завершившемся бою (победа/поражение/побег) удаляем сессию,
+    // чтобы игрок мог начать новый бой (uniqueIndex на playerId не даст дубль)
+    db.delete(combatSessions).where(eq(combatSessions.id, sessionId)).run()
+    combatSessionsLogs.delete(sessionId)
 }
 
 // Отдаёт текущее состояние активного боя для опроса клиентом
