@@ -34,6 +34,7 @@ export default function ScrollToTop() {
 
 function App() {
   const [player, setPlayer] = useState<PlayerDto | null>(null)
+  const [token, setToken] = useState<string | null>(null)
   const [inventory, setInventory] = useState<InventoryItemDto[]>([]);
   const [locationState, setLocationState] = useState<LocationStateResponse | null>(null);
   const [combat, setCombat] = useState<CombatStateResponse | null>(null);
@@ -49,6 +50,7 @@ function App() {
     auth(initData)
       .then(async (authData) => {
         setPlayer(authData.player);
+        setToken(authData.token);
         const [meData] = await Promise.all([getMe(authData.token)]);
         setPlayer(meData.player);
         setInventory(meData.inventory);
@@ -93,7 +95,7 @@ function App() {
               <Route path="/" element={<Home />}/>
               <Route path="Map" element={<Map />}/>
               <Route path="Profile" element={<Profile />}/>
-              <Route path="Tasks" element={<Tasks/>}/>
+              <Route path="Tasks" element={<Tasks token={token} />}/>
               <Route path="Team" element={<Team/>}/>
               <Route path="Inventory" element={<Inventory/>}/>
               <Route path="Exchange" element={<Exchange/>}/>

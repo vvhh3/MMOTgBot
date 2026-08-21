@@ -18,7 +18,7 @@ import type {
   MeResponse
 } from "@mmobot/shared"
 import { createSessionToken, requireAdmin, requireAuth, validateTelegramInitData, type AuthedRequest } from "./auth.js";
-import { getCombatState, isMobAlive, moveCombatAction, startCombat } from "./combat.js";
+import { getCombatState, isMobAlive, moveCombatAction, startCombat, usePotion } from "./combat.js";
 import { config } from "./config.js";
 import { db, initializeDatabase, toEventDto, toInventoryItemDto, toLocationDto, toPlayerDto, toMobDto, toPlayerDtoEquipped } from "./db.js";
 import { combatSessions, events, inventoryItems, locations, players, mobs } from "./db/schema.js";
@@ -26,11 +26,13 @@ import { getPlayersInLocation, hydratePresenceFromDatabase, movePlayer } from ".
 
 import { createMobRoutes } from "./mobs.js";
 import { createItemRoutes } from "./items.js";
+import { createQuestRoutes, progressQuests } from "./quests.js";
 import { buildLocationState } from "./state.js";
 
 import { broadcastLocation, emitToPlayer, moveSocketToLocation } from "./realTime.js";
 import { InventoryRoutes } from "./inventory.js";
 import { addXpForPlayer } from "./level.js";
+import { nowGameTime } from "./time.js";
 
 export function createApp(): express.Express {
   initializeDatabase();
@@ -63,6 +65,10 @@ export function createApp(): express.Express {
   app.use("/inventory",requireAuth)
   InventoryRoutes(app)
 
+  //Квесты
+  app.use("/quests", requireAuth)
+  createQuestRoutes(app)
+
   app.get("/health", (_req, res) => {
     res.json({ ok: true });
   });
@@ -76,7 +82,7 @@ export function createApp(): express.Express {
 
     try {
       const telegramUser = validateTelegramInitData(body.initData);
-      const now = new Date().toISOString();
+      const now = nowGameTime();
       const name = telegramUser.username || [telegramUser.first_name, telegramUser.last_name].filter(Boolean).join(" ") || `Player ${telegramUser.id}`;
 
       db.insert(players)
@@ -136,7 +142,7 @@ export function createApp(): express.Express {
     }
 
     db.update(players)
-      .set({ currentLocationId: location.id, lastSeenAt: new Date().toISOString() })
+      .set({ currentLocationId: location.id, lastSeenAt: nowGameTime() })
       .where(eq(players.id, player.id))
       .run();
     const updatedPlayer = db.select().from(players).where(eq(players.id, player.id)).get()!;
@@ -144,6 +150,8 @@ export function createApp(): express.Express {
 
     moveSocketToLocation(player.id, location.id)
     broadcastLocation(location.id)
+
+    progressQuests(player.id, "visit", location.id)
 
     const response: EnterLocationResponse = {
       player: toPlayerDto(updatedPlayer),
@@ -200,7 +208,7 @@ export function createApp(): express.Express {
       return;
     }
 
-    const now = new Date().toISOString();
+    const now = nowGameTime();
     db.transaction((tx) => {
       if (action.itemTypes.length > 0 && Math.random() < action.dropChance) { // Выдача предмета
         const itemType = action.itemTypes[Math.floor(Math.random() * action.itemTypes.length)];
@@ -211,6 +219,11 @@ export function createApp(): express.Express {
             set: { quantity: sql`${inventoryItems.quantity} + 1`, acquiredAt: now }
           })
           .run()
+        progressQuests(player.id, "collect", itemType)
+      }
+
+      if (body.actionId === "walk") {
+        progressQuests(player.id, "walk")
       }
 
       tx.update(players)
@@ -309,34 +322,42 @@ export function createApp(): express.Express {
     res.json(state)
   });
 
-  // СДЕЛАТЬ ХОД: POST /combat/action  (action: "attack" | "flee")
-  app.post("/combat/action", requireAuth, (req, res) => {
-    const player = (req as AuthedRequest).player;
-    const body = req.body as CombatActionRequest;
+// СДЕЛАТЬ ХОД: POST /combat/action  (action: "attack" | "flee" | "use")
+    app.post("/combat/action", requireAuth, (req, res) => {
+      const player = (req as AuthedRequest).player;
+      const body = req.body as CombatActionRequest;
 
-    // 1. Есть ли активная сессия боя у игрока?
-    const session = db
-      .select()
-      .from(combatSessions)
-      .where(and(
-        eq(combatSessions.playerId, player.id),
-        eq(combatSessions.status, "active")))
-      .get()
+      // 1. Есть ли активная сессия боя у игрока?
+      const session = db
+        .select()
+        .from(combatSessions)
+        .where(and(
+          eq(combatSessions.playerId, player.id),
+          eq(combatSessions.status, "active")))
+        .get()
 
-    if (!session) {
-      res.status(409).json({ error: "No active combat" });
-      return;
-    }
+      if (!session) {
+        res.status(409).json({ error: "No active combat" });
+        return;
+      }
 
-    // 2. Берём моба из сессии
-    const mob = db.select().from(mobs).where(eq(mobs.id, session.mobId)).get();
-    if (!mob) {
-      res.status(404).json({ error: "Mob not found" });
-      return;
-    }
+      // 2. Берём моба из сессии
+      const mob = db.select().from(mobs).where(eq(mobs.id, session.mobId)).get();
+      if (!mob) {
+        res.status(404).json({ error: "Mob not found" });
+        return;
+      }
 
-    // 3. Совершаем ход: внутри обновляются HP, инвентарь, очки и события
-    const state = moveCombatAction(player, mob, session, body.action);
+      // 3. Совершаем ход: внутри обновляются HP, инвентарь, очки и события
+      //    use — выпить зелье в бою, остальное — обычные ходы
+      const state = body.action === "use"
+        ? usePotion(player, Number(body.itemType), session, mob)
+        : moveCombatAction(player, mob, session, body.action);
+
+      if (!state) {
+        res.status(400).json({ error: "Нет такого зелья в инвентаре" });
+        return;
+      }
 
     // 4. Перечитываем игрока и инвентарь из БД — они могли измениться после боя
     //    (лут, очки, HP), поэтому отдаём клиенту свежие данные.
@@ -359,7 +380,7 @@ export function createApp(): express.Express {
       inventory: inventory.map(toInventoryItemDto)
     } satisfies CombatActionResponse);
   });
-
+  
   // ТЕКУЩЕЕ СОСТОЯНИЕ БОЯ: GET /combat/state
   // Клиент опрашивает этот роут по таймеру, чтобы видеть актуальные HP без лишних действий.
   app.get("/combat/state", requireAuth, (req, res) => {
@@ -414,6 +435,7 @@ function serveClient(app: express.Express): void {
       req.path === "/me" ||
       req.path.startsWith("/locations") ||
       req.path.startsWith("/mobs") ||
+      req.path.startsWith("/quests") ||
       req.path.startsWith("/combat");
     if (isApiPath) {
       next();

@@ -3,7 +3,9 @@ import { db, toMobDto, toPlayerDto } from "./db.js";
 import { combatSessions, events, inventoryItems, items, players } from "./db/schema.js";
 import type { CombatSessionRow, MobRow, PlayerRow } from "./db/schema.js";
 import { movePlayer } from "./presence.js";
-import { eq, sql,and, inArray } from "drizzle-orm";
+import { progressQuests } from "./quests.js";
+import { nowGameTime, nowGameTimeMs } from "./time.js";
+import { eq, sql, and, inArray } from "drizzle-orm";
 import { addXpForPlayer } from "./level.js";
 
 // когда моб "мёртв" до респауна: mobId -> время (мс), когда он снова появится
@@ -18,7 +20,7 @@ function randomInt(min: number, max: number): number {
 }
 
 export function startCombat(player: PlayerRow, mob: MobRow): CombatStateResponse {
-    const now = new Date().toISOString();
+    const now = nowGameTime();
 
     const result = db.insert(combatSessions).values({
         playerId: player.id,
@@ -33,7 +35,7 @@ export function startCombat(player: PlayerRow, mob: MobRow): CombatStateResponse
     const log: CombatLogEntry[] = [{ text: `Вы начали бой с ${mob.name}`, at: now }];
     combatSessionsLogs.set(Number(result.lastInsertRowid), log);
 
-    return buildCombatState(mob, player,player.health, mob.maxHealth, "active", log);
+    return buildCombatState(mob, player, player.health, mob.maxHealth, "active", log);
 }
 
 export function moveCombatAction(
@@ -42,7 +44,7 @@ export function moveCombatAction(
     session: CombatSessionRow,
     action: "attack" | "flee"
 ): CombatStateResponse {
-    const now = new Date().toISOString();
+    const now = nowGameTime();
     const log = combatSessionsLogs.get(session.id) ?? [];
 
     let playerHp = session.playerHealth;
@@ -90,15 +92,62 @@ export function moveCombatAction(
         .where(eq(players.id, player.id))
         .run();
 
-    if (status === "victory" || status === "defeat") {
+    if (status === "victory" || status === "defeat" || status === "fled") {
         endCombatSession(status, player, mob, session.id);
     }
 
-    return buildCombatState(mob, player,playerHp, mobHp, status, log);
+    return buildCombatState(mob, player, playerHp, mobHp, status, log);
 }
 
-function endCombatSession(status: "victory" | "defeat", player: PlayerRow, mob: MobRow, sessionId: number): void {
-    const now = new Date().toISOString();
+export function usePotion(player: PlayerRow, itemType: number, session: CombatSessionRow, mob: MobRow): CombatStateResponse | null {
+
+    const inventoryPlayer = db.select().from(inventoryItems) // конкретная запись (стек) предмета игрока; undefined, если такого предмета нет 
+        .where(and(
+            eq(inventoryItems.playerId, player.id),
+            eq(inventoryItems.itemType, itemType)
+        )).get()
+
+    if (!inventoryPlayer || inventoryPlayer.quantity < 1) {
+        return null
+    }
+    const potion = db.select().from(items)
+        .where(eq(items.id, itemType))
+        .get()
+
+    if (!potion || potion.type !== "potion" || potion.healAmount <= 0) {
+        return null
+    }
+
+    const newHealth = Math.min(player.maxHealth, session.playerHealth + potion.healAmount)
+
+    db.update(combatSessions)
+        .set({ playerHealth: newHealth, lastActionAt: nowGameTime() })
+        .where(eq(combatSessions.id, session.id))
+        .run()
+
+db.update(players)
+        .set({ health: newHealth })
+        .where(eq(players.id, player.id))
+        .run()
+
+    if (inventoryPlayer.quantity - 1 <= 0) {
+        db.delete(inventoryItems).where(eq(inventoryItems.id, inventoryPlayer.id)).run()
+    } else {
+        db.update(inventoryItems)
+            .set({ quantity: inventoryPlayer.quantity - 1 })
+            .where(eq(inventoryItems.id, inventoryPlayer.id))
+            .run()
+    }
+
+    const log = combatSessionsLogs.get(session.id) ?? []
+    log.push({ text: `Вы выпили ${potion.name} и восстановили ${potion.healAmount} HP`, at: nowGameTime() })
+    combatSessionsLogs.set(session.id, log)
+
+    return buildCombatState(mob, player, newHealth, session.mobHealth, "active", log)
+}
+
+function endCombatSession(status: "victory" | "defeat" | "fled", player: PlayerRow, mob: MobRow, sessionId: number): void {
+    const now = nowGameTime();
 
     if (status === "victory") {
         // кладём каждый предмет из лута моба в инвентарь (quantity растёт, дубли не создаются)
@@ -111,19 +160,21 @@ function endCombatSession(status: "victory" | "defeat", player: PlayerRow, mob: 
                 })
                 .run();
         }
-        
+
         addXpForPlayer(player.id, mob.pointsReward) // добавить опыт
         db.update(players)
             .set({ points: sql`${players.points} + ${mob.pointsReward}` })
             .where(eq(players.id, player.id))
             .run();
 
+        progressQuests(player.id, "kill", mob.id)
+
         db.insert(events)
             .values({ playerId: player.id, locationId: mob.locationId, type: "kill", createdAt: now })
             .run();
 
         markMobDead(mob);
-    } else {
+    } else if (status === "defeat") {
 
         db.update(players)
             .set({
@@ -138,25 +189,30 @@ function endCombatSession(status: "victory" | "defeat", player: PlayerRow, mob: 
             .values({ playerId: player.id, locationId: mob.locationId, type: "death", createdAt: now })
             .run();
 
-        db.delete(combatSessions).where(eq(combatSessions.id, sessionId)) // удалить запись по окончанию битвы
         // телепортируем игрока на стартовую локацию ("square" из сида)
         movePlayer(toPlayerDto({ ...player, currentLocationId: "square" }), "square");
     }
+
+    // В любом завершившемся бою (победа/поражение/побег) удаляем сессию,
+    // чтобы игрок мог начать новый бой (uniqueIndex на playerId не даст дубль)
+    db.delete(combatSessions).where(eq(combatSessions.id, sessionId)).run()
+    combatSessionsLogs.delete(sessionId)
 }
+
 
 // Отдаёт текущее состояние активного боя для опроса клиентом
 // (клиент периодически дёргает GET /combat/state, чтобы видеть актуальные HP).
 export function getCombatState(player: PlayerRow, session: CombatSessionRow, mob: MobRow): CombatStateResponse {
-    return buildCombatState(mob, player, session.playerHealth ,session.mobHealth, "active", combatSessionsLogs.get(session.id) ?? []);
+    return buildCombatState(mob, player, session.playerHealth, session.mobHealth, "active", combatSessionsLogs.get(session.id) ?? []);
 }
 
 export function isMobAlive(mob: MobRow): boolean {
     const check = mobRespawnUntil.get(mob.id)
-    return !check || Date.now() >= check // !check - если моб = undefined то true, Date.now() >= check - возродился ли моб или нет ещё
+    return !check || nowGameTimeMs() >= check // !check - если моб = undefined то true, Date.now() >= check - возродился ли моб или нет ещё
 }
 
 function markMobDead(mob: MobRow): void {
-    mobRespawnUntil.set(mob.id, Date.now() + mob.respawnSeconds * 1000);
+    mobRespawnUntil.set(mob.id, nowGameTimeMs() + mob.respawnSeconds * 1000);
 }
 
 function buildCombatState(
@@ -182,18 +238,18 @@ function buildCombatState(
 export const getPlayerStats = (player: PlayerRow) => {
 
     const equiped = db.select().from(inventoryItems)
-    .where(and(
-        eq(inventoryItems.playerId,player.id),
-        eq(inventoryItems.equiped,true)
-    )).all()
+        .where(and(
+            eq(inventoryItems.playerId, player.id),
+            eq(inventoryItems.equiped, true)
+        )).all()
 
     const catalog = equiped.length
-    ? db.select().from(items).where(inArray(items.id, equiped.map((e) => e.itemType))).all()
-    : []
+        ? db.select().from(items).where(inArray(items.id, equiped.map((e) => e.itemType))).all()
+        : []
 
     return {
-        strength: player.strength + catalog.reduce((acc,item) => acc + item.damage, 0),
-        defense: player.defense + catalog.reduce((acc,item) => acc + item.defense, 0)
+        strength: player.strength + catalog.reduce((acc, item) => acc + item.damage, 0),
+        defense: player.defense + catalog.reduce((acc, item) => acc + item.defense, 0)
     }
 }
 

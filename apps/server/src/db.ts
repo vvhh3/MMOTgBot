@@ -4,10 +4,10 @@ import { fileURLToPath } from "node:url";
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
-import type { EventDto, InventoryItemDto, LocationDto, PlayerDto, MobDto, ItemDto } from "@mmobot/shared";
+import type { EventDto, InventoryItemDto, LocationDto, PlayerDto, MobDto, ItemDto, QuestsDto } from "@mmobot/shared";
 import { config } from "./config.js";
-import { locations, mobs } from "./db/schema.js";
-import type { EventRow, InventoryItemRow, LocationRow, PlayerRow, MobRow, ItemRow } from "./db/schema.js";
+import { locations, mobs, quests } from "./db/schema.js";
+import type { EventRow, InventoryItemRow, LocationRow, PlayerRow, MobRow, ItemRow, QuestsRow } from "./db/schema.js";
 import { getPlayerStats } from "./combat.js";
 
 export type { EventRow, InventoryItemRow, LocationRow, PlayerRow, MobRow, ItemRow } from "./db/schema.js";
@@ -54,6 +54,20 @@ export function initializeDatabase(): void {
   // сид безопасно повторно выполняется при каждом запуске сервера.
   db.insert(locations).values(seedLocations).onConflictDoNothing().run();
   db.insert(mobs).values(seedMobs).onConflictDoNothing().run();
+
+  // Стартовые квесты (каталог). Добавляются только если таблица пуста,
+  // чтобы не дублироваться при каждом запуске.
+  const seedQuests: typeof quests.$inferInsert[] = [
+    { title: "Прогулка по набережной", description: "Прогуляйтесь по любой локации 3 раза", difficulty: "easy", objectiveType: "walk", targetId: null, targetCount: 3, targetXp: 30, targetPoints: 5 },
+    { title: "Охота на крыс", description: "Убейте 2 крыс", difficulty: "easy", objectiveType: "kill", targetId: "0", targetCount: 2, targetXp: 50, targetPoints: 10 },
+    { title: "Устранить громилу", description: "Убейте 2 громил в Сити парке", difficulty: "medium", objectiveType: "kill", targetId: "1", targetCount: 2, targetXp: 120, targetPoints: 25 },
+    { title: "Разведка Сити парка", description: "Посетите Сити парк", difficulty: "medium", objectiveType: "visit", targetId: "market", targetCount: 1, targetXp: 80, targetPoints: 15 },
+    { title: "Зачистка Парка Победы", description: "Убейте 3 ржавых дронов", difficulty: "hard", objectiveType: "kill", targetId: "2", targetCount: 3, targetXp: 250, targetPoints: 50 },
+    { title: "Охота на снайпера", description: "Убейте снайпера на Липягах", difficulty: "hard", objectiveType: "kill", targetId: "4", targetCount: 1, targetXp: 300, targetPoints: 60 }
+  ];
+  if (db.select().from(quests).all().length === 0) {
+    db.insert(quests).values(seedQuests).run();
+  }
 }
 
 // Путь к папке с миграциями: рядом с этим файлом (apps/server/src) поднимаемся на уровень выше → apps/server/drizzle.
@@ -145,5 +159,18 @@ export function toEventDto(row: EventRow): EventDto {
     locationId: row.locationId,
     type: row.type,
     createdAt: row.createdAt
+  };
+}
+export function toQuestDto(row: QuestsRow): QuestsDto {
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    difficulty: row.difficulty,
+    objectiveType: row.objectiveType,
+    targetId: row.targetId,
+    targetCount: row.targetCount,
+    targetXp: row.targetXp,
+    targetPoints: row.targetPoints,
   };
 }

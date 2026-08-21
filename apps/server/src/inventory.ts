@@ -86,7 +86,7 @@ export const InventoryRoutes = (app: Express) => {
             .where(eq(items.id, inventoryItem.itemType))
             .get()
 
-        if (!item || item.type !== "consumable") {
+        if (!item || item.type !== "potion") {
             res.status(400).json({ error: "this item cannot be used" })
             return
         }

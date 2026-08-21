@@ -1,175 +1,109 @@
-import { Tabs,Text,Box, Grid, Card,Progress, Flex, Button} from "@radix-ui/themes"
-export default function Tasks(){
-    return(
-        <div className=' h-full ' >
-            <Tabs.Root defaultValue="active" className="flex flex-col items-center">
-            <Tabs.List color="orange" size="2" className="flex w-full max-w-[600px] justify-center" style={{justifyContent:"center"}}>
-                <Tabs.Trigger className="w-1/2" value="active">Активные</Tabs.Trigger>
-                <Tabs.Trigger className="w-1/2" value="unfinished">Незавершенные</Tabs.Trigger>
-            </Tabs.List>
-                <Box pt="3">
-                    <Tabs.Content value="active">
-                        <Grid columns="1" rows="1" gap='3' style={{padding:"20px",paddingTop:"0px",display:"flex",flexDirection:"column",}}>
-                            <Card  >
-                                <div className="flex flex-col gap-1.5">
-                                    <div className="flex flex-row justify-between" >
-                                        <Text as="div" size="3" weight="bold">
-                                            Тайна Жигулёвского завода
-                                        </Text>
-                                        <div className="pl-1 pr-1 bg-[#E8603C] text-[#ffff] h-[21px] w-[80px] text-[8px] flex justify-center items-center font-extrabold rounded-[10px]">
-                                            <p>+50 монет</p>
-                                        </div>
-                                    </div>
-                                     <Text as="div" color="gray" size="2">
-                                        Расспросить пивовара у старого причала о секретном подвале.
-                                    </Text>
-                                    <div className="flex flex-row justify-between">
-                                        <Text as="div" color="gray" size="1">
-                                            Прогресс:
-                                        </Text>
-                                        <p className="text-[#E8603C]">3/5</p>
-                                    </div>
-                                    <Box>
-                                        <Progress color='orange' value={50}/>
-                                    </Box>
-                                </div>
-                            </Card>
-                            <Card >
-                                <div className="flex flex-col gap-1.5">
-                                    <div className="flex flex-row justify-between" >
-                                        <Text as="div" size="3" weight="bold">
-                                            Прогулка по набережной
-                                        </Text>
-                                        <div className="pl-1 pr-1 bg-[#E8603C] text-[#ffff] h-[21px] w-[80px] text-[8px] flex justify-center items-center font-extrabold rounded-[10px]">
-                                            <p>+50 опыта</p>
-                                        </div>
-                                    </div>
-                                     <Text as="div" color="gray" size="2">
-                                        Найти потерянную карту глубин у памятника Ладья.
-                                    </Text>
-                                    <div className="flex flex-row justify-between">
-                                        <Text as="div" color="gray" size="1">
-                                            Прогресс:
-                                        </Text>
-                                        <p className="text-[#E8603C]">3/10</p>
-                                    </div>
-                                    <Box>
-                                        <Progress color='orange' value={30}/>
-                                    </Box>
-                                </div>
-                            </Card>
-                            <Card style={{width:"100%"}}>
-                                <div className="flex flex-col gap-1.5">
-                                    <div className="flex flex-row justify-between" >
-                                        <Text as="div" size="3" weight="bold">
-                                            Найти бункер
-                                        </Text>
-                                        <div className="pl-1 pr-1 bg-[#E8603C] text-[#ffff] h-[21px] w-[80px] text-[8px] flex justify-center items-center font-extrabold rounded-[10px]">
-                                            <p>меч</p>
-                                        </div>
-                                    </div>
-                                     <Text as="div" color="gray" size="2">
-                                        Отыскать гермодверь в заброшенных штольнях.
-                                    </Text>
-                                    <div className="flex flex-row justify-between">
-                                        <Text as="div" color="gray" size="1">
-                                            Прогресс:
-                                        </Text>
-                                        <p className="text-[#E8603C]">676/1000</p>
-                                    </div>
-                                    <Box>
-                                        <Progress color='orange' value={70}/>
-                                    </Box>
-                                </div>
-                            </Card>
-                        </Grid>
-                    </Tabs.Content>
+import { useEffect, useState } from "react";
+import { Tabs, Text, Box, Grid, Card, Progress, Flex, Button } from "@radix-ui/themes";
+import type { PlayerQuestDto, QuestsDifficulty } from "@mmobot/shared";
+import { claimQuest, getDailyQuests } from "../api";
 
-                    <Tabs.Content value="unfinished">
-                        <Grid columns="1" rows="1" gap='3' style={{padding:"20px",paddingTop:"0px",display:"flex",flexDirection:"column",}}>
-                            <Card  >
-                                <div className="flex flex-col gap-1.5">
-                                    <div className="flex flex-row justify-between" >
-                                        <Text as="div" size="3" weight="bold">
-                                            Тайна Жигулёвского завода
-                                        </Text>
-                                        <div className="pl-1 pr-1 bg-[#E8603C] text-[#ffff] h-[21px] w-[80px] text-[10px] flex justify-center items-center font-extrabold rounded-[10px]">
-                                            <p>+50 монет</p>
-                                        </div>
-                                    </div>
-                                     <Text as="div" color="gray" size="2">
-                                        Расспросить пивовара у старого причала о секретном подвале.
-                                    </Text>
-                                    <div className="flex flex-row justify-between">
-                                        <Text as="div" color="gray" size="1">
-                                            Прогресс:
-                                        </Text>
-                                        <p className="text-[#E8603C]">5/5</p>
-                                    </div>
-                                    <Box>
-                                        <Progress color='orange' value={100}/>
-                                    </Box>
-                                </div>
-                                <div className="flex justify-end pt-[5px]">
-                                    <Button style={{background:"#E8603C"}}>Забрать</Button>
-                                </div>
-                            </Card>
-                            <Card >
-                                <div className="flex flex-col gap-1.5">
-                                    <div className="flex flex-row justify-between" >
-                                        <Text as="div" size="3" weight="bold">
-                                            Прогулка по набережной
-                                        </Text>
-                                        <div className="pl-1 pr-1 bg-[#E8603C] text-[#ffff] h-[21px] w-[80px] text-[10px] flex justify-center items-center font-extrabold rounded-[10px]">
-                                            <p>+50 опыта</p>
-                                        </div>
-                                    </div>
-                                     <Text as="div" color="gray" size="2">
-                                        Найти потерянную карту глубин у памятника Ладья.
-                                    </Text>
-                                    <div className="flex flex-row justify-between">
-                                        <Text as="div" color="gray" size="1">
-                                            Прогресс:
-                                        </Text>
-                                        <p className="text-[#E8603C]">10/10</p>
-                                    </div>
-                                    <Box>
-                                        <Progress color='orange' value={100}/>
-                                    </Box>
-                                </div>
-                            </Card>
-                            <Card style={{width:"100%"}}>
-                                <div className="flex flex-col gap-1.5">
-                                    <div className="flex flex-row justify-between" >
-                                        <Text as="div" size="3" weight="bold">
-                                            Найти бункер
-                                        </Text>
-                                        <div className="pl-1 pr-1 bg-[#E8603C] text-[#ffff] h-[21px] w-[80px] text-[10px] flex justify-center items-center font-extrabold rounded-[10px]">
-                                            <p>меч</p>
-                                        </div>
-                                    </div>
-                                     <Text as="div" color="gray" size="2">
-                                        Отыскать гермодверь в заброшенных штольнях.
-                                    </Text>
-                                    <div className="flex flex-row justify-between">
-                                        <Text as="div" color="gray" size="1">
-                                            Прогресс:
-                                        </Text>
-                                        <p className="text-[#E8603C]">1000/1000</p>
-                                    </div>
-                                    <Box>
-                                        <Progress color='orange' value={100}/>
-                                    </Box>
-                                </div>
-                                <div className="flex justify-end pt-[5px]">
-                                    <Button style={{background:"#E8603C"}}>Забрать</Button>
-                                </div>
-                            </Card>
-                        </Grid>
-                    </Tabs.Content>
+const DIFFICULTY_LABEL: Record<QuestsDifficulty, string> = {
+  easy: "Лёгкий",
+  medium: "Средний",
+  hard: "Тяжёлый"
+};
 
-                </Box>
-            </Tabs.Root>
+const OBJECTIVE_LABEL: Record<string, string> = {
+  kill: "убийств",
+  walk: "прогулок",
+  collect: "предметов",
+  visit: "посещений"
+};
+
+export default function Tasks({ token }: { token: string | null }) {
+  const [quests, setQuests] = useState<PlayerQuestDto[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = () => {
+    if (!token) return;
+    getDailyQuests(token)
+      .then((data) => setQuests(data.quests))
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Не удалось загрузить квесты"));
+  };
+
+  useEffect(load, [token]);
+
+  const active = quests.filter((q) => q.status !== "claimed");
+  const claimed = quests.filter((q) => q.status === "claimed");
+
+  const onClaim = async (id: number) => {
+    if (!token) return;
+    try {
+      await claimQuest(token, id);
+      load();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Не удалось забрать награду");
+    }
+  };
+
+  const QuestCard = ({ quest }: { quest: PlayerQuestDto }) => {
+    const percent = Math.round((quest.progress / quest.quest.targetCount) * 100);
+    const completed = quest.status === "completed";
+    return (
+      <Card>
+        <div className="flex flex-col gap-1.5">
+          <div className="flex flex-row justify-between">
+            <Text as="div" size="3" weight="bold">
+              {quest.quest.title}
+            </Text>
+            <div className="pl-1 pr-1 bg-[#E8603C] text-[#ffff] h-[21px] min-w-[80px] text-[8px] flex justify-center items-center font-extrabold rounded-[10px]">
+              <p>{DIFFICULTY_LABEL[quest.quest.difficulty]}</p>
+            </div>
+          </div>
+          <Text as="div" color="gray" size="2">
+            {quest.quest.description}
+          </Text>
+          <div className="flex flex-row justify-between">
+            <Text as="div" color="gray" size="1">
+              {OBJECTIVE_LABEL[quest.quest.objectiveType]} {quest.progress}/{quest.quest.targetCount} · +{quest.quest.targetXp} опыта · +{quest.quest.targetPoints} очков
+            </Text>
+            {completed && (
+              <Button size="1" color="orange" onClick={() => onClaim(quest.id)}>
+                Забрать награду
+              </Button>
+            )}
+          </div>
+          <Box>
+            <Progress color={completed ? "green" : "orange"} value={percent} />
+          </Box>
         </div>
-    )
+      </Card>
+    );
+  };
+
+  return (
+    <div className="h-full">
+      {error && (
+        <div className="mx-auto mb-4 rounded-lg border border-error-border bg-error-bg p-3 text-error-text">
+          {error}
+        </div>
+      )}
+      <Tabs.Root defaultValue="active" className="flex flex-col items-center">
+        <Tabs.List color="orange" size="2" className="flex w-full max-w-[600px] justify-center" style={{ justifyContent: "center" }}>
+          <Tabs.Trigger className="w-1/2" value="active">Активные</Tabs.Trigger>
+          <Tabs.Trigger className="w-1/2" value="claimed">Выполненные</Tabs.Trigger>
+        </Tabs.List>
+        <Box pt="3">
+          <Tabs.Content value="active">
+            <Grid columns="1" rows="1" gap="3" style={{ padding: "20px", paddingTop: "0px", display: "flex", flexDirection: "column" }}>
+              {active.length === 0 && <Text color="gray">Сегодня квестов нет</Text>}
+              {active.map((q) => <QuestCard key={q.id} quest={q} />)}
+            </Grid>
+          </Tabs.Content>
+          <Tabs.Content value="claimed">
+            <Grid columns="1" rows="1" gap="3" style={{ padding: "20px", paddingTop: "0px", display: "flex", flexDirection: "column" }}>
+              {claimed.length === 0 && <Text color="gray">Выполненных квестов нет</Text>}
+              {claimed.map((q) => <QuestCard key={q.id} quest={q} />)}
+            </Grid>
+          </Tabs.Content>
+        </Box>
+      </Tabs.Root>
+    </div>
+  );
 }

@@ -1,4 +1,5 @@
 import { index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+import { nowGameTime } from "../time.js";
 
 // Локации игрового мира: уникальный id (текстовый ключ) + название, описание и координаты x/y на карте.
 export const locations = sqliteTable("locations", {
@@ -21,11 +22,11 @@ export const players = sqliteTable("players",
     defense: integer("defense").notNull().default(5),
     level: integer("level").notNull().default(1),
     xp: integer("xp").notNull().default(0), // очки опыта 
-    points: integer("points").notNull().default(0), // Зачем я сделал очки? Хз надо разобраться
+    points: integer("points").notNull().default(0), // Зачем я сделал очки? Будут идти для лидерборда
     currentLocationId: text("current_location_id").references(() => locations.id),
     createdAt: text("created_at").notNull(),
-    lastSeenAt: text("last_seen_at").notNull(), // что это за поле?
-    lastRegenTime: text("last_regen_time").notNull().$defaultFn(() => new Date().toISOString())
+    lastSeenAt: text("last_seen_at").notNull(), // что это за поле? Время последнеё активности игрока
+    lastRegenTime: text("last_regen_time").notNull().$defaultFn(() => nowGameTime())
   },
   // Индекс ускоряет поиск игроков по текущей локации (напр. "кто сейчас на площади").
   (table) => [index("players_current_location_idx").on(table.currentLocationId)]
@@ -56,10 +57,10 @@ export const items = sqliteTable("items", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   description: text("description").notNull(),
-  type: text("type", { enum: ["weapon", "armor", "consumable", "material", "other"] as const }).notNull(),
+  type: text("type", { enum: ["weapon", "armor", "potion", "material", "other"] as const }).notNull(),
   damage: integer("damage").notNull().default(0),
   defense: integer("defense").notNull().default(0),
-  healAmount: integer("heal_amount").notNull().default(0),
+  healAmount: integer("heal_amount").notNull().default(0), // зачем это поле? Это поле для показа сколько захилит предмет
   price: integer("price").notNull().default(0)
 })
 
@@ -116,6 +117,40 @@ export const events = sqliteTable("events",
   ]
 );
 
+
+// Каталог квестов. difficulty — сложность: easy (лёгкий) | medium (средний) | hard (тяжёлый).
+// objectiveType — какое действие засчитывается (kill — убить моба, walk — прогуляться,
+// collect — собрать предмет, visit — посетить локацию).
+// targetId — конкретная цель (id моба/предмета/локации), NULL — любой объект.
+// targetCount — сколько раз нужно выполнить действие. targetXp/targetPoints — награда.
+export const quests = sqliteTable("quests", {
+  id: integer("id").primaryKey({autoIncrement: true}),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  difficulty: text("difficulty", {enum : ["easy", "medium", "hard"] as const}).notNull(),
+  objectiveType: text("objective_type", { enum: ["kill", "walk", "collect", "visit"] as const }).notNull(),
+  targetId: text("target_id"), // id цели: моба/предмета/локации, NULL = любой
+  targetCount: integer("target_count").notNull(), // сколько раз нужно выполнить действие
+  targetXp: integer("target_xp").notNull().default(0), // награда: опыт
+  targetPoints: integer("target_points").notNull().default(0), // награда: очки
+}, (table) => [index("quests_diffcluty_idx").on(table.difficulty)])
+
+// Выданные игроку квесты. assignedDay — дата выдачи ("2026-08-20").
+// uniqueIndex не даст выдать один и тот же квест игроку дважды в один день.
+export const playerQuests = sqliteTable("player_quests", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  playerId: integer("player_id").notNull().references(() => players.id, { onDelete: "cascade" }),
+  questId: integer("quest_id").notNull().references(() => quests.id, { onDelete: "cascade" }),  
+  assignedDay: text("assigned_day").notNull(),// дата выдачи квеста ("2026-08-20")
+  progress: integer("progress").notNull().default(0), // сколько из targetCount уже сделано (3/5)
+  status: text("status", { enum: ["waiting", "completed", "claimed"] as const }).notNull().default("waiting"),
+  completedAt: text("completed_at"),
+  claimedAt: text("claimed_at") // когда забрана награда за квест
+}, (table) => [
+  uniqueIndex("player_quests_day_unique").on(table.playerId, table.assignedDay, table.questId),
+  index("player_quests_player_idx").on(table.playerId)
+]);
+
 // Типы строк таблиц (выводятся drizzle из схемы). $inferSelect — тип одной записи из SELECT.
 // EventRow дополнительно включает playerName — имя игрока, подтянутое через join.
 export type PlayerRow = typeof players.$inferSelect;
@@ -126,3 +161,6 @@ export type EventRow = typeof events.$inferSelect & { playerName: string };
 export type MobRow = typeof mobs.$inferSelect
 export type ItemRow = typeof items.$inferSelect
 export type CombatSessionRow = typeof combatSessions.$inferSelect;
+
+export type QuestsRow = typeof quests.$inferSelect
+export type PlayerQuestsRow = typeof playerQuests.$inferSelect
