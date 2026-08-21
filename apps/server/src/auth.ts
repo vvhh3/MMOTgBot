@@ -40,8 +40,8 @@ export function validateTelegramInitData(initData: string): TelegramUser { // п
   return user;
 }
 
-export function createSessionToken(playerId: number): string { // создание токена с playerId
-  return jwt.sign({ playerId }, config.sessionSecret);
+export function createSessionToken(playerId: number): string { // создание токена с playerId (живёт 30 дней)
+  return jwt.sign({ playerId }, config.sessionSecret, { expiresIn: "30d" });
 }
 
 export function verifySessionToken(token: string): number { // проверка токена на валидность и получение playerId

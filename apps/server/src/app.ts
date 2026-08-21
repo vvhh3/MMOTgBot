@@ -160,7 +160,7 @@ export function createApp(): express.Express {
     res.json(response);
   })
 
-  // Описание действий на локации + награды за действия 
+  // Описание действий на локации + награды за действия
   const locationActions: Record<string, {
     itemTypes: number[];
     dropChance: number;
@@ -187,6 +187,11 @@ export function createApp(): express.Express {
     }
   }
 
+  // Антифарм: минимальная пауза между действиями одного игрока.
+  // Без этого спам "walk" даёт бесконечные XP/points/лут.
+  const ACTION_COOLDOWN_MS = 2000;
+  const lastPlayerActionAt = new Map<number, number>();
+
   app.post("/locations/:id/action", requireAuth, (req, res) => {
     const player = (req as AuthedRequest).player;
     const body = req.body as LocationActionRequest;
@@ -196,6 +201,14 @@ export function createApp(): express.Express {
       res.status(400).json({ error: "Unknown action" });
       return;
     }
+
+    const nowMs = Date.now();
+    const lastAt = lastPlayerActionAt.get(player.id) ?? 0;
+    if (nowMs - lastAt < ACTION_COOLDOWN_MS) {
+      res.status(429).json({ error: "Слишком часто, подождите немного" });
+      return;
+    }
+    lastPlayerActionAt.set(player.id, nowMs);
 
     if (player.currentLocationId !== req.params.id) {
       res.status(409).json({ error: "Enter this location before acting" });
@@ -314,7 +327,13 @@ export function createApp(): express.Express {
       return;
     }
 
-    // 5. Начинаем бой
+    // 5. Игрок жив? После поражения HP = 0, регенерация вернёт его постепенно.
+    if (player.health <= 0) {
+      res.status(409).json({ error: "Восстановите здоровье перед боем" });
+      return;
+    }
+
+    // 6. Начинаем бой
     const state = startCombat(player, mob)
 
     emitToPlayer(player.id, "combatState", state)
@@ -382,7 +401,9 @@ export function createApp(): express.Express {
   });
   
   // ТЕКУЩЕЕ СОСТОЯНИЕ БОЯ: GET /combat/state
-  // Клиент опрашивает этот роут по таймеру, чтобы видеть актуальные HP без лишних действий.
+  // НЕ для поллинга! Актуальное состояние клиент получает через socket-событие
+  // "combatState" (см. realTime.ts / emitToPlayer). Этот роут нужен только один раз:
+  // при открытии экрана боя или после переподключения сокета.
   app.get("/combat/state", requireAuth, (req, res) => {
     const player = (req as AuthedRequest).player;
 

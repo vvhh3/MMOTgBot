@@ -208,28 +208,27 @@ export function emitToPlayer<K extends keyof ServerToClientEvents>(
     .emit(event, ...args)
 }
 
-// Отправляет актуальное состояние локации
-// всем игрокам которые сейчас находятся в ней
-//
-// Например
-//
-// location:forest
-//   ├── player 1
-//   ├── player 2
-//   └── player 3
-//
-// Все они получат событие locationState
-export function broadcastLocation(locationId: string): void {
-  // Собираем текущее состояние локации
-  const state = buildLocationState(locationId)
+// Отправляет актуальное состояние локации всем игрокам, которые сейчас в ней.
+// Дебаунс: если локацию "трогают" много раз подряд (каждый walk каждого игрока
+// вызывает broadcastLocation), состояние пересобирается и рассылается не чаще,
+// чем раз в BROADCAST_DEBOUNCE_MS — иначе нагрузка растёт как O(N²) от онлайна.
+const broadcastTimers = new Map<string, ReturnType<typeof setTimeout>>()
+const BROADCAST_DEBOUNCE_MS = 300
 
-  // Если локация не найдена или состояние не удалось собрать
-  // ничего не отправляем
-  if (!state) {
+export function broadcastLocation(locationId: string): void {
+  // Рассылка для этой локации уже запланирована — новое состояние подхватится ей
+  if (broadcastTimers.has(locationId)) {
     return
   }
 
-  // Отправляем состояние всем сокетам
-  // находящимся в этой location-комнате
-  getIo().to(`location:${locationId}`).emit("locationState", state)
+  broadcastTimers.set(locationId, setTimeout(() => {
+    broadcastTimers.delete(locationId)
+
+    const state = buildLocationState(locationId)
+    if (!state) {
+      return
+    }
+
+    getIo().to(`location:${locationId}`).emit("locationState", state)
+  }, BROADCAST_DEBOUNCE_MS))
 }

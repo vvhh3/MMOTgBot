@@ -7,14 +7,26 @@ import { eq, and } from "drizzle-orm"
 
 export const InventoryRoutes = (app: Express) => {
 
+    // body.itemType приходит из JSON без гарантий типа — приводим и проверяем,
+    // иначе строка/NaN тихо не найдёт ничего в integer-колонке
+    const parseItemType = (body: unknown): number | null => {
+        const value = Number((body as { itemType?: unknown })?.itemType);
+        return Number.isInteger(value) ? value : null;
+    }
+
     app.post("/inventory/equip", (req: Request, res: Response) => {
         const player = (req as AuthedRequest).player
-        const body = req.body
+
+        const itemType = parseItemType(req.body);
+        if (itemType === null) {
+            res.status(400).json({ error: "itemType must be an integer" })
+            return
+        }
 
         const inventoryItem = db.select().from(inventoryItems)
             .where(and(
                 eq(inventoryItems.playerId, player.id),
-                eq(inventoryItems.itemType, body.itemType)))
+                eq(inventoryItems.itemType, itemType)))
             .get()
 
         //Есть ли предмет в инвенторе
@@ -69,12 +81,17 @@ export const InventoryRoutes = (app: Express) => {
     //Использование предмета(Использование зелек типо) хз робит или нет честно
     app.post("/inventory/use", (req: Request, res: Response) => {
         const player = (req as AuthedRequest).player
-        const body = req.body
+
+        const itemType = parseItemType(req.body);
+        if (itemType === null) {
+            res.status(400).json({ error: "itemType must be an integer" })
+            return
+        }
 
         const inventoryItem = db.select().from(inventoryItems)
             .where(and(
                 eq(inventoryItems.playerId, player.id),
-                eq(inventoryItems.itemType, body.itemType)))
+                eq(inventoryItems.itemType, itemType)))
             .get()
 
         if (!inventoryItem || inventoryItem.quantity < 1) {
@@ -118,12 +135,17 @@ export const InventoryRoutes = (app: Express) => {
     //Снять предмет
     app.post("/inventory/unequip", (req: Request, res: Response) => {
         const player = (req as AuthedRequest).player
-        const body = req.body
+
+        const itemType = parseItemType(req.body);
+        if (itemType === null) {
+            res.status(400).json({ error: "itemType must be an integer" })
+            return
+        }
 
         const inventoryItem = db.select().from(inventoryItems)
             .where(and(
                 eq(inventoryItems.playerId, player.id),
-                eq(inventoryItems.itemType, body.itemType)))
+                eq(inventoryItems.itemType, itemType)))
             .get()
 
         if (!inventoryItem || !inventoryItem.equiped) {

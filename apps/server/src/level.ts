@@ -46,7 +46,7 @@ const Ex_require = [
     }]
 
 export const getLevelByXp = (xp: number) => {
-    let level = 1
+    let level = 0
     for (const l of Ex_require) {
         if (xp >= l.requireXp) level++
         else break

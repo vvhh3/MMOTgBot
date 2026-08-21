@@ -5,11 +5,35 @@ import type { CombatSessionRow, MobRow, PlayerRow } from "./db/schema.js";
 import { movePlayer } from "./presence.js";
 import { progressQuests } from "./quests.js";
 import { nowGameTime, nowGameTimeMs } from "./time.js";
-import { eq, sql, and, inArray } from "drizzle-orm";
+import { eq, sql, and, inArray, lt } from "drizzle-orm";
 import { addXpForPlayer } from "./level.js";
 
 // когда моб "мёртв" до респауна: mobId -> время (мс), когда он снова появится
 const mobRespawnUntil = new Map<number, number>();
+
+// бой считается заброшенным, если игрок не делал ход дольше этого времени
+export const STALE_SESSION_MS = 5 * 60 * 1000;
+
+// Завершает зависшие бои (например, после падения сервера или если игрок
+// закрыл приложение посреди боя). Без этого uniqueIndex на playerId навсегда
+// блокирует игроку начало нового боя. Вызывается при старте и по таймеру.
+export function expireStaleCombatSessions(): void {
+  const cutoff = new Date(nowGameTimeMs() - STALE_SESSION_MS).toISOString();
+  const stale = db
+    .select({ id: combatSessions.id })
+    .from(combatSessions)
+    .where(and(eq(combatSessions.status, "active"), lt(combatSessions.lastActionAt, cutoff)))
+    .all();
+
+  for (const session of stale) {
+    db.delete(combatSessions).where(eq(combatSessions.id, session.id)).run();
+    combatSessionsLogs.delete(session.id);
+  }
+
+  if (stale.length > 0) {
+    console.log(`[combat] expired ${stale.length} stale session(s)`);
+  }
+}
 
 // лог боя по сессиям (хранится в памяти, в БД его нет)
 const combatSessionsLogs = new Map<number, CombatLogEntry[]>();
@@ -125,7 +149,7 @@ export function usePotion(player: PlayerRow, itemType: number, session: CombatSe
         .where(eq(combatSessions.id, session.id))
         .run()
 
-db.update(players)
+    db.update(players)
         .set({ health: newHealth })
         .where(eq(players.id, player.id))
         .run()
@@ -200,8 +224,8 @@ function endCombatSession(status: "victory" | "defeat" | "fled", player: PlayerR
 }
 
 
-// Отдаёт текущее состояние активного боя для опроса клиентом
-// (клиент периодически дёргает GET /combat/state, чтобы видеть актуальные HP).
+// Отдаёт текущее состояние активного боя. Используется для разового запроса
+// (открытие экрана боя / реконнект) — живые обновления идут через socket "combatState".
 export function getCombatState(player: PlayerRow, session: CombatSessionRow, mob: MobRow): CombatStateResponse {
     return buildCombatState(mob, player, session.playerHealth, session.mobHealth, "active", combatSessionsLogs.get(session.id) ?? []);
 }
