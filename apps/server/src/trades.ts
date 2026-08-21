@@ -38,6 +38,7 @@ import { emitToPlayer } from "./realTime.js";
 import { TradeItem, TradesOverviewResponse, TradeStateDto } from "@mmobot/shared";
 import type { Request,Response,Express } from "express";
 import { eq, sql, and,or} from "drizzle-orm";
+import { notify } from "./notification.js";
 
 // ===================== ХЕЛПЕРЫ =====================
 
@@ -213,14 +214,14 @@ export const createTradeRoutes = (app: Express) => {
       return;
     }
     if (toPlayerId === player.id) {
-      res.status(400).json({ error: "Нельзя обменяться с самим собой" });
-      return;
+      res.status(400).json({ error: "Нельзя обменяться с самим собой" })
+      return
     }
 
     const target = db.select().from(players).where(eq(players.id, toPlayerId)).get();
     if (!target) {
-      res.status(404).json({ error: "Игрок не найден" });
-      return;
+      res.status(404).json({ error: "Игрок не найден" })
+      return
     }
 
     // и у меня, и у него не должно быть активного трейда
@@ -237,6 +238,8 @@ export const createTradeRoutes = (app: Express) => {
     }).run();
 
     notifyBoth(db.select().from(trades).where(eq(trades.id, Number(result.lastInsertRowid))).get()!);
+    notify(toPlayerId, `${player.name} предлагает вам обмен`)
+
     res.status(201).json({ ok: true });
   });
 
@@ -342,10 +345,10 @@ export const createTradeRoutes = (app: Express) => {
       ? { ...trade, fromReady: true }
       : { ...trade, toReady: true };
 
-    // Оба готовы? Пробуем исполнить обмен.
-    // Всё в ОДНОЙ транзакции: списание у обоих + выдача обоим.
+    // Оба готовы? Пробуем исполнить обмен
+    // Всё в ОДНОЙ транзакции: списание у обоих + выдача обоим
     // Если у кого-то предметы пропали (потратил/удалились пока трейд висел) —
-    // транзакция откатится целиком и НИЧЕГО не изменится.
+    // транзакция откатится целиком и НИЧЕГО не изменится
     if (updated.fromReady && updated.toReady) {
       try {
         db.transaction((tx) => {
@@ -372,8 +375,12 @@ export const createTradeRoutes = (app: Express) => {
           })));
         }
 
-        res.json({ ok: true, status: "accepted" });
-        return;
+        res.json({ ok: true, status: "accepted" })
+        
+        notify(trade.fromPlayerId,"Ваш обмен завершён!")
+        notify(trade.toPlayerId,"Ваш обмен завершён!")
+
+        return
 
       } catch (error) {
         // У кого-то не хватило предметов. Сбрасываем ОБЕ галочки (партнёру
