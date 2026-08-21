@@ -1,5 +1,7 @@
 import { index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { nowGameTime } from "../time.js";
+// TradeItem — тип одного пункта выкладки в трейде (из общего пакета)
+import type { TradeItem } from "@mmobot/shared";
 
 // Локации игрового мира: уникальный id (текстовый ключ) + название, описание и координаты x/y на карте.
 export const locations = sqliteTable("locations", {
@@ -36,8 +38,8 @@ export const players = sqliteTable("players",
 // loot хранится как JSON-строка в колонке text, но drizzle через mode: "json" и $type<string[]>()
 // автоматически сериализует массив в JSON при записи и парсит обратно при чтении.
 // onDelete: "cascade" — при удалении локации удаляются и все её мобы.
-export const mobs = sqliteTable('mobs',{
-  id: integer('id').primaryKey({autoIncrement: true}),
+export const mobs = sqliteTable('mobs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
   description: text("description").notNull(),
   level: integer("level").notNull(),
@@ -46,7 +48,7 @@ export const mobs = sqliteTable('mobs',{
   defense: integer("defense").notNull(),
   loot: text("loot", { mode: "json" }).$type<number[]>().notNull(),
   pointsReward: integer("points_reward").notNull(),
-  locationId: text("location_id").notNull().references(() => locations.id,{onDelete: "cascade"}),
+  locationId: text("location_id").notNull().references(() => locations.id, { onDelete: "cascade" }),
   respawnSeconds: integer("respawn_seconds").notNull(),
 })
 
@@ -68,16 +70,16 @@ export const items = sqliteTable("items", {
 // uniqueIndex на playerId гарантирует это на уровне БД.
 // onDelete: "cascade" — при удалении игрока/моба его сессии боя удаляются автоматически.
 // status: active (идёт бой) | victory | defeat | fled (игрок сбежал).
-export const combatSessions = sqliteTable('combat_sessions',{
-    id: integer("id").primaryKey({autoIncrement: true}),
-    playerId: integer("player_id").notNull().references(() => players.id, {onDelete: "cascade"}),
-    mobId: integer("mob_id").notNull().references(() => mobs.id, {onDelete: "cascade"}),
-    playerHealth: integer("player_health").notNull(),
-    mobHealth: integer("mob_health").notNull(),
-    status: text("status",{enum: ["active", "victory", "defeat","fled"]}).notNull().default("active"),
-    startedAt: text("started_at").notNull(),
-    lastActionAt: text("last_action_at").notNull()
-  },
+export const combatSessions = sqliteTable('combat_sessions', {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  playerId: integer("player_id").notNull().references(() => players.id, { onDelete: "cascade" }),
+  mobId: integer("mob_id").notNull().references(() => mobs.id, { onDelete: "cascade" }),
+  playerHealth: integer("player_health").notNull(),
+  mobHealth: integer("mob_health").notNull(),
+  status: text("status", { enum: ["active", "victory", "defeat", "fled"] }).notNull().default("active"),
+  startedAt: text("started_at").notNull(),
+  lastActionAt: text("last_action_at").notNull()
+},
   (table) => [uniqueIndex("combat_sessions_player_idx").on(table.playerId), index("combat_sessions_mob_idx").on(table.mobId)]
 )
 
@@ -92,7 +94,7 @@ export const inventoryItems = sqliteTable("inventory_items",
     itemType: integer("item_type").notNull(), // id предмета 
     quantity: integer("quantity").notNull(),
     acquiredAt: text("acquired_at").notNull(),
-    equiped: integer("equiped" ,{mode: "boolean"}).notNull().default(false)
+    equiped: integer("equiped", { mode: "boolean" }).notNull().default(false)
   },
   (table) => [uniqueIndex("inventory_items_player_item_unique").on(table.playerId, table.itemType)]
 );
@@ -124,10 +126,10 @@ export const events = sqliteTable("events",
 // targetId — конкретная цель (id моба/предмета/локации), NULL — любой объект.
 // targetCount — сколько раз нужно выполнить действие. targetXp/targetPoints — награда.
 export const quests = sqliteTable("quests", {
-  id: integer("id").primaryKey({autoIncrement: true}),
+  id: integer("id").primaryKey({ autoIncrement: true }),
   title: text("title").notNull(),
   description: text("description").notNull(),
-  difficulty: text("difficulty", {enum : ["easy", "medium", "hard"] as const}).notNull(),
+  difficulty: text("difficulty", { enum: ["easy", "medium", "hard"] as const }).notNull(),
   objectiveType: text("objective_type", { enum: ["kill", "walk", "collect", "visit"] as const }).notNull(),
   targetId: text("target_id"), // id цели: моба/предмета/локации, NULL = любой
   targetCount: integer("target_count").notNull(), // сколько раз нужно выполнить действие
@@ -140,7 +142,7 @@ export const quests = sqliteTable("quests", {
 export const playerQuests = sqliteTable("player_quests", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   playerId: integer("player_id").notNull().references(() => players.id, { onDelete: "cascade" }),
-  questId: integer("quest_id").notNull().references(() => quests.id, { onDelete: "cascade" }),  
+  questId: integer("quest_id").notNull().references(() => quests.id, { onDelete: "cascade" }),
   assignedDay: text("assigned_day").notNull(),// дата выдачи квеста ("2026-08-20")
   progress: integer("progress").notNull().default(0), // сколько из targetCount уже сделано (3/5)
   status: text("status", { enum: ["waiting", "completed", "claimed"] as const }).notNull().default("waiting"),
@@ -149,7 +151,25 @@ export const playerQuests = sqliteTable("player_quests", {
 }, (table) => [
   uniqueIndex("player_quests_day_unique").on(table.playerId, table.assignedDay, table.questId),
   index("player_quests_player_idx").on(table.playerId)
+])
+
+//Обмем между игроками
+export const trades = sqliteTable("trades", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  fromPlayerId: integer("from_player_id").notNull().references(() => players.id, { onDelete: "cascade" }),
+  toPlayerId: integer("to_player_id").notNull().references(() => players.id, { onDelete: "cascade" }),
+  // pending = приглашение, open = окно трейда, accepted/declined/cancelled = итог
+  status: text("status", { enum: ["pending", "open", "accepted", "declined", "cancelled"] as const }).notNull().default("pending"),
+  fromOffer: text("from_offer", { mode: "json" }).$type<TradeItem[]>().notNull().default([]),
+  toOffer: text("to_offer", { mode: "json" }).$type<TradeItem[]>().notNull().default([]),
+  fromReady: integer("from_ready", { mode: "boolean" }).notNull().default(false),
+  toReady: integer("to_ready", { mode: "boolean" }).notNull().default(false),
+  createdAt: text("created_at").notNull(),
+}, (table) => [
+  index("trades_to_player_idx").on(table.toPlayerId, table.status),
+  index("trades_from_player_idx").on(table.fromPlayerId, table.status)
 ]);
+
 
 // Типы строк таблиц (выводятся drizzle из схемы). $inferSelect — тип одной записи из SELECT.
 // EventRow дополнительно включает playerName — имя игрока, подтянутое через join.
@@ -164,3 +184,6 @@ export type CombatSessionRow = typeof combatSessions.$inferSelect;
 
 export type QuestsRow = typeof quests.$inferSelect
 export type PlayerQuestsRow = typeof playerQuests.$inferSelect
+
+
+export type TradeRow = typeof trades.$inferSelect

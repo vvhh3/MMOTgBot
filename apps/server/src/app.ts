@@ -27,6 +27,7 @@ import { getPlayersInLocation, hydratePresenceFromDatabase, movePlayer } from ".
 import { createMobRoutes } from "./mobs.js";
 import { createItemRoutes } from "./items.js";
 import { createQuestRoutes, progressQuests } from "./quests.js";
+import { createTradeRoutes } from "./trades.js";
 import { buildLocationState } from "./state.js";
 
 import { broadcastLocation, emitToPlayer, moveSocketToLocation } from "./realTime.js";
@@ -68,6 +69,10 @@ export function createApp(): express.Express {
   //Квесты
   app.use("/quests", requireAuth)
   createQuestRoutes(app)
+
+  //Обмены между игроками
+  app.use("/trades", requireAuth)
+  createTradeRoutes(app)
 
   app.get("/health", (_req, res) => {
     res.json({ ok: true });
@@ -457,6 +462,9 @@ function serveClient(app: express.Express): void {
       req.path.startsWith("/locations") ||
       req.path.startsWith("/mobs") ||
       req.path.startsWith("/quests") ||
+      req.path.startsWith("/trades") ||
+      req.path.startsWith("/inventory") ||
+      req.path.startsWith("/leaderboard") ||
       req.path.startsWith("/combat");
     if (isApiPath) {
       next();

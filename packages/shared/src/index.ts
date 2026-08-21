@@ -171,14 +171,14 @@ export type ApiErrorResponse = {
 export type ServerToClientEvents = {
   locationState: (state: LocationStateResponse) => void;
   combatState: (state: CombatStateResponse) => void;
-  player: (player: PlayerDto) => void;
-  inventory: (inventory: InventoryItemDto[]) => void;
+  player: (player: PlayerDto) => void
+  inventory: (inventory: InventoryItemDto[]) => void
+  tradeUpdate: (state: TradeStateDto | null) => void
 };
 
 export type ClientToServerEvents = {
   // пока пусто — комнатами локаций управляет сервер
 }
-
 
 
 export type LeaderBoardToDto = {
@@ -212,6 +212,34 @@ export type PlayerQuestDto = {
   status: QuestsStatus
   assignedDay: string
 }
+
+export type TradeItem = {
+  itemType: number
+  quantity: number
+}
+
+// Что видит игрок в окне трейда: свою выкладку и выкладку партнёра
+export type TradeStateDto = {
+  id: number;
+  status: "pending" | "open" | "accepted" | "declined" | "cancelled";
+  myOffer: TradeItem[];
+  partnerOffer: TradeItem[];
+  iAmReady: boolean;
+  partnerIsReady: boolean;
+  partnerName: string;
+}
+
+export type TradeListItemDto = {
+  id: number
+  partnerName: string
+  status: "pending" | "open"
+  direction: "incoming" | "outgoing" // входящее приглашение или исходящее
+};
+
+export type TradesOverviewResponse = {
+  invites: TradeListItemDto[]   // приглашения, ждущие ответа
+  active: TradeStateDto | null  // мой открытый трейд, если есть
+};
 
 export type QuestsResponse = { quests: QuestsDto[] }
 export type QuestResponse = { quest: QuestsDto }
