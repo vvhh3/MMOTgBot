@@ -17,8 +17,10 @@ import Home from "./components/Home";
 import Tasks from "./components/Tasks";
 import { useLocation } from "react-router-dom";
 import Team from "./components/Team";
-import Fight from "./components/Fight";
+import TakeAWalk from "./components/TakeAWalk";
 import Inventory from "./components/Inventory";
+import Fight from "./components/Fight";
+import Exchange from "./components/Exchange"
 
 export default function ScrollToTop() {
   const { pathname } = useLocation();
@@ -93,8 +95,10 @@ function App() {
               <Route path="Profile" element={<Profile />}/>
               <Route path="Tasks" element={<Tasks/>}/>
               <Route path="Team" element={<Team/>}/>
-              <Route path="Inventory" element={<Inventory/>}></Route>
+              <Route path="Inventory" element={<Inventory/>}/>
+              <Route path="Exchange" element={<Exchange/>}/>
             </Route>
+            <Route path="/TakeAWalk" element={<TakeAWalk/>}/>
             <Route path="/Fight" element={<Fight/>}/>
           </Routes>
       </Theme>

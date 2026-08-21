@@ -1,9 +1,9 @@
 import fightImage from "../public/fight.svg"
 import player from "../public/playerM.svg"
-import player2 from "../public/playerM.svg"
+import monstr from "../public/monstr.svg"
 import { Button, Card,Progress,Text,Grid } from "@radix-ui/themes"
 import { Link } from "react-router-dom"
-export default function Fight(){
+export default function TakeAWalk(){
     return(
         <div className="flex ">
             <div className="flex w-full flex-col justify-end"  style={{
@@ -38,7 +38,7 @@ export default function Fight(){
                                 <div>
                                     <div className="flex flex-row justify-between gap-1.5">
                                         <Text>
-                                            vvhh
+                                            Альтушка
                                         </Text>
                                         <div >
                                             <Text size="1">30/100</Text>
@@ -48,7 +48,7 @@ export default function Fight(){
                                 </div>
                             </Card>
                         </div>
-                        <img className="h-[180px] " src={player2}/>
+                        <img className="h-[180px] " src={monstr}/>
                     </div>
                 </div>
                 <div>

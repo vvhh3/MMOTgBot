@@ -1,4 +1,4 @@
-import { Tabs,Text,Box, Grid, Card,Progress, Flex} from "@radix-ui/themes"
+import { Tabs,Text,Box, Grid, Card,Progress, Flex, Button} from "@radix-ui/themes"
 export default function Tasks(){
     return(
         <div className=' h-full ' >
@@ -110,6 +110,9 @@ export default function Tasks(){
                                         <Progress color='orange' value={100}/>
                                     </Box>
                                 </div>
+                                <div className="flex justify-end pt-[5px]">
+                                    <Button style={{background:"#E8603C"}}>Забрать</Button>
+                                </div>
                             </Card>
                             <Card >
                                 <div className="flex flex-col gap-1.5">
@@ -157,6 +160,9 @@ export default function Tasks(){
                                     <Box>
                                         <Progress color='orange' value={100}/>
                                     </Box>
+                                </div>
+                                <div className="flex justify-end pt-[5px]">
+                                    <Button style={{background:"#E8603C"}}>Забрать</Button>
                                 </div>
                             </Card>
                         </Grid>

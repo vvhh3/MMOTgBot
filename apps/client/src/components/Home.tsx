@@ -40,22 +40,24 @@ export default function Home(){
             </div>
             <Grid columns="2" rows="2" maxWidth="700px" gap="2" style={{padding:"20px"}}>
                 <Card >
-                    <div className="flex flex-row justify-between">
-                        <div className="max-w-[240px]">
-                            <Text as="div" size="2" weight="bold">
-                                <div className="flex-row flex gap-2">
-                                    Сражение
-                                    <svg height="20px" width="20px"  viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" version="1.1" fill="none" stroke="#E85D2F" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="m2.75 9.25 1.5 2.5 2 1.5m-4.5 0 1 1m1.5-2.5-1.5 1.5m3-1 8.5-8.5v-2h-2l-8.5 8.5"></path> <path d="m10.25 12.25-2.25-2.25m2-2 2.25 2.25m1-1-1.5 2.5-2 1.5m4.5 0-1 1m-1.5-2.5 1.5 1.5m-7.25-5.25-4.25-4.25v-2h2l4.25 4.25"></path> </g></svg>                            
-                                </div>
-                            </Text>
-                            <Text as="div" color="gray" size="1">
-                                Сражение с игроками на локации
-                            </Text>
-                        </div>   
-                    </div>
+                    <Link to="/Fight">
+                        <div className="flex flex-row justify-between">
+                            <div className="max-w-[240px]">
+                                <Text as="div" size="2" weight="bold">
+                                    <div className="flex-row flex gap-2">
+                                        Сражение
+                                        <svg height="20px" width="20px"  viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" version="1.1" fill="none" stroke="#E85D2F" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="m2.75 9.25 1.5 2.5 2 1.5m-4.5 0 1 1m1.5-2.5-1.5 1.5m3-1 8.5-8.5v-2h-2l-8.5 8.5"></path> <path d="m10.25 12.25-2.25-2.25m2-2 2.25 2.25m1-1-1.5 2.5-2 1.5m4.5 0-1 1m-1.5-2.5 1.5 1.5m-7.25-5.25-4.25-4.25v-2h2l4.25 4.25"></path> </g></svg>                            
+                                    </div>
+                                </Text>
+                                <Text as="div" color="gray" size="1">
+                                    Сражение с игроками на локации
+                                </Text>
+                            </div>   
+                        </div>
+                    </Link>
                 </Card>
                 <Card >
-                    <Link to="/Fight">
+                    <Link to="/TakeAWalk">
                         <div className="flex flex-row  justify-between">
                             <div className="max-w-[240px]">
                                 <Text as="div" size="2" weight="bold">
@@ -86,19 +88,21 @@ export default function Home(){
                     </div>
                 </Card>
                 <Card >
-                    <div className="flex flex-row justify-between">
-                        <div className="max-w-[240px]">
-                            <Text as="div" size="2" weight="bold">
-                               <div className="flex-row flex gap-2">
-                                    Торговля
-                                <svg height="20px" width="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M19.9381 13C19.979 12.6724 20 12.3387 20 12C20 7.58172 16.4183 4 12 4C9.49942 4 7.26681 5.14727 5.7998 6.94416M4.06189 11C4.02104 11.3276 4 11.6613 4 12C4 16.4183 7.58172 20 12 20C14.3894 20 16.5341 18.9525 18 17.2916M15 17H18V17.2916M5.7998 4V6.94416M5.7998 6.94416V6.99993L8.7998 7M18 20V17.2916" stroke="#E85D2F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
-                                </div>
-                            </Text>
-                            <Text as="div" color="gray" size="1">
-                                 Можете обменяться/поторгаваться с другими игроками на локации
-                            </Text>
-                        </div>   
-                    </div>
+                    <Link to="/Exchange">
+                        <div className="flex flex-row justify-between">
+                            <div className="max-w-[240px]">
+                                <Text as="div" size="2" weight="bold">
+                                <div className="flex-row flex gap-2">
+                                        Обмен
+                                    <svg height="20px" width="20px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M19.9381 13C19.979 12.6724 20 12.3387 20 12C20 7.58172 16.4183 4 12 4C9.49942 4 7.26681 5.14727 5.7998 6.94416M4.06189 11C4.02104 11.3276 4 11.6613 4 12C4 16.4183 7.58172 20 12 20C14.3894 20 16.5341 18.9525 18 17.2916M15 17H18V17.2916M5.7998 4V6.94416M5.7998 6.94416V6.99993L8.7998 7M18 20V17.2916" stroke="#E85D2F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+                                    </div>
+                                </Text>
+                                <Text as="div" color="gray" size="1">
+                                    Можете обменяться/поторгаваться с другими игроками на локации
+                                </Text>
+                            </div>   
+                        </div>
+                    </Link>
                 </Card>
             </Grid>
         </div>
