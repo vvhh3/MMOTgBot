@@ -6,8 +6,9 @@ import {
 import { Card, Inset } from "@radix-ui/themes";
 import map from "./mapMat.png"
 import fon from "../../../public/Home.svg"
-import { LocationDto, PlayerDto } from "@mmobot/shared";
+import { LocationDto } from "@mmobot/shared";
 import { enterLocation, getLocations } from "../../../api";
+import { useNavigate } from "react-router-dom";
 
 const IMG_W = 1622;
 const IMG_H = 970;
@@ -26,6 +27,8 @@ export default function GameMap({ token }:{token: string | null}) {
 
   const [moving, setMoving] = useState(false)
   const [locations, setLocations] = useState<LocationDto[]>([])
+
+  const navigate = useNavigate()
 
   useEffect(() => {
     if (!token) return
@@ -104,6 +107,7 @@ export default function GameMap({ token }:{token: string | null}) {
       console.log(loc)
       await enterLocation(token, loc.id)
       closeLocation()
+      navigate("/")
     } catch (e) {
       alert(e instanceof Error ? e.message : "Не удалось перейти");
     } finally {

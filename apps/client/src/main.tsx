@@ -92,7 +92,7 @@ function App() {
          <ScrollToTop/>
           <Routes>
             <Route path="" element={<MainLayout />}>
-              <Route path="/" element={<Home />}/>
+              <Route path="/" element={<Home token={token} player={player} locationState={locationState}/>}/>
               <Route path="Map" element={<Map token={token}/>}/>
               <Route path="Profile" element={<Profile />}/>
               <Route path="Tasks" element={<Tasks token={token} />}/>
