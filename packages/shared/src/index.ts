@@ -174,6 +174,7 @@ export type ServerToClientEvents = {
   player: (player: PlayerDto) => void
   inventory: (inventory: InventoryItemDto[]) => void
   tradeUpdate: (state: TradeStateDto | null) => void
+  pvpState: (state: PvpStateDto| null) => void
 };
 
 export type ClientToServerEvents = {
@@ -245,3 +246,30 @@ export type QuestsResponse = { quests: QuestsDto[] }
 export type QuestResponse = { quest: QuestsDto }
 export type DailyQuestsResponse = { quests: PlayerQuestDto[] }
 export type ClaimQuestResponse = { player: PlayerDto; claimed: boolean }
+
+
+
+export type PvpStateDto = {
+  id: number
+  status: "pending" | "active" | "finished"
+  myName: string
+  partnerName: string
+  myHp: number
+  myMaxHp: number
+  partnerHp: number
+  partnerMaxHp: number
+  myTurn: boolean // чей ход щас
+  finished: boolean
+  isWon : boolean | null // null = ничья/побег
+}
+
+export type PvpListItemDto = {
+  id: number
+  partnerName: string
+  direction: "incoming" | "outgoing"
+}
+
+export type PvpOverviewResponse = {
+  invites: PvpListItemDto[]
+  active: PvpStateDto | null
+}

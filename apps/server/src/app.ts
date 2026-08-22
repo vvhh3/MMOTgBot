@@ -28,6 +28,7 @@ import { createMobRoutes } from "./mobs.js";
 import { createItemRoutes } from "./items.js";
 import { createQuestRoutes, progressQuests } from "./quests.js";
 import { createTradeRoutes } from "./trades.js";
+import { createPvpRoutes } from "./pvp.js";
 import { buildLocationState } from "./state.js";
 
 import { broadcastLocation, emitToPlayer, moveSocketToLocation } from "./realTime.js";
@@ -73,6 +74,10 @@ export function createApp(): express.Express {
   //Обмены между игроками
   app.use("/trades", requireAuth)
   createTradeRoutes(app)
+
+  //Дуэли между игроками
+  app.use("/pvp", requireAuth)
+  createPvpRoutes(app)
 
   app.get("/health", (_req, res) => {
     res.json({ ok: true });
@@ -463,6 +468,7 @@ function serveClient(app: express.Express): void {
       req.path.startsWith("/mobs") ||
       req.path.startsWith("/quests") ||
       req.path.startsWith("/trades") ||
+      req.path.startsWith("/pvp") ||
       req.path.startsWith("/inventory") ||
       req.path.startsWith("/leaderboard") ||
       req.path.startsWith("/combat");

@@ -74,12 +74,12 @@ function buildTradeState(trade: TradeRow, playerId: number): TradeStateDto | nul
     iAmReady: role === "from" ? trade.fromReady : trade.toReady,
     partnerIsReady: role === "from" ? trade.toReady : trade.fromReady,
     partnerName: partner?.name ?? "?"
-  };
+  }
 }
 
-// Отправляет обоим участникам свежее состояние их окна через сокет.
-// Вызывается после КАЖДОГО изменения трейда, чтобы клиенту не нужен был поллинг.
-// Каждый получит свою версию DTO (со своей стороны сделки).
+// Отправляет обоим участникам свежее состояние их окна через сокет
+// Вызывается после КАЖДОГО изменения трейда, чтобы клиенту не нужен был поллинг
+// Каждый получит свою версию DTO (со своей стороны сделки)
 function notifyBoth(trade: TradeRow): void {
   emitToPlayer(trade.fromPlayerId, "tradeUpdate", buildTradeState(trade, trade.fromPlayerId));
   emitToPlayer(trade.toPlayerId, "tradeUpdate", buildTradeState(trade, trade.toPlayerId));

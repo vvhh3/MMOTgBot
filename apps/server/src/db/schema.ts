@@ -171,6 +171,23 @@ export const trades = sqliteTable("trades", {
 ]);
 
 
+export const pvpSessions = sqliteTable("pvp_sessions", {
+  id: integer("id").primaryKey({autoIncrement: true}),
+  player1Id: integer("player_1_id").notNull().references(() => players.id,{onDelete: "cascade"}),
+  player2Id: integer("player_2_id").notNull().references(() => players.id,{onDelete: "cascade"}),
+  status: text("status", {enum: ["pending","active", "finished"]}).notNull().default("pending"),
+  player1Health: integer("player_1_health").notNull(),
+  player2Health: integer("player_2_health").notNull(),
+  turn: text("turn", {enum: ["player1", "player2"]}).notNull().default("player1"),
+  winnerId: integer("winner_id"),
+  creadetAt: text("creadet_at").notNull(),
+  lastActionAt: text("last_action_at").notNull()
+}, (table) => [
+  index("pvp_player1_idx").on(table.player1Id),
+  index("pvp_player2_idx").on(table.player2Id),
+])
+
+
 // Типы строк таблиц (выводятся drizzle из схемы). $inferSelect — тип одной записи из SELECT.
 // EventRow дополнительно включает playerName — имя игрока, подтянутое через join.
 export type PlayerRow = typeof players.$inferSelect;
@@ -187,3 +204,4 @@ export type PlayerQuestsRow = typeof playerQuests.$inferSelect
 
 
 export type TradeRow = typeof trades.$inferSelect
+export type PvpSessionRow = typeof pvpSessions.$inferSelect

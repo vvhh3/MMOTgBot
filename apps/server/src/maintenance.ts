@@ -3,6 +3,7 @@ import { db } from "./db.js";
 import { events, trades } from "./db/schema.js";
 import { nowGameTimeMs } from "./time.js";
 import { expireStaleCombatSessions } from "./combat.js";
+import { expireStalePvpSessions } from "./pvp.js";
 
 // Сколько дней хранить журнал событий. buildLocationState читает events
 // при каждом запросе, поэтому таблица не должна расти бесконечно.
@@ -46,12 +47,14 @@ export function startMaintenance(): void {
   cleanupOldEvents();
   cleanupStaleTrades();
   expireStaleCombatSessions();
+  expireStalePvpSessions();
 
   setInterval(() => {
     try {
       cleanupOldEvents();
       cleanupStaleTrades();
       expireStaleCombatSessions();
+      expireStalePvpSessions();
     } catch (error) {
       console.error("[maintenance] failed", error);
     }
