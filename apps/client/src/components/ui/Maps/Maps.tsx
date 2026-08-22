@@ -12,18 +12,6 @@ import { enterLocation, getLocations } from "../../../api";
 const IMG_W = 1622;
 const IMG_H = 970;
 
-const locations = [
-  {
-    id: 1,
-    name: "Площадь",
-    description: "Тут происходит нечто странное",
-    x: 31,
-    y: 40,
-    zoom: 1.5
-  }
-];
-
-
 export default function GameMap({ token }:{token: string | null}) {
 
 
@@ -37,7 +25,7 @@ export default function GameMap({ token }:{token: string | null}) {
   const [view, setView] = useState({ scale: 1, x: 0, y: 0 });
 
   const [moving, setMoving] = useState(false)
-  const [lcoations, setLocations] = useState<LocationDto[]>([])
+  const [locations, setLocations] = useState<LocationDto[]>([])
 
   useEffect(() => {
     if (!token) return
@@ -113,7 +101,8 @@ export default function GameMap({ token }:{token: string | null}) {
     if (!token || moving) return
     setMoving(true)
     try {
-      const res = await enterLocation(token, loc.id)
+      console.log(loc)
+      await enterLocation(token, loc.id)
       closeLocation()
     } catch (e) {
       alert(e instanceof Error ? e.message : "Не удалось перейти");
@@ -151,8 +140,7 @@ export default function GameMap({ token }:{token: string | null}) {
               {locations.map(loc => (
                 <div key={loc.id} >
                   <button
-                    disabled={moving}
-                    onClick={() => travelTo(selectedLocation)}
+                    onClick={() =>goToLocation(loc)}
                     style={{
                       position: "absolute",
                       left: `${loc.x}%`,
@@ -196,8 +184,7 @@ export default function GameMap({ token }:{token: string | null}) {
             borderRadius: 20,
             zIndex: 1000,
             width: 300
-          }}
-        >
+          }}>
           <Inset>
             <img src={fon} style={{ padding: "10px", borderRadius: "16px" }}
             />
@@ -223,7 +210,8 @@ export default function GameMap({ token }:{token: string | null}) {
 
 
             <button
-              onClick={closeLocation}
+              onClick={() => travelTo(selectedLocation)}
+              disabled={moving}
               className="mt-4 bg-green-500 text-white px-4 py-2 rounded">
               Выбрать
             </button>

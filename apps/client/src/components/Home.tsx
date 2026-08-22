@@ -3,7 +3,10 @@ import { Link } from "react-router-dom";
 import player from '../public/playerM.svg'
 import player2 from '../public/playerG.svg'
 import fon from "../public/Home.svg"
+
 export default function Home(){
+
+
     return(
         <div className="flex flex-col justify-center items-center ">
             <div className="flex flex-col justify-center items-center w-full h-full object-contain bg-bottom border-b-2" 
