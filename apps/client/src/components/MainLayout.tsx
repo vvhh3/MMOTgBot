@@ -21,6 +21,7 @@ export default function MainLayout({ player }: LayoutProps) {
 
     const adminId = (import.meta.env.VITE_ADMIN_IDS ?? "").split(",").map(Number).filter(Boolean)
     const isAdmin = player !== null && adminId.includes(player.id) 
+    
     return (
         <div className="flex flex-col w-full overflow-hidden" style={{ height: "var(--tg-viewport-stable-height, 100dvh)", }}>
             <div className="flex justify-between items-center p-1 shrink-0 border-b-2" style={{ paddingTop: "calc(var(--tg-safe-area-inset-top, 0px) + var(--tg-content-safe-area-inset-top, 0px) + 4px)", }}>
