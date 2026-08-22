@@ -77,7 +77,8 @@ function App() {
     socket.on("player", onPlayer);
     socket.on("inventory", onInventory);
     socket.on("combatState", onCombatState);
-
+    console.log("VITE_ADMIN_IDS =", import.meta.env.VITE_ADMIN_IDS);
+    
     return () => {
       socket.off("connect_error", onConnectError);
       socket.off("locationState", onLocationState);

@@ -15,7 +15,12 @@ export default function Profile({ player }: ProfileProps) {
     return (
         <div className='flex flex-col items-center h-full ' >
             <div className='flex flex-col justify-center items-center '>
-                <p className='font-bold'>{player?.name}</p>
+                <p className='font-bold'>{player?.name}
+                    {import.meta.env.VITE_ADMIN_IDS && (
+                        <div className="fixed top-16 left-2 z-50 bg-black text-white text-xs p-1">
+                            env=[{import.meta.env.VITE_ADMIN_IDS}] player={player?.id}
+                        </div>
+                    )}</p>
                 <img className='h-50' src={playerM} />
             </div>
             <Grid columns="2" gap="3" style={{ padding: "20px" }}>
@@ -23,11 +28,6 @@ export default function Profile({ player }: ProfileProps) {
                     <Card variant="surface"  >
                         <Text as="div" size="2" weight="bold">
                             Здоровье
-                            {import.meta.env.VITE_ADMIN_IDS && (
-                                <div className="fixed top-16 left-2 z-50 bg-black text-white text-xs p-1">
-                                    env=[{import.meta.env.VITE_ADMIN_IDS}] player={player?.id}
-                                </div>
-                            )}
                         </Text>
                         <Box maxWidth="300px">
                             <Progress color='green' value={100} />
