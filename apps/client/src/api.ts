@@ -5,11 +5,17 @@ import type {
   ClaimQuestResponse,
   DailyQuestsResponse,
   EnterLocationResponse,
+  ItemDto,
+  ItemResponse,
+  ItemsResponse,
   LocationActionRequest,
   LocationActionResponse,
   LocationsResponse,
   LocationStateResponse,
-  MeResponse
+  MeResponse,
+  MobDto,
+  MobResponse,
+  MobsResponse
 } from "@mmobot/shared";
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
@@ -76,4 +82,42 @@ export async function claimQuest(token: string, questId: number): Promise<ClaimQ
 
 function authHeader(token: string): { authorization: string } {
   return { authorization: `Bearer ${token}` };
+}
+
+
+//Api для crud Мобов
+export async function createMob(token: string, mob: MobDto): Promise<MobResponse> {
+  const response = await api.post<MobResponse>(`/mobs`, mob, { headers: authHeader(token) })
+  return response.data
+}
+export async function updateMob(token: string, id: number, mob: MobDto): Promise<MobResponse> {
+  const response = await api.put<MobResponse>(`/mobs/${id}`, mob, { headers: authHeader(token) })
+  return response.data
+}
+
+export async function deleteMob(token: string, id: number) {
+  await api.delete(`/mobs/${id}`, { headers: authHeader(token) })
+}
+export async function getMobs(token: string): Promise<MobsResponse> {
+  const responce = await api.get<MobsResponse>("/mobs", { headers: authHeader(token) })
+  return responce.data
+}
+
+//Api для crud Предметов
+export async function createItem(token: string, item: ItemDto): Promise<ItemResponse> {
+  const response = await api.post<ItemResponse>(`/items`, item, { headers: authHeader(token) })
+  return response.data
+}
+export async function updateItem(token: string, id: number, mob: ItemDto): Promise<ItemResponse> {
+  const response = await api.put<ItemResponse>(`/items/${id}`, mob, { headers: authHeader(token) })
+  return response.data
+}
+
+export async function deleteItem(token: string, id: number) {
+  await api.delete(`/items/${id}`, { headers: authHeader(token) })
+}
+
+export async function getItems(token: string): Promise<ItemsResponse> {
+  const responce = await api.get<ItemsResponse>("/items", { headers: authHeader(token) })
+  return responce.data
 }

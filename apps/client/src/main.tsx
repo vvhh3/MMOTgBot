@@ -2,7 +2,7 @@ import { StrictMode, useEffect, useState } from "react"
 import { createRoot } from "react-dom/client"
 import "@radix-ui/themes/styles.css"
 import "./styles.css"
-import { BrowserRouter, Routes, Route,Link} from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import type { CombatStateResponse, InventoryItemDto, LocationStateResponse, PlayerDto } from "@mmobot/shared";
 import Loading from './components/Loading'
 import { auth, getMe } from "./api";
@@ -21,6 +21,8 @@ import TakeAWalk from "./components/TakeAWalk";
 import Inventory from "./components/Inventory";
 import Fight from "./components/Fight";
 import Exchange from "./components/Exchange"
+import { MobAdmin } from "./components/admin/MobAdmin";
+import { ItemAdmin } from "./components/admin/ItemAdmin";
 
 export default function ScrollToTop() {
   const { pathname } = useLocation();
@@ -75,7 +77,7 @@ function App() {
     socket.on("player", onPlayer);
     socket.on("inventory", onInventory);
     socket.on("combatState", onCombatState);
-    
+
     return () => {
       socket.off("connect_error", onConnectError);
       socket.off("locationState", onLocationState);
@@ -89,42 +91,31 @@ function App() {
   return (
     <>
       <Theme>
-         <ScrollToTop/>
-          <Routes>
-            <Route path="" element={<MainLayout player={player}/>}>
-              <Route path="/" element={<Home token={token} player={player} locationState={locationState}/>}/>
-              <Route path="Map" element={<Map token={token} onLocationState={setLocationState}/>}/>
-              <Route path="Profile" element={<Profile  player={player}/>}/>
-              <Route path="Tasks" element={<Tasks token={token} />}/>
-              <Route path="Team" element={<Team/>}/>
-              <Route path="Inventory" element={<Inventory player={player}/>}/>
-              <Route path="Exchange" element={<Exchange/>}/>
-            </Route>
-            <Route path="/TakeAWalk" element={<TakeAWalk/>}/>
-            <Route path="/Fight" element={<Fight/>}/>
-          </Routes>
+        <ScrollToTop />
+        <Routes>
+          <Route path="" element={<MainLayout player={player} />}>
+            <Route path="/" element={<Home token={token} player={player} locationState={locationState} />} />
+            <Route path="Map" element={<Map token={token} onLocationState={setLocationState} />} />
+            <Route path="Profile" element={<Profile player={player} />} />
+            <Route path="Tasks" element={<Tasks token={token} />} />
+            <Route path="Team" element={<Team />} />
+            <Route path="Inventory" element={<Inventory player={player} />} />
+            <Route path="Exchange" element={<Exchange />} />
+            <Route path="admin/mobs" element={<MobAdmin token={token}/>}/>
+            <Route path="admin/items" element={<ItemAdmin token={token}/>}/>
+          </Route>
+          <Route path="/TakeAWalk" element={<TakeAWalk />} />
+          <Route path="/Fight" element={<Fight />} />
+        </Routes>
       </Theme>
     </>
-  );
-}
-
-function Shell({ children, error }: { children?: React.ReactNode; error: string | null }) {
-  return (
-    <div className="min-h-screen bg-canvas p-4 font-sans text-ink">
-      {error ? (
-        <div className="mx-auto mb-4 max-w-[960px] rounded-lg border border-error-border bg-error-bg p-3 text-error-text">
-          {error}
-        </div>
-      ) : null}
-      {children ?? <Loading />}
-    </div>
   );
 }
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
-        <App />
+      <App />
     </BrowserRouter>
   </StrictMode>
 );
