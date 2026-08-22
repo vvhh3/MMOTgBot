@@ -15,7 +15,8 @@ import type {
   LocationActionResponse,
   LocationStateResponse,
   LocationsResponse,
-  MeResponse
+  MeResponse,
+  SpendStatPointRequest
 } from "@mmobot/shared"
 import { createSessionToken, requireAdmin, requireAuth, validateTelegramInitData, type AuthedRequest } from "./auth.js";
 import { getCombatState, isMobAlive, moveCombatAction, startCombat, usePotion } from "./combat.js";
@@ -33,7 +34,7 @@ import { buildLocationState } from "./state.js";
 
 import { broadcastLocation, emitToPlayer, moveSocketToLocation } from "./realTime.js";
 import { InventoryRoutes } from "./inventory.js";
-import { addXpForPlayer } from "./level.js";
+import { addXpForPlayer, STAT_GAIN } from "./level.js";
 import { nowGameTime } from "./time.js";
 
 export function createApp(): express.Express {
@@ -125,6 +126,53 @@ export function createApp(): express.Express {
       inventory: inventory.map(toInventoryItemDto)
     };
     res.json(response);
+  });
+
+  // ПОТРАТИТЬ ОЧКО ХАРАКТЕРИСТИК: POST /me/stats
+  // Очки выдаются за уровни (level.ts). За одно очко:
+  // maxHealth +5 | strength +2 | defense +1 (см. STAT_GAIN).
+  // При прокачке maxHealth текущий HP тоже растёт на +5 — иначе очко
+  // в максимальное здоровье не давало бы ничего, пока игрок не полный.
+  app.post("/me/stats", requireAuth, (req, res) => {
+    const player = (req as AuthedRequest).player;
+    const body = req.body as SpendStatPointRequest;
+
+    // 1. Валидная характеристика?
+    const gain = STAT_GAIN[body?.stat];
+    if (!gain) {
+      res.status(400).json({ error: "stat должен быть maxHealth, strength или defense" });
+      return;
+    }
+
+    // 2. Есть что тратить? (перечитываем из БД — req.player мог устареть)
+    const fresh = db.select().from(players).where(eq(players.id, player.id)).get()!;
+    if (fresh.statPoints < 1) {
+      res.status(409).json({ error: "Нет свободных очков характеристик" });
+      return;
+    }
+
+    // 3. Тратим очко и поднимаем стат. health тоже поднимаем при maxHealth,
+    //    но не выше нового максимума.
+    if (body.stat === "maxHealth") {
+      db.update(players)
+        .set({
+          statPoints: fresh.statPoints - 1,
+          maxHealth: fresh.maxHealth + gain,
+          health: Math.min(fresh.maxHealth + gain, fresh.health + gain)
+        })
+        .where(eq(players.id, player.id)).run();
+    } else {
+      db.update(players)
+        .set({
+          statPoints: fresh.statPoints - 1,
+          ...(body.stat === "strength" ? { strength: fresh.strength + gain } : { defense: fresh.defense + gain })
+        })
+        .where(eq(players.id, player.id)).run();
+    }
+
+    const updated = db.select().from(players).where(eq(players.id, player.id)).get()!;
+    emitToPlayer(player.id, "player", toPlayerDto(updated));
+    res.json({ player: toPlayerDtoEquipped(updated) });
   });
 
   app.get("/locations", requireAuth, (_req, res) => {

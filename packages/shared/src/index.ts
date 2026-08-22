@@ -9,7 +9,15 @@ export type PlayerDto = { // описание игрока
   maxHp: number
   strength: number
   defense: number
+  statPoints: number // нераспределённые очки характеристик (тратятся на прокачку статов)
 };
+
+// какую характеристику поднять за одно очко (POST /me/stats)
+export type StatType = "maxHealth" | "strength" | "defense"
+
+export type SpendStatPointRequest = {
+  stat: StatType
+}
 
 export type MobDto = { // описание мобов
   id: number

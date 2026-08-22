@@ -32,7 +32,7 @@
 
 import type { Express, Request, Response } from "express"
 import type { AuthedRequest } from "./auth.js"
-import { players, pvpSessions } from "./db/schema.js";
+import { inventoryItems, items, players, pvpSessions } from "./db/schema.js";
 import type { PvpSessionRow } from "./db/schema.js";
 import { emitToPlayer } from "./realTime.js";
 import { CombatLogEntry, PvpStateDto, PvpOverviewResponse } from "@mmobot/shared";
@@ -144,6 +144,12 @@ function buildPvpState(pvp: PvpSessionRow, playerId: number): PvpStateDto | null
 
 export const createPvpRoutes = (app: Express) => {
 
+    // Антифарм/антиспам: минимальная пауза между вызовами одного игрока.
+    // Вызов шлёт socket + Telegram-уведомление — без кулдауна можно
+    // завалить жертву сотнями приглашений и уведомлений.
+    const PVP_INVITE_COOLDOWN_MS = 15 * 1000;
+    const lastInviteAt = new Map<number, number>();
+
     // --- СПИСОК: мои приглашения + активная дуэль ---
     // Разовый запрос (открытие экрана / реконнект). Живые обновления
     // приходят через socket-событие "pvpState".
@@ -191,6 +197,14 @@ export const createPvpRoutes = (app: Express) => {
         if (player.health <= 0 || target.health <= 0) return res.status(409).json({ error: "Один из игроков мёртв" })
 
         if (hasActivePvp(player.id) || hasActivePvp(toPlayerId)) return res.status(409).json({ error: "Один из игроков уже в бою" })
+
+        // кулдаун: не чаще одного вызова в PVP_INVITE_COOLDOWN_MS
+        const nowMs = Date.now();
+        const lastAt = lastInviteAt.get(player.id) ?? 0;
+        if (nowMs - lastAt < PVP_INVITE_COOLDOWN_MS) {
+            return res.status(429).json({ error: "Слишком часто, подождите немного" });
+        }
+        lastInviteAt.set(player.id, nowMs);
 
         const result = db.insert(pvpSessions).values({
             player1Id: player.id,
@@ -253,12 +267,12 @@ export const createPvpRoutes = (app: Express) => {
         res.json({ ok: true });
     })
 
-    // --- ХОД: attack | flee ---
+    // --- ХОД: attack | flee | use (зелье) ---
     // Главная проверка перед действием: session.status === "active"
     // и turn === моя роль. Без этого можно было бы бить вне очереди.
     app.post("/pvp/:id/action", (req: Request, res: Response) => {
         const player = (req as AuthedRequest).player;
-        const action: "attack" | "flee" = req.body?.action;
+        const action: "attack" | "flee" | "use" = req.body?.action;
 
         const session = db.select().from(pvpSessions).where(eq(pvpSessions.id, Number(req.params.id))).get();
         const role = session ? myRole(session, player.id) : null;
@@ -308,8 +322,41 @@ export const createPvpRoutes = (app: Express) => {
                 log.push({ text: `Побег не удался, вы получили ${dmg} урона`, at: now });
                 if (myHp <= 0) { finished = true; winnerId = opp.id; }
             }
+        } else if (action === "use") {
+            // ЗЕЛЬЕ. Важно: выпить можно ТОЛЬКО в свой ход, и зелье
+            // СЖИГАЕТ ход (ниже turn уйдёт сопернику) — иначе можно было бы
+            // безнаказанно отхиливаться до бесконечности.
+            const itemType = Number(req.body?.itemType);
+            if (!Number.isInteger(itemType)) return res.status(400).json({ error: "itemType обязателен" });
+
+            // стек предмета в инвентаре (у игрока максимум один стек на тип)
+            const invRow = db.select().from(inventoryItems)
+                .where(and(eq(inventoryItems.playerId, me.id), eq(inventoryItems.itemType, itemType)))
+                .get();
+            if (!invRow || invRow.quantity < 1) return res.status(400).json({ error: "Зелья нет в инвентаре" });
+
+            const potion = db.select().from(items).where(eq(items.id, itemType)).get();
+            if (!potion || potion.type !== "potion" || potion.healAmount <= 0) {
+                return res.status(400).json({ error: "Это не зелье" });
+            }
+
+            // лечим HP СЕССИИ, а не players.health: во время дуэли источник
+            // правды — сессия (HP зафиксирован при accept). Лечит и выше
+            // максимума нельзя.
+            const healed = Math.min(potion.healAmount, me.maxHealth - myHp);
+            myHp = Math.min(me.maxHealth, myHp + potion.healAmount);
+            log.push({ text: `Вы выпили ${potion.name}: +${healed} HP (${myHp}/${me.maxHealth})`, at: now });
+
+            // списываем одну единицу (как usePotion в combat.ts)
+            if (invRow.quantity - 1 <= 0) {
+                db.delete(inventoryItems).where(eq(inventoryItems.id, invRow.id)).run();
+            } else {
+                db.update(inventoryItems)
+                    .set({ quantity: invRow.quantity - 1 })
+                    .where(eq(inventoryItems.id, invRow.id)).run();
+            }
         } else {
-            return res.status(400).json({ error: "action должен быть attack или flee" });
+            return res.status(400).json({ error: "action должен быть attack, flee или use" });
         }
 
         // собираем обновления по сторонам БД (player1/player2), а не "я/он"

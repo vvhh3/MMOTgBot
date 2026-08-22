@@ -25,6 +25,9 @@ export const players = sqliteTable("players",
     level: integer("level").notNull().default(1),
     xp: integer("xp").notNull().default(0), // очки опыта 
     points: integer("points").notNull().default(0), // Зачем я сделал очки? Будут идти для лидерборда
+    // нераспределённые очки характеристик: даются за уровень, тратятся
+    // через POST /me/stats на maxHealth / strength / defense
+    statPoints: integer("stat_points").notNull().default(0),
     currentLocationId: text("current_location_id").references(() => locations.id),
     createdAt: text("created_at").notNull(),
     lastSeenAt: text("last_seen_at").notNull(), // что это за поле? Время последнеё активности игрока
