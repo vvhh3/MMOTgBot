@@ -76,17 +76,16 @@ function App() {
     socket.on("locationState", onLocationState);
     socket.on("player", onPlayer);
     socket.on("inventory", onInventory);
-    socket.on("combatState", onCombatState);
-    console.log("VITE_ADMIN_IDS =", import.meta.env.VITE_ADMIN_IDS);
+    socket.on("combatState", onCombatState)
     
     return () => {
-      socket.off("connect_error", onConnectError);
-      socket.off("locationState", onLocationState);
-      socket.off("player", onPlayer);
-      socket.off("inventory", onInventory);
-      socket.off("combatState", onCombatState);
-    };
-  }, [player]);
+      socket.off("connect_error", onConnectError)
+      socket.off("locationState", onLocationState)
+      socket.off("player", onPlayer)
+      socket.off("inventory", onInventory)
+      socket.off("combatState", onCombatState)
+    }
+  }, [player])
 
 
   return (
