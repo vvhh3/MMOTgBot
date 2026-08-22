@@ -1,7 +1,7 @@
 import { MobDto } from "@mmobot/shared"
 import { useEffect, useState } from "react"
 import { createMob, deleteMob, getMobs, updateMob } from "../../api"
-import { Button, Flex, Table } from "@radix-ui/themes"
+import { Button, Flex, Table, TextField } from "@radix-ui/themes"
 
 
 type MobAdminProps = {
@@ -65,7 +65,26 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
 
     return (
         <div>
-
+            <Flex gap="2" wrap="wrap">
+                <TextField.Root placeholder="Название" value={draft.name}
+                    onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
+                <TextField.Root placeholder="Описание" value={draft.description}
+                    onChange={(e) => setDraft({ ...draft, description: e.target.value })} />
+                <TextField.Root type="number" placeholder="Уровень" value={draft.level}
+                    onChange={(e) => setDraft({ ...draft, level: Number(e.target.value) })} />
+                <TextField.Root type="number" placeholder="Макс. HP" value={draft.maxHealth}
+                    onChange={(e) => setDraft({ ...draft, maxHealth: Number(e.target.value) })} />
+                <TextField.Root type="number" placeholder="Сила" value={draft.strength}
+                    onChange={(e) => setDraft({ ...draft, strength: Number(e.target.value) })} />
+                <TextField.Root type="number" placeholder="Защита" value={draft.defense}
+                    onChange={(e) => setDraft({ ...draft, defense: Number(e.target.value) })} />
+                <TextField.Root type="number" placeholder="Локация (id)" value={draft.locationId}
+                    onChange={(e) => setDraft({ ...draft, locationId: e.target.value })} />
+                <TextField.Root type="number" placeholder="Респавн (сек)" value={draft.respawnSeconds}
+                    onChange={(e) => setDraft({ ...draft, respawnSeconds: Number(e.target.value) })} />
+                <Button onClick={save}>{draft.id > 0 ? "Сохранить" : "Создать"}</Button>
+                {draft.id > 0 && <Button variant="soft" onClick={() => setDraft(emptyMob)}>Отмена</Button>}
+            </Flex>
             <Table.Root>
                 <Table.Header>
                     <Table.Row>
