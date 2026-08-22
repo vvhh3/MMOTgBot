@@ -93,7 +93,7 @@ function App() {
           <Routes>
             <Route path="" element={<MainLayout />}>
               <Route path="/" element={<Home />}/>
-              <Route path="Map" element={<Map />}/>
+              <Route path="Map" element={<Map token={token}/>}/>
               <Route path="Profile" element={<Profile />}/>
               <Route path="Tasks" element={<Tasks token={token} />}/>
               <Route path="Team" element={<Team/>}/>
