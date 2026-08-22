@@ -4,13 +4,21 @@ import Map from "./ui/Maps/Maps";
 import Profile from "./Profile";
 import { Link, Outlet } from "react-router-dom";
 import { StrictMode, useEffect, useState,useRef } from "react"
-export default function MainLayout(){
+import { PlayerDto } from "@mmobot/shared";
+
+type LayoutProps = {
+    player: PlayerDto|null
+}
+
+export default function MainLayout({player}: LayoutProps){
+
     useEffect(() => {
         const tg = window.Telegram?.WebApp;
 
         tg?.ready?.();
         tg?.expand?.();
     }, []);
+
     return(
         <div className="flex flex-col w-full overflow-hidden" style={{height: "var(--tg-viewport-stable-height, 100dvh)",}}>
             <div className="flex justify-between items-center p-1 shrink-0 border-b-2"style={{paddingTop:"calc(var(--tg-safe-area-inset-top, 0px) + var(--tg-content-safe-area-inset-top, 0px) + 4px)",}}>
@@ -20,7 +28,7 @@ export default function MainLayout(){
                 <Link to="/Profile">
                     <div className="flex flex-row items-center gap-4">
                     <div className="rounded-2xl bg-[#ffff] text-[#E8603C]">
-                        <p className="text-[13px] pr-2 pl-2">Lv.4</p>
+                        <p className="text-[13px] pr-2 pl-2">Lv {player?.level}</p>
                     </div>
                     <Avatar radius="full"  fallback="A" color="green" size="4" ></Avatar>
                 </div>

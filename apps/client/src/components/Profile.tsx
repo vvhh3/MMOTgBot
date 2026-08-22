@@ -41,7 +41,7 @@ export default function Profile({player}: ProfileProps){
                         Уровень 4
                     </Text>
                     <Box maxWidth="300px">
-                        <Progress color='orange' value={40}/>
+                        <Progress color='orange' value={player?.xp}/>
                     </Box>
                     <Text as="div" color="gray" size="2">
                         {player?.xp}/400

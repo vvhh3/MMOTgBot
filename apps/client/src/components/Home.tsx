@@ -30,8 +30,8 @@ export default function Home({token,player,locationState}: HomeProps){
 
     },[token,locationState,player?.currentLocationId])
 
-    console.log(player)
-    console.log(locationState)
+    // console.log(player)
+    console.log(location)
 
     return(
         <div className="flex flex-col justify-center items-center ">

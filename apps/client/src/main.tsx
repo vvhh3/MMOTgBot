@@ -91,13 +91,13 @@ function App() {
       <Theme>
          <ScrollToTop/>
           <Routes>
-            <Route path="" element={<MainLayout />}>
+            <Route path="" element={<MainLayout player={player}/>}>
               <Route path="/" element={<Home token={token} player={player} locationState={locationState}/>}/>
               <Route path="Map" element={<Map token={token} onLocationState={setLocationState}/>}/>
               <Route path="Profile" element={<Profile  player={player}/>}/>
               <Route path="Tasks" element={<Tasks token={token} />}/>
               <Route path="Team" element={<Team/>}/>
-              <Route path="Inventory" element={<Inventory/>}/>
+              <Route path="Inventory" element={<Inventory player={player}/>}/>
               <Route path="Exchange" element={<Exchange/>}/>
             </Route>
             <Route path="/TakeAWalk" element={<TakeAWalk/>}/>
