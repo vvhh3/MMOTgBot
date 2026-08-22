@@ -1,15 +1,22 @@
-import player from '../public/playerM.svg'
+import playerM from '../public/playerM.svg'
 import map from '../components/ui/Maps/mapMat.png'
 import bag from '../public/bag.svg'
 import { Flex, Card,Text, Button,Box,Progress,Inset,Strong, Grid} from "@radix-ui/themes";
-import { Link } from 'react-router-dom';
-export default function Profile(){
-    
+import { Link } from 'react-router-dom'
+import { PlayerDto } from '@mmobot/shared';
+
+
+type ProfileProps ={
+    player: PlayerDto | null
+}
+
+export default function Profile({player}: ProfileProps){
+
     return(
         <div className='flex flex-col items-center h-full ' >
             <div className='flex flex-col justify-center items-center '>
-                <p className='font-bold'>Mirbll</p>
-                <img className='h-50' src={player} />
+                <p className='font-bold'>{player?.name}</p>
+                <img className='h-50' src={playerM} />
             </div>
             <Grid columns="2"  gap="3" style={{padding:"20px"}}>
                 <button>
@@ -21,7 +28,7 @@ export default function Profile(){
                         <Progress color='green' value={100}/>
                     </Box>
                     <Text as="div" color="gray" size="2">
-                        100/100
+                        {player?.health}/{player?.maxHp}
                     </Text>
                     <Text as="div" color="gray" size="1">
                         Нажми чтоб восстановить здоровье
@@ -37,7 +44,7 @@ export default function Profile(){
                         <Progress color='orange' value={40}/>
                     </Box>
                     <Text as="div" color="gray" size="2">
-                        160/400
+                        {player?.xp}/400
                     </Text>
                     <Text as="div" color="gray" size="1">
                         Нажми чтоб узнать больше 

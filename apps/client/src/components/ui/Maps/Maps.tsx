@@ -6,14 +6,20 @@ import {
 import { Card, Inset } from "@radix-ui/themes";
 import map from "./mapMat.png"
 import fon from "../../../public/Home.svg"
-import { LocationDto } from "@mmobot/shared";
+import { LocationDto, LocationStateResponse } from "@mmobot/shared";
 import { enterLocation, getLocations } from "../../../api";
 import { useNavigate } from "react-router-dom";
 
 const IMG_W = 1622;
 const IMG_H = 970;
 
-export default function GameMap({ token }:{token: string | null}) {
+
+type MapeProps = {
+  token: string |null
+  onLocationState: (state: LocationStateResponse) => void
+}
+
+export default function GameMap({ token,onLocationState }:MapeProps) {
 
 
   const mapRef = useRef<any>(null);
@@ -104,8 +110,8 @@ export default function GameMap({ token }:{token: string | null}) {
     if (!token || moving) return
     setMoving(true)
     try {
-      console.log(loc)
-      await enterLocation(token, loc.id)
+      const res = await enterLocation(token, loc.id)
+      onLocationState?.(res.state)
       closeLocation()
       navigate("/")
     } catch (e) {
