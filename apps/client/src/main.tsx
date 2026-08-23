@@ -67,7 +67,29 @@ function App() {
     const socket = getSocket();
     if (!socket) return;
 
-    const onConnectError = (err: Error) => setError(err.message);
+    // Фатальные ошибки авторизации: токен протух или игрока нет в БД
+    // (например, после пересоздания базы на сервере). Бесконечно ретраить
+    // бессмысленно — отключаемся и один раз пробуем получить новый токен.
+    let lastReauthAt = 0;
+    const onConnectError = (err: Error) => {
+      if (err.message === "Invalid auth token" || err.message === "Player not found") {
+        if (Date.now() - lastReauthAt < 10000) return;
+        lastReauthAt = Date.now();
+        const s = getSocket();
+        s?.disconnect();
+        const initData = getTelegramInitData();
+        if (!initData) return;
+        auth(initData)
+          .then((d) => {
+            setPlayer(d.player);
+            setToken(d.token);
+            connectSocket(d.token);
+          })
+          .catch(() => setError("Сессия истекла, перезапустите приложение"));
+        return;
+      }
+      setError(err.message);
+    };
     const onLocationState = (nextState: LocationStateResponse) => setLocationState(nextState);
     const onPlayer = (nextPlayer: PlayerDto) => setPlayer(nextPlayer);
     const onInventory = (nextInventory: InventoryItemDto[]) => setInventory(nextInventory);
