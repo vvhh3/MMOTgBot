@@ -104,7 +104,7 @@ function App() {
             <Route path="Exchange" element={<Exchange />} />
             <Route path="AdminPanel" element={<Admin token={token}/>}/>
           </Route>
-          <Route path="/TakeAWalk" element={<TakeAWalk token={token} player={player}/>} />
+          <Route path="/TakeAWalk" element={<TakeAWalk token={token} player={player} onPlayer={setPlayer} onInventory={setInventory}/>} />
           <Route path="/Fight" element={<Fight />} />
         </Routes>
       </Theme>

@@ -3,16 +3,18 @@ import playerM from "../public/playerM.svg"
 import monstr from "../public/monstr.svg"
 import { Button, Card, Progress, Text, Grid, Flex } from "@radix-ui/themes"
 import { Link, useNavigate } from "react-router-dom"
-import { CombatStateResponse, PlayerDto } from "@mmobot/shared"
+import { CombatStateResponse, InventoryItemDto, PlayerDto } from "@mmobot/shared"
 import { useEffect, useState } from "react"
 import { combatAction, getCombatState } from "../api"
 
 type TakeAWalkProps = {
     token: string | null
     player: PlayerDto | null
+    onPlayer: (state: PlayerDto) => void
+    onInventory: (state: InventoryItemDto[]) => void
 }
 
-export default function TakeAWalk({ token, player, }: TakeAWalkProps) {
+export default function TakeAWalk({ token, player,onPlayer,onInventory }: TakeAWalkProps) {
 
     const [error, setError] = useState<string | null>(null)
     const [state,setState] = useState<CombatStateResponse>()
@@ -35,6 +37,8 @@ export default function TakeAWalk({ token, player, }: TakeAWalkProps) {
             if (!token) return
             const res = await combatAction(token, action)
             setState(res.state)
+            onPlayer(res.player)
+            onInventory(res.inventory)
             if (res.state.status === "fled")navigate("/")
         } catch (e) {
             setError(e instanceof Error ? e.message : 'Ошибка запроса, попробуйте попозже')
