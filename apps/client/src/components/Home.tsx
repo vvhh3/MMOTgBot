@@ -1,11 +1,11 @@
 import { Flex, Card,Text, Button,Box,Progress,Inset,Strong, Grid} from "@radix-ui/themes";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import playerM from '../public/playerM.svg'
 import playerG from '../public/playerG.svg'
 import fon from "../public/Home.svg"
 import { useEffect, useState } from "react";
 import { LocationDto, LocationStateResponse, PlayerDto } from "@mmobot/shared";
-import { getLocationState } from "../api";
+import { getLocationState, startCombat } from "../api";
 
 type HomeProps = {
     token: string| null
@@ -16,7 +16,7 @@ type HomeProps = {
 export default function Home({token,player,locationState}: HomeProps){
 
     const [location,setLocation] = useState<LocationDto>()
-    
+    const navigate = useNavigate()
     useEffect(() => {
         if(locationState){
             setLocation(locationState.location)
@@ -31,7 +31,20 @@ export default function Home({token,player,locationState}: HomeProps){
     },[token,locationState,player?.currentLocationId])
 
     // console.log(player)
-    console.log(location)
+    // console.log(location)
+
+    const functionStartCombat = async () => {
+        try{
+
+            if(!locationState || !token) return
+            const rand = locationState.mobs[Math.floor(Math.random() * locationState.mobs.length)]
+            
+            await startCombat(token,rand.id)
+            navigate("/TakeAWalk")
+        }catch(e){
+            alert(e instanceof Error ? e.message : "Ошибка")
+        }
+    }
 
     return(
         <div className="flex flex-col justify-center items-center ">
@@ -86,9 +99,9 @@ export default function Home({token,player,locationState}: HomeProps){
                     </Link>
                 </Card>
                 <Card >
-                    <Link to="/TakeAWalk">
+                    {/* <Link to="/TakeAWalk"> */}
                         <div className="flex flex-row  justify-between">
-                            <div className="max-w-60">
+                            <button className="max-w-60" onClick={functionStartCombat}>
                                 <Text as="div" size="2" weight="bold">
                                     <div className="flex-row flex gap-2">
                                         Пройтись
@@ -98,9 +111,9 @@ export default function Home({token,player,locationState}: HomeProps){
                                 <Text as="div" color="gray" size="1">
                                     Пройтись по локации
                                 </Text>
-                            </div>   
+                            </button>   
                         </div>
-                    </Link>
+                    {/* </Link> */}
                 </Card>
                 <Card >
                     <div className="flex flex-row justify-between">

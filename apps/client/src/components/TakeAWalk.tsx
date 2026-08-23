@@ -1,36 +1,66 @@
 import fightImage from "../public/fight.svg"
-import player from "../public/playerM.svg"
+import playerM from "../public/playerM.svg"
 import monstr from "../public/monstr.svg"
-import { Button, Card,Progress,Text,Grid } from "@radix-ui/themes"
-import { Link } from "react-router-dom"
-export default function TakeAWalk(){
-    return(
+import { Button, Card, Progress, Text, Grid, Flex } from "@radix-ui/themes"
+import { Link, useNavigate } from "react-router-dom"
+import { CombatStateResponse, PlayerDto } from "@mmobot/shared"
+import { useEffect, useState } from "react"
+import { combatAction, getCombatState } from "../api"
+
+type TakeAWalkProps = {
+    token: string | null
+    player: PlayerDto | null
+    combat: CombatStateResponse | null
+    onCombat: (combat: CombatStateResponse | null) => void
+}
+
+export default function TakeAWalk({ token, player, combat, onCombat }: TakeAWalkProps) {
+
+    const [error, setError] = useState<string | null>(null)
+    const navigate = useNavigate()
+
+
+
+    const actionCombat = async (action: "attack" | "flee") => {
+        try {
+            if (!token) return
+            const res = await combatAction(token, action)
+            onCombat(res.state)
+            if (res.state.status === "fled") {
+                navigate("/")
+            }
+        } catch (e) {
+            setError(e instanceof Error ? e.message : 'Ошибка запроса, попробуйте попозже')
+        }
+    }
+    return (
         <div className="flex ">
-            <div className="flex w-full flex-col justify-end"  style={{
+            <div className="flex w-full flex-col justify-end" style={{
                 backgroundImage: `url(${fightImage})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
-                height:"100vh"
+                height: "100vh"
             }}>
                 <div className="flex justify-around flex-row" >
+                    {error && (<p className="text-red-500 text-2xl">{error}</p>)}
                     <div className="flex flex-col">
                         <div>
                             <Card>
                                 <div>
                                     <div className="flex flex-row justify-between gap-1.5">
                                         <Text>
-                                            Mirbll
+                                            {player?.name}
                                         </Text>
                                         <div >
-                                            <Text size="1">70/100</Text>
+                                            <Text size="1">{combat?.playerHp}/{combat?.playerMaxHp}</Text>
                                         </div>
                                     </div>
-                                    <Progress color="green" value={70}></Progress>
+                                    <Progress color="green" value={combat?.playerHp}></Progress>
                                 </div>
                             </Card>
                         </div>
-                        <img className="h-[180px]" style={{transform: 'scaleX(-1)' }} src={player}/>
+                        <img className="h-45" style={{ transform: 'scaleX(-1)' }} src={playerM} />
                     </div>
                     <div>
                         <div>
@@ -38,49 +68,74 @@ export default function TakeAWalk(){
                                 <div>
                                     <div className="flex flex-row justify-between gap-1.5">
                                         <Text>
-                                            Альтушка
+                                            {combat?.mob.name}
                                         </Text>
                                         <div >
-                                            <Text size="1">30/100</Text>
+                                            <Text size="1">{combat?.mobHp}/{combat?.mobMaxHp}</Text>
                                         </div>
                                     </div>
-                                    <Progress color="green" value={30}></Progress>
+                                    <Progress color="green" value={combat?.mobHp}></Progress>
                                 </div>
                             </Card>
                         </div>
-                        <img className="h-[180px] " src={monstr}/>
+                        <img className="h-45 " src={monstr} />
                     </div>
                 </div>
                 <div>
-                <Card className="h-[130px]" >
-                    <Grid rows="2" columns="2" gap="2"  >
-                        <Card>
-                            <div className="flex justify-center items-center">
-                                <Text size="3">Битва</Text>
-                            </div>
+                    {combat?.status === "active" && (
+                        <Card className="h-32.5" >
+                            <Grid rows="2" columns="2" gap="2"  >
+
+                                <button onClick={() => actionCombat("attack")}>
+                                    <Card>
+                                        <div className="flex justify-center items-center">
+                                            <Text size="3">Битва</Text>
+                                        </div>
+                                    </Card>
+                                </button>
+
+                                <Card>
+                                    <div className="flex justify-center items-center">
+                                        <Text size="3">Инвентарь</Text>
+                                    </div>
+                                </Card>
+                                <Card>
+                                    <div className="flex justify-center items-center">
+                                        <Text size="3">хз</Text>
+                                    </div>
+                                </Card>
+                                <button onClick={() => actionCombat("flee")}>
+                                    <Card>
+                                        <div className="flex justify-center items-center">
+                                            <Text size="3">Cбежать</Text>
+                                        </div>
+                                    </Card>
+                                </button>
+                            </Grid>
                         </Card>
-                        <Card>
-                            <div className="flex justify-center items-center">
-                                <Text size="3">Инвентарь</Text>
-                            </div>
+                    )}
+
+                    {combat && combat.status !== "active" && (
+                        <Card className="mb-2">
+                            <Flex direction="column" gap="2" align="center">
+                                <Text size="4" weight="bold" color={
+                                    combat.status === "victory" ? "green" : "red"
+                                }>
+                                    {combat.status === "victory" && "Победа!"}
+                                    {combat.status === "defeat" && "Вы проиграли"}
+                                    {combat.status === "fled" && "Вы сбежали"}
+                                </Text>
+                                {/* последние записи лога — там же про лут и опыт */}
+                                <Text size="1" color="gray">
+                                    {combat.log.slice(-3).map((l) => l.text).join(" · ")}
+                                </Text>
+                                <Button onClick={() => { onCombat(null); navigate("/") }}>
+                                    Вернуться в город
+                                </Button>
+                            </Flex>
                         </Card>
-                        <Card>
-                            <div className="flex justify-center items-center">
-                                <Text size="3">хз</Text>
-                            </div>
-                        </Card>
-                        <Link to="/">
-                            <Card>
-                                <div className="flex justify-center items-center">
-                                    <Text size="3">Cбежать</Text>
-                                </div>
-                            </Card>
-                        </Link>
-                    </Grid>
-                        
-                        
-                    
-                </Card>
+                    )}
+
                 </div>
             </div>
         </div>

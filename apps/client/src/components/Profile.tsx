@@ -35,7 +35,7 @@ export default function Profile({ player }: ProfileProps) {
                             Здоровье
                         </Text>
                         <Box maxWidth="300px">
-                            <Progress color='green' value={100} />
+                            <Progress color='green' value={player?.health} />
                         </Box>
                         <Text as="div" color="gray" size="2">
                             {player?.health}/{player?.maxHp}

@@ -1,24 +1,28 @@
 import axios, { type AxiosError } from "axios";
-import type {
-  AuthRequest,
-  AuthResponse,
-  ClaimQuestResponse,
-  DailyQuestsResponse,
-  EnterLocationResponse,
-  ItemDto,
-  ItemResponse,
-  ItemsResponse,
-  LocationActionRequest,
-  LocationActionResponse,
-  LocationsResponse,
-  LocationStateResponse,
-  MeResponse,
-  MobDto,
-  MobResponse,
-  MobsResponse,
-  QuestResponse,
-  QuestsDto,
-  QuestsResponse
+import {
+  CombatActionResponse,
+  type AuthRequest,
+  type AuthResponse,
+  type ClaimQuestResponse,
+  type CombatActionRequest,
+  type CombatStartRequest,
+  type CombatStateResponse,
+  type DailyQuestsResponse,
+  type EnterLocationResponse,
+  type ItemDto,
+  type ItemResponse,
+  type ItemsResponse,
+  type LocationActionRequest,
+  type LocationActionResponse,
+  type LocationsResponse,
+  type LocationStateResponse,
+  type MeResponse,
+  type MobDto,
+  type MobResponse,
+  type MobsResponse,
+  type QuestResponse,
+  type QuestsDto,
+  type QuestsResponse
 } from "@mmobot/shared";
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
@@ -87,6 +91,21 @@ function authHeader(token: string): { authorization: string } {
   return { authorization: `Bearer ${token}` };
 }
 
+// Битва с мобами
+export async function startCombat(token: string, mobId: number) {
+  const response = await api.post<CombatStateResponse>("/combat/start", { mobId }, { headers: authHeader(token) })
+  return response.data
+}
+
+export async function combatAction(token: string, action: CombatActionRequest["action"], itemType?: number) {
+  const response = await api.post<CombatActionResponse>("/combat/action", { action, itemType }, { headers: authHeader(token) })
+  return response.data
+}
+
+export async function getCombatState(token:string) {
+    const response = await api.get<CombatStateResponse>("/combat/state",{headers: authHeader(token)})
+    return response.data
+}
 
 //Api для crud Мобов
 export async function createMob(token: string, mob: MobDto): Promise<MobResponse> {
