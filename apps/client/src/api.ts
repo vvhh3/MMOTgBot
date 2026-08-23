@@ -15,7 +15,10 @@ import type {
   MeResponse,
   MobDto,
   MobResponse,
-  MobsResponse
+  MobsResponse,
+  QuestResponse,
+  QuestsDto,
+  QuestsResponse
 } from "@mmobot/shared";
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
@@ -119,5 +122,24 @@ export async function deleteItem(token: string, id: number) {
 
 export async function getItems(token: string): Promise<ItemsResponse> {
   const responce = await api.get<ItemsResponse>("/items", { headers: authHeader(token) })
+  return responce.data
+}
+
+//Api для crud квестов
+export async function createQuest(token: string, quest: QuestsDto): Promise<QuestResponse> {
+  const response = await api.post<QuestResponse>(`/quests`, quest, { headers: authHeader(token) })
+  return response.data
+}
+export async function updateQuest(token: string, id: number, quest: QuestsDto): Promise<QuestResponse> {
+  const response = await api.put<QuestResponse>(`/quests/${id}`, quest, { headers: authHeader(token) })
+  return response.data
+}
+
+export async function deleteQuest(token: string, id: number) {
+  await api.delete(`/quests/${id}`, { headers: authHeader(token) })
+}
+
+export async function getQuests(token: string): Promise<QuestsResponse> {
+  const responce = await api.get<QuestsResponse>("/quests", { headers: authHeader(token) })
   return responce.data
 }
