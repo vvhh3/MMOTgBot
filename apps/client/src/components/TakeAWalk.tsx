@@ -17,15 +17,28 @@ type TakeAWalkProps = {
 export default function TakeAWalk({ token, player, combat, onCombat }: TakeAWalkProps) {
 
     const [error, setError] = useState<string | null>(null)
+    const [state,setState] = useState<CombatStateResponse>()
+
     const navigate = useNavigate()
 
+    const getState = () => {
+        if(!token) return
+        getCombatState(token)
+        .then((res) => setState(res))
+        .catch(e => setError(e)) 
+    }
 
+    useEffect(() => {
+        getState()
+    },[token])
 
     const actionCombat = async (action: "attack" | "flee") => {
         try {
             if (!token) return
             const res = await combatAction(token, action)
-            onCombat(res.state)
+            // onCombat(res.state)
+            setState(res.state)
+            getState()
             if (res.state.status === "fled") {
                 navigate("/")
             }
@@ -53,10 +66,10 @@ export default function TakeAWalk({ token, player, combat, onCombat }: TakeAWalk
                                             {player?.name}
                                         </Text>
                                         <div >
-                                            <Text size="1">{combat?.playerHp}/{combat?.playerMaxHp}</Text>
+                                            <Text size="1">{state?.playerHp}/{state?.playerMaxHp}</Text>
                                         </div>
                                     </div>
-                                    <Progress color="green" value={combat?.playerHp}></Progress>
+                                    <Progress color="green" value={state?.playerHp}></Progress>
                                 </div>
                             </Card>
                         </div>
@@ -68,13 +81,13 @@ export default function TakeAWalk({ token, player, combat, onCombat }: TakeAWalk
                                 <div>
                                     <div className="flex flex-row justify-between gap-1.5">
                                         <Text>
-                                            {combat?.mob.name}
+                                            {state?.mob.name}
                                         </Text>
                                         <div >
-                                            <Text size="1">{combat?.mobHp}/{combat?.mobMaxHp}</Text>
+                                            <Text size="1">{state?.mobHp}/{state?.mobMaxHp}</Text>
                                         </div>
                                     </div>
-                                    <Progress color="green" value={combat?.mobHp}></Progress>
+                                    <Progress color="green" value={state?.mobHp}></Progress>
                                 </div>
                             </Card>
                         </div>
@@ -82,7 +95,7 @@ export default function TakeAWalk({ token, player, combat, onCombat }: TakeAWalk
                     </div>
                 </div>
                 <div>
-                    {combat?.status === "active" && (
+                    {state?.status === "active" && (
                         <Card className="h-32.5" >
                             <Grid rows="2" columns="2" gap="2"  >
 
@@ -115,19 +128,19 @@ export default function TakeAWalk({ token, player, combat, onCombat }: TakeAWalk
                         </Card>
                     )}
 
-                    {combat && combat.status !== "active" && (
+                    {state && state.status !== "active" && (
                         <Card className="mb-2">
                             <Flex direction="column" gap="2" align="center">
                                 <Text size="4" weight="bold" color={
-                                    combat.status === "victory" ? "green" : "red"
+                                    state.status === "victory" ? "green" : "red"
                                 }>
-                                    {combat.status === "victory" && "Победа!"}
-                                    {combat.status === "defeat" && "Вы проиграли"}
-                                    {combat.status === "fled" && "Вы сбежали"}
+                                    {state.status === "victory" && "Победа!"}
+                                    {state.status === "defeat" && "Вы проиграли"}
+                                    {state.status === "fled" && "Вы сбежали"}
                                 </Text>
                                 {/* последние записи лога — там же про лут и опыт */}
                                 <Text size="1" color="gray">
-                                    {combat.log.slice(-3).map((l) => l.text).join(" · ")}
+                                    {state.log.slice(-3).map((l) => l.text).join(" · ")}
                                 </Text>
                                 <Button onClick={() => { onCombat(null); navigate("/") }}>
                                     Вернуться в город
