@@ -34,11 +34,11 @@ export function initializeDatabase(): void {
   // Ниже — сид (начальные данные), который заносится в БД при первом запуске.
   // Список стартовых локаций: id, название, описание и координаты.
   const seedLocations: LocationDto[] = [
-    { id: "square", name: "Площадь", description: "Описание площади", x: 50, y: 39 },
-    { id: "market", name: "Сити парк", description: "Описание сити парка", x: 67, y: 39 },
-    { id: "park", name: "Парк Победы", description: "Описание парка победы", x: 62, y: 25 },
-    { id: "forest", name: "Солдатсикй лес", description: "Описание солдатского леса", x: 107, y: 37 },
-    { id: "railway", name: "Липяги", description: "Описание станции", x: 109, y: 33 }
+    { id: "square", name: "Площадь", description: "Описание площади", x: 31, y: 40 },
+    { id: "market", name: "Сити парк", description: "Описание сити парка", x: 42, y: 33 },
+    { id: "park", name: "Парк Победы", description: "Описание парка победы", x: 40, y: 27 },
+    { id: "forest", name: "Солдатсикй лес", description: "Описание солдатского леса", x: 64, y: 33 },
+    { id: "railway", name: "Липяги", description: "Описание станции", x: 70, y: 38 }
   ]
 
   // Стартовые мобы. locationId должен ссылаться на существующую локацию из seedLocations,
@@ -52,7 +52,8 @@ export function initializeDatabase(): void {
   ]
 
   // Вставляем сид. Для локаций onConflictDoUpdate: при изменении координат/названия
-  // в коде они обновляются в БД при следующем запуске сервера.
+  // в коде они обновляются в БД при следующем запуске сервера
+  // В ПРОДЕ ПОТОМ ПЕРЕДЕЛАТЬ ПОД МИГРАЦИИ
   db.insert(locations)
     .values(seedLocations)
     .onConflictDoUpdate({
