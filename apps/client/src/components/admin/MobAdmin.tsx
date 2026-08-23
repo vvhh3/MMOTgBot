@@ -42,13 +42,34 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
     const save = async () => {
         try {
             if (!token) return
+            const name = draft.name.trim()
+            const description = draft.description.trim()
+            const locationId = draft.locationId.trim()
+            if (!name || !description || !locationId) {
+                setError("Заполните имя, описание и локацию")
+                return
+            }
+            const payload: MobDto = {
+                ...draft,
+                name,
+                description,
+                locationId,
+                level: Math.max(1, Math.floor(draft.level) || 1),
+                maxHealth: Math.max(1, Math.floor(draft.maxHealth) || 1),
+                strength: Math.max(1, Math.floor(draft.strength) || 1),
+                defense: Math.max(0, Math.floor(draft.defense) || 0),
+                pointsReward: Math.max(0, Math.floor(draft.pointsReward) || 0),
+                respawnSeconds: Math.max(1, Math.floor(draft.respawnSeconds) || 60),
+                loot: Array.isArray(draft.loot) ? draft.loot : []
+            }
             if (draft.id > 0) {
-                await updateMob(token, draft.id, draft)
+                await updateMob(token, draft.id, payload)
             } else {
-                await createMob(token, draft)
+                await createMob(token, payload)
             }
             setDraft(emptyMob)
             setError(null)
+            refresh()
         } catch (e) {
             setError(e instanceof Error ? e.message : "Ошибка сохранения")
         }
@@ -58,6 +79,7 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
         try {
             if (!token) return
             await deleteMob(token, id)
+            refresh()
         } catch (e) {
             setError(e instanceof Error ? e.message : "Ошибка удаления") // instanceof - проверяет принадлжеит ли объект классу
         }
@@ -69,20 +91,29 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
                 {error && (<div>
                     <p>{error}</p>
                 </div>)}
+                <p>Название</p>
                 <TextField.Root placeholder="Название" value={draft.name}
                     onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
+                <p>Описание</p>
                 <TextField.Root placeholder="Описание" value={draft.description}
                     onChange={(e) => setDraft({ ...draft, description: e.target.value })} />
+                <p>Уровень</p>
                 <TextField.Root type="number" placeholder="Уровень" value={draft.level}
                     onChange={(e) => setDraft({ ...draft, level: Number(e.target.value) })} />
+                <p>Макс Hp</p>
                 <TextField.Root type="number" placeholder="Макс. HP" value={draft.maxHealth}
                     onChange={(e) => setDraft({ ...draft, maxHealth: Number(e.target.value) })} />
+                <p>Сила</p>
                 <TextField.Root type="number" placeholder="Сила" value={draft.strength}
                     onChange={(e) => setDraft({ ...draft, strength: Number(e.target.value) })} />
+                <p>Защита</p>
                 <TextField.Root type="number" placeholder="Защита" value={draft.defense}
                     onChange={(e) => setDraft({ ...draft, defense: Number(e.target.value) })} />
+                    <p>Локация id</p>
                 <TextField.Root type="number" placeholder="Локация (id)" value={draft.locationId}
                     onChange={(e) => setDraft({ ...draft, locationId: e.target.value })} />
+
+                    <p>Респавн</p>
                 <TextField.Root type="number" placeholder="Респавн (сек)" value={draft.respawnSeconds}
                     onChange={(e) => setDraft({ ...draft, respawnSeconds: Number(e.target.value) })} />
                 <Button onClick={save}>{draft.id > 0 ? "Сохранить" : "Создать"}</Button>
