@@ -39,6 +39,8 @@ const Ex_require = [
     { requireXp: 3000 }    // уровень 8
 ]
 
+export const MAX_LEVEL = Ex_require.length;
+
 export const getLevelByXp = (xp: number) => {
     let level = 0
     for (const l of Ex_require) {
@@ -46,6 +48,15 @@ export const getLevelByXp = (xp: number) => {
         else break
     }
     return Math.min(level, Ex_require.length)
+}
+
+// Границы текущего уровня по опыту: от скольких XP уровень начался
+// и до скольких нужно дойти для следующего. nextLevelXp = null на максимальном уровне.
+export const getLevelXpBounds = (xp: number) => {
+    const level = getLevelByXp(xp)
+    const levelStartXp = Ex_require[level - 1].requireXp
+    const nextLevelXp = level < MAX_LEVEL ? Ex_require[level].requireXp : null
+    return { levelStartXp, nextLevelXp }
 }
 
 // Начисляет игроку опыт. Если порог нового уровня пройден — начисляет

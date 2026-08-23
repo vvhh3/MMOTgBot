@@ -41,7 +41,13 @@ export default function Home({token,player,locationState}: HomeProps){
 
             if(!locationState || !token) return
             const rand = locationState.mobs[Math.floor(Math.random() * locationState.mobs.length)]
-            
+
+            // все мобы локации убиты и ещё в респауне — список живых пуст
+            if(!rand){
+                alert("Все мобы на этой локации побеждены. Подождите, пока они возродятся.")
+                return
+            }
+
             await startCombat(token,rand.id)
             navigate("/TakeAWalk")
         }catch(e){

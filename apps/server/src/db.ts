@@ -9,6 +9,7 @@ import { config } from "./config.js";
 import { locations, mobs, quests } from "./db/schema.js";
 import type { EventRow, InventoryItemRow, LocationRow, PlayerRow, MobRow, ItemRow, QuestsRow } from "./db/schema.js";
 import { getPlayerStats } from "./combat.js";
+import { getLevelXpBounds } from "./level.js";
 
 export type { EventRow, InventoryItemRow, LocationRow, PlayerRow, MobRow, ItemRow } from "./db/schema.js";
 
@@ -80,11 +81,14 @@ function migrationsFolder(): string {
 
 //получить дефолтные статы игрока
 export function toPlayerDto(row: PlayerRow): PlayerDto {
+  const { levelStartXp, nextLevelXp } = getLevelXpBounds(row.xp);
   return {
     id: row.id,
     name: row.name,
     level: row.level,
     xp: row.xp,
+    xpLevelStart: levelStartXp,
+    xpNextLevel: nextLevelXp,
     points: row.points,
     currentLocationId: row.currentLocationId,
     health: row.health,

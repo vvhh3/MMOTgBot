@@ -3,6 +3,8 @@ export type PlayerDto = { // описание игрока
   name: string
   level: number
   xp: number
+  xpLevelStart: number // сколько XP нужно было для текущего уровня (начало прогресс-бара)
+  xpNextLevel: number | null // сколько XP нужно для следующего уровня (null = максимальный уровень)
   points: number
   currentLocationId: string | null
   health: number

@@ -43,12 +43,18 @@ export default function Inventory({player}: InventoryProps){
                                     <div className="flex flex-row ">
                                         <Text weight="bold" size="3">XP</Text>
                                         <div className="flex-1 min-w-0 ml-2 flex items-center">
-                                            <Progress value={player?.xp} color="orange"></Progress>
-                                        </div>  
+                                            <Progress
+                                                value={(player?.xp ?? 0) - (player?.xpLevelStart ?? 0)}
+                                                max={player?.xpNextLevel != null ? player.xpNextLevel - player.xpLevelStart : 1}
+                                                color="orange">
+                                            </Progress>
+                                        </div>
                                     </div>
                                     <div className="flex justify-end">
                                         <Text size="1">
-                                            {player?.xp}/500
+                                            {player?.xpNextLevel != null
+                                                ? `${player.xp}/${player.xpNextLevel}`
+                                                : `${player?.xp} — MAX`}
                                         </Text>
                                     </div>
                                 </div>

@@ -5,17 +5,6 @@ import { Flex, Card, Text, Button, Box, Progress, Inset, Strong, Grid } from "@r
 import { Link } from 'react-router-dom'
 import { PlayerDto } from '@mmobot/shared';
 
-const Ex_require = [
-    { requireXp: 0 },      // уровень 1 (стартовый)
-    { requireXp: 100 },    // уровень 2
-    { requireXp: 250 },    // уровень 3
-    { requireXp: 500 },    // уровень 4
-    { requireXp: 1000 },   // уровень 5
-    { requireXp: 1600 },   // уровень 6
-    { requireXp: 2200 },   // уровень 7
-    { requireXp: 3000 }    // уровень 8
-]
-
 type ProfileProps = {
     player: PlayerDto | null
 }
@@ -51,10 +40,16 @@ export default function Profile({ player }: ProfileProps) {
                         Уровень {player?.level}
                     </Text>
                     <Box maxWidth="300px">
-                        <Progress color='orange' value={player?.xp} />
+                        <Progress
+                            color='orange'
+                            value={(player?.xp ?? 0) - (player?.xpLevelStart ?? 0)}
+                            max={player?.xpNextLevel != null ? player.xpNextLevel - player.xpLevelStart : 1}
+                        />
                     </Box>
                     <Text as="div" color="gray" size="2">
-                        {player?.xp}/{Ex_require[player!.level].requireXp}
+                        {player?.xpNextLevel != null
+                            ? `${player.xp}/${player.xpNextLevel} (ещё ${player.xpNextLevel - player.xp})`
+                            : `${player?.xp} — максимальный уровень`}
                     </Text>
                     <Text as="div" color="gray" size="1">
                         Нажми чтоб узнать больше
