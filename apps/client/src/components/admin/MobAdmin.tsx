@@ -13,7 +13,6 @@ import {
     TextField,
     Select
 } from "@radix-ui/themes"
-import { Cross2Icon, Pencil1Icon, PlusIcon, TrashIcon } from "@radix-ui/react-icons"
 
 
 type MobAdminProps = {
@@ -135,7 +134,7 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
                         </Heading>
                         {draft.id > 0 && (
                             <Button variant="ghost" size="1" color="gray" onClick={() => setDraft(emptyMob)}>
-                                <Cross2Icon /> Отменить
+                                Отменить
                             </Button>
                         )}
                     </Flex>
@@ -216,7 +215,7 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
                             </Button>
                         )}
                         <Button onClick={save}>
-                            {draft.id > 0 ? <><Pencil1Icon /> Сохранить</> : <><PlusIcon /> Создать</>}
+                            {draft.id > 0 ? "Сохранить" : "Создать"}
                         </Button>
                     </Flex>
                 </Flex>
@@ -262,10 +261,10 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
                                             setError(null)
                                             window.scrollTo({ top: 0, behavior: "smooth" })
                                         }}>
-                                            <Pencil1Icon /> Изменить
+                                            Изменить
                                         </Button>
                                         <Button size="1" color="red" variant="soft" onClick={() => remove(mob.id)}>
-                                            <TrashIcon /> Удалить
+                                            Удалить
                                         </Button>
                                     </Flex>
                                 </Table.Cell>
