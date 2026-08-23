@@ -66,6 +66,9 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
     return (
         <div>
             <Flex gap="2" wrap="wrap">
+                {error && (<div>
+                    <p>{error}</p>
+                </div>)}
                 <TextField.Root placeholder="Название" value={draft.name}
                     onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
                 <TextField.Root placeholder="Описание" value={draft.description}
