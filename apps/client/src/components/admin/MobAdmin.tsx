@@ -23,14 +23,14 @@ const emptyMob: MobDto = {
     id: 0,
     name: "",
     description: "",
-    level: 1,
-    maxHealth: 10,
-    strength: 1,
+    level: 0,
+    maxHealth: 0,
+    strength: 0,
     defense: 0,
     loot: [],
     pointsReward: 0,
     locationId: "square",
-    respawnSeconds: 60
+    respawnSeconds: 0
 }
 
 type NumberFieldProps = {
@@ -79,30 +79,10 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
     const save = async () => {
         try {
             if (!token) return
-            const name = draft.name.trim()
-            const description = draft.description.trim()
-            const locationId = draft.locationId.trim()
-            if (!name || !description || !locationId) {
-                setError("Заполните имя, описание и локацию")
-                return
-            }
-            const payload: MobDto = {
-                ...draft,
-                name,
-                description,
-                locationId,
-                level: Math.max(1, Math.floor(draft.level) || 1),
-                maxHealth: Math.max(1, Math.floor(draft.maxHealth) || 1),
-                strength: Math.max(1, Math.floor(draft.strength) || 1),
-                defense: Math.max(0, Math.floor(draft.defense) || 0),
-                pointsReward: Math.max(0, Math.floor(draft.pointsReward) || 0),
-                respawnSeconds: Math.max(1, Math.floor(draft.respawnSeconds) || 60),
-                loot: Array.isArray(draft.loot) ? draft.loot : []
-            }
             if (draft.id > 0) {
-                await updateMob(token, draft.id, payload)
+                await updateMob(token, draft.id, draft)
             } else {
-                await createMob(token, payload)
+                await createMob(token, draft)
             }
             setDraft(emptyMob)
             setError(null)
@@ -149,16 +129,15 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
                         </Callout.Root>
                     )}
 
-                    <Grid columns={{ initial: "1", md: "2" }} gap="3">
+                    <Grid  gap="3">
                         <label>
-                            <Text as="div" size="1" weight="medium" mb="1" color="gray">
+                            <Text as="div" color="gray">
                                 Название
                             </Text>
                             <TextField.Root
                                 placeholder="Например: Гоблин"
                                 value={draft.name}
-                                onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-                            />
+                                onChange={(e) => setDraft({ ...draft, name: e.target.value })}/>
                         </label>
 
                         <label>
@@ -167,8 +146,7 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
                             </Text>
                             <Select.Root
                                 value={draft.locationId}
-                                onValueChange={(value) => setDraft({ ...draft, locationId: value })}
-                            >
+                                onValueChange={(value) => setDraft({ ...draft, locationId: value })}>
                                 <Select.Trigger placeholder="Выберите локацию" style={{ width: "100%" }} />
                                 <Select.Content>
                                     {locations.map((loc) => (
@@ -183,8 +161,8 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
                             </Select.Root>
                         </label>
 
-                        <label style={{ gridColumn: "1 / -1" }}>
-                            <Text as="div" size="1" weight="medium" mb="1" color="gray">
+                        <label>
+                            <Text as="div" size="1" mb="1" color="gray">
                                 Описание
                             </Text>
                             <TextField.Root

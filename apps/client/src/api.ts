@@ -108,8 +108,8 @@ export async function createItem(token: string, item: ItemDto): Promise<ItemResp
   const response = await api.post<ItemResponse>(`/items`, item, { headers: authHeader(token) })
   return response.data
 }
-export async function updateItem(token: string, id: number, mob: ItemDto): Promise<ItemResponse> {
-  const response = await api.put<ItemResponse>(`/items/${id}`, mob, { headers: authHeader(token) })
+export async function updateItem(token: string, id: number, item: ItemDto): Promise<ItemResponse> {
+  const response = await api.put<ItemResponse>(`/items/${id}`, item, { headers: authHeader(token) })
   return response.data
 }
 

@@ -28,49 +28,39 @@ export const createMobRoutes = (app: Express) => {
 
     //создание моба
     app.post("/mobs", (req: Request, res: Response) => {
-        const state = req.body as Partial<MobDto>
+        const state = req.body
 
-        const name = typeof state.name === "string" ? state.name.trim() : ""
-        const description = typeof state.description === "string" ? state.description.trim() : ""
-        const locationId = typeof state.locationId === "string" ? state.locationId.trim() : ""
-        const level = Number(state.level)
-        const maxHealth = Number(state.maxHealth)
-        const strength = Number(state.strength)
-        const defense = Number(state.defense)
-        const pointsReward = Number(state.pointsReward)
-        const respawnSeconds = Number(state.respawnSeconds)
-        const loot = Array.isArray(state.loot) ? state.loot.map(Number).filter((n) => Number.isFinite(n)) : []
-
-        if (!name ||
-            !description ||
-            !locationId ||
-            !Number.isInteger(level) || level < 1 ||
-            !Number.isInteger(maxHealth) || maxHealth < 1 ||
-            !Number.isInteger(strength) || strength < 1 ||
-            !Number.isInteger(defense) || defense < 0 ||
-            !Number.isInteger(pointsReward) || pointsReward < 0 ||
-            !Number.isInteger(respawnSeconds) || respawnSeconds < 1) {
-            res.status(400).json({ error: "Invalid data: check that name, description and locationId are filled, level/maxHealth/strength >= 1, defense/pointsReward >= 0, respawnSeconds >= 1" })
+        if (!state.name || 
+            !state.description || 
+            !state.level || 
+            !state.maxHealth ||  
+            !state.strength|| 
+            !state.defense ||
+            !state.loot || 
+            !state.pointsReward||
+            !state.locationId|| 
+            !state.respawnSeconds) {
+            res.status(400).json({ error: "Data is failid" })
             return
         }
 
-        const location = db.select().from(locations).where(eq(locations.id, locationId)).get()
+        const location = db.select().from(locations).where(eq(locations.id, state.locationId)).get()
         if (!location) {
-            res.status(400).json({ error: "Location not found (check your locationId)" })
+            res.status(400).json({ error: "not found location(cheeck your location Id)" })
             return
         }
 
         const create = db.insert(mobs).values({
-            name: name,
-            description: description,
-            level: level,
-            maxHealth: maxHealth,
-            strength: strength,
-            defense: defense,
-            loot: loot,
-            pointsReward: pointsReward,
-            locationId: locationId,
-            respawnSeconds: respawnSeconds,
+            name: state.name,
+            description: state.description,
+            level: state.level,
+            maxHealth: state.maxHealth,
+            strength: state.strength,
+            defense: state.defense,
+            loot: state.loot ?? [],
+            pointsReward: state.pointsReward,
+            locationId: state.locationId,
+            respawnSeconds: state.respawnSeconds,
         }).returning().get() // что за returning? и зачем здесь get
 
         const response: MobResponse = { mob: toMobDto(create) }
