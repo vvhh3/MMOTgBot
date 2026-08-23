@@ -14,6 +14,7 @@ import { db, toPlayerDtoEquipped, toQuestDto } from "./db.js";
 import { playerQuests, players, quests } from "./db/schema.js";
 import { addXpForPlayer } from "./level.js";
 import { nowGameTime, todayGameDate } from "./time.js";
+import { notify } from "./notification.js";
 
 const DIFFICULTIES = ["easy", "medium", "hard"] as const;
 
@@ -63,6 +64,11 @@ export function progressQuests(
 
     const progress = Math.min(pq.progress + 1, quest.targetCount);
     const done = progress >= quest.targetCount;
+    
+    if(done) {
+      notify(playerId,`Вы выполнили квест: ${quest.title}`)
+    }
+
     db.update(playerQuests)
       .set({
         progress,

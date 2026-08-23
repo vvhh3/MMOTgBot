@@ -77,9 +77,9 @@ export function expireStalePvpSessions(): void {
   }
 }
 
-// Отправляет обоим участникам свежее состояние их дуэли через сокет.
-// Вызывается после КАЖДОГО изменения сессии, чтобы клиенту не нужен был поллинг.
-// Каждый получит свою версию DTO (со своей стороны).
+// Отправляет обоим участникам свежее состояние их дуэли через сокет
+// Вызывается после КАЖДОГО изменения сессии, чтобы клиенту не нужен был поллинг
+// Каждый получит свою версию DTO (со своей стороны)
 function notifyBoth(pvp: PvpSessionRow): void {
     emitToPlayer(pvp.player1Id, "pvpState", buildPvpState(pvp, pvp.player1Id))
     emitToPlayer(pvp.player2Id, "pvpState", buildPvpState(pvp, pvp.player2Id))
