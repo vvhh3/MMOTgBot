@@ -34,11 +34,11 @@ export function initializeDatabase(): void {
   // Ниже — сид (начальные данные), который заносится в БД при первом запуске.
   // Список стартовых локаций: id, название, описание и координаты.
   const seedLocations: LocationDto[] = [
-    { id: "square", name: "Площадь", description: "Описание площади", x: 503, y: 385 },
-    { id: "market", name: "Сити парк", description: "Описание сити парка", x: 667, y: 316 },
-    { id: "park", name: "Парк Победы", description: "Описание парка победы", x: 617, y: 253 },
-    { id: "forest", name: "Солдатсикй лес", description: "Описание солдатского леса", x: 1081, y: 373 },
-    { id: "railway", name: "Липяги", description: "Описание станции", x: 1126, y: 332}
+    { id: "square", name: "Площадь", description: "Описание площади", x: 50, y: 39 },
+    { id: "market", name: "Сити парк", description: "Описание сити парка", x: 67, y: 39 },
+    { id: "park", name: "Парк Победы", description: "Описание парка победы", x: 62, y: 25 },
+    { id: "forest", name: "Солдатсикй лес", description: "Описание солдатского леса", x: 107, y: 37 },
+    { id: "railway", name: "Липяги", description: "Описание станции", x: 109, y: 33 }
   ]
 
   // Стартовые мобы. locationId должен ссылаться на существующую локацию из seedLocations,
