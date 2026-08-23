@@ -21,9 +21,9 @@ import TakeAWalk from "./components/TakeAWalk";
 import Inventory from "./components/Inventory";
 import Fight from "./components/Fight";
 import Exchange from "./components/Exchange"
-import { MobAdmin } from "./components/admin/MobAdmin";
-import { ItemAdmin } from "./components/admin/ItemAdmin";
-import { QuestAdmin } from "./components/admin/QuestAdmin";
+import { MobAdmin } from "./admin/adminComponents/MobAdmin";
+import { ItemAdmin } from "./admin/adminComponents/ItemAdmin";
+import Admin from "./admin/Admin";
 
 export default function ScrollToTop() {
   const { pathname } = useLocation();
@@ -102,9 +102,7 @@ function App() {
             <Route path="Team" element={<Team />} />
             <Route path="Inventory" element={<Inventory player={player} />} />
             <Route path="Exchange" element={<Exchange />} />
-            <Route path="admin/mobs" element={<MobAdmin token={token}/>}/>
-            <Route path="admin/items" element={<ItemAdmin token={token}/>}/>
-            <Route path="admin/quests" element={<QuestAdmin token={token}/>}/>
+            <Route path="AdminPanel" element={<Admin token={token}/>}/>
           </Route>
           <Route path="/TakeAWalk" element={<TakeAWalk />} />
           <Route path="/Fight" element={<Fight />} />
