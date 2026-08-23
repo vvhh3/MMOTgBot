@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
+import { sql } from "drizzle-orm";
 import type { EventDto, InventoryItemDto, LocationDto, PlayerDto, MobDto, ItemDto, QuestsDto } from "@mmobot/shared";
 import { config } from "./config.js";
 import { locations, mobs, quests } from "./db/schema.js";
@@ -38,7 +39,7 @@ export function initializeDatabase(): void {
     { id: "park", name: "Парк Победы", description: "Описание парка победы", x: 617, y: 253 },
     { id: "forest", name: "Солдатсикй лес", description: "Описание солдатского леса", x: 1081, y: 373 },
     { id: "railway", name: "Липяги", description: "Описание станции", x: 1126, y: 332}
-  ];
+  ]
 
   // Стартовые мобы. locationId должен ссылаться на существующую локацию из seedLocations,
   // иначе сработает проверка FOREIGN KEY.
@@ -50,11 +51,21 @@ export function initializeDatabase(): void {
     { id: 4, name: "Снайпер", description: "какое то описание", level: 5, loot: [5], pointsReward: 60, locationId: "railway",maxHealth: 60, strength: 12, defense: 4, respawnSeconds: 240 }
   ]
 
-  // Вставляем сид. onConflictDoNothing — если запись с таким же id/primary key уже есть,
-  // она не обновляется и не вызывает ошибку (вставка пропускается). Благодаря этому
-  // сид безопасно повторно выполняется при каждом запуске сервера.
-  db.insert(locations).values(seedLocations).onConflictDoNothing().run();
-  db.insert(mobs).values(seedMobs).onConflictDoNothing().run();
+  // Вставляем сид. Для локаций onConflictDoUpdate: при изменении координат/названия
+  // в коде они обновляются в БД при следующем запуске сервера.
+  db.insert(locations)
+    .values(seedLocations)
+    .onConflictDoUpdate({
+      target: locations.id,
+      set: {
+        name: sql`excluded.name`,
+        description: sql`excluded.description`,
+        x: sql`excluded.x`,
+        y: sql`excluded.y`
+      }
+    })
+    .run()
+  db.insert(mobs).values(seedMobs).onConflictDoNothing().run()
 
   // Стартовые квесты (каталог). Добавляются только если таблица пуста,
   // чтобы не дублироваться при каждом запуске.
