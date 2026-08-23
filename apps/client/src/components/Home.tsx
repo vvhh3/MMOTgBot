@@ -30,10 +30,11 @@ export default function Home({token,player,locationState}: HomeProps){
 
     },[token,locationState,player?.currentLocationId])
 
-    // console.log(player)
-    // console.log(location)
-
     const functionStartCombat = async () => {
+        if(!player?.currentLocationId){
+            alert("Для начала выберите локацию")
+            return
+        }
         try{
 
             if(!locationState || !token) return
