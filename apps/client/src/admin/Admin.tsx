@@ -1,10 +1,11 @@
 import { Tabs } from "@radix-ui/themes";
 import {MobAdmin} from "./adminComponents/MobAdmin"
 import { ItemAdmin } from "./adminComponents/ItemAdmin";
+import { QuestAdmin } from "./adminComponents/QuestAdmin";
 export default function Admin({token}:{token:string}){
     return(
         <div>
-            <Tabs.Root defaultValue="All" className="flex flex-col w-full">
+            <Tabs.Root defaultValue="Mobs" className="flex flex-col w-full">
                 <div className="w-full overflow-x-auto" style={{scrollbarWidth: "none",msOverflowStyle: "none",}}>
                     <Tabs.List color="orange" size="2" className="flex w-max min-w-full justify-start" style={{justifyContent:"center"}}>
                         <Tabs.Trigger className="shrink-0 px-6" value="Mobs">
@@ -27,7 +28,7 @@ export default function Admin({token}:{token:string}){
                     <ItemAdmin token={token}/>
                 </Tabs.Content>
                 <Tabs.Content value="Quests">
-                    
+                    <QuestAdmin token={token}/>
                 </Tabs.Content>
             </Tabs.Root>
 
