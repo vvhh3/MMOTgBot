@@ -96,7 +96,7 @@ function App() {
         <Routes>
           <Route path="" element={<MainLayout player={player} />}>
             <Route path="/" element={<Home token={token} player={player} locationState={locationState} />} />
-            <Route path="Map" element={<Map token={token} onLocationState={setLocationState} />} />
+            <Route path="Map" element={<Map token={token} onLocationState={setLocationState} onPlayer={setPlayer} />} />
             <Route path="Profile" element={<Profile player={player} />} />
             <Route path="Tasks" element={<Tasks token={token} onPlayer={setPlayer} />} />
             <Route path="Team" element={<Team />} />
