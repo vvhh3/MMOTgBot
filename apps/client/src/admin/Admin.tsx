@@ -2,7 +2,10 @@ import { Tabs } from "@radix-ui/themes";
 import {MobAdmin} from "./adminComponents/MobAdmin"
 import { ItemAdmin } from "./adminComponents/ItemAdmin";
 import { QuestAdmin } from "./adminComponents/QuestAdmin";
-export default function Admin({token}:{token:string}){
+interface AdminProps {
+  token: string | null;
+}
+export default function Admin({token}:AdminProps){
     return(
         <div>
             <Tabs.Root defaultValue="Mobs" className="flex flex-col w-full">
