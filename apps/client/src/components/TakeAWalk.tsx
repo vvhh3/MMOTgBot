@@ -10,11 +10,9 @@ import { combatAction, getCombatState } from "../api"
 type TakeAWalkProps = {
     token: string | null
     player: PlayerDto | null
-    combat: CombatStateResponse | null
-    onCombat: (combat: CombatStateResponse | null) => void
 }
 
-export default function TakeAWalk({ token, player, combat, onCombat }: TakeAWalkProps) {
+export default function TakeAWalk({ token, player, }: TakeAWalkProps) {
 
     const [error, setError] = useState<string | null>(null)
     const [state,setState] = useState<CombatStateResponse>()
@@ -25,7 +23,7 @@ export default function TakeAWalk({ token, player, combat, onCombat }: TakeAWalk
         if(!token) return
         getCombatState(token)
         .then((res) => setState(res))
-        .catch(e => setError(e)) 
+        .catch(e => setError(e instanceof Error ? e.message :"Ошибка")) 
     }
 
     useEffect(() => {
@@ -36,12 +34,8 @@ export default function TakeAWalk({ token, player, combat, onCombat }: TakeAWalk
         try {
             if (!token) return
             const res = await combatAction(token, action)
-            // onCombat(res.state)
             setState(res.state)
-            getState()
-            if (res.state.status === "fled") {
-                navigate("/")
-            }
+            if (res.state.status === "fled")navigate("/")
         } catch (e) {
             setError(e instanceof Error ? e.message : 'Ошибка запроса, попробуйте попозже')
         }
@@ -142,7 +136,7 @@ export default function TakeAWalk({ token, player, combat, onCombat }: TakeAWalk
                                 <Text size="1" color="gray">
                                     {state.log.slice(-3).map((l) => l.text).join(" · ")}
                                 </Text>
-                                <Button onClick={() => { onCombat(null); navigate("/") }}>
+                                <Button onClick={() => { navigate("/") }}>
                                     Вернуться в город
                                 </Button>
                             </Flex>
