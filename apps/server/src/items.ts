@@ -31,12 +31,9 @@ export const createItemRoutes = (app: Express) => {
         if (!state.name ||
             !state.description ||
             !state.type ||
-            !state.damage ||
-            !state.defense ||
-            !state.healAmount ||
             !state.price
         ) {
-            res.status(400).json({ error: "Data is failid" })
+            res.status(400).json({ error: "Имя,описание,тип и цена обязательны" })
             return
         }
 
