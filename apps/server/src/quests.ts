@@ -146,8 +146,8 @@ export const createQuestRoutes = (app: Express) => {
         .where(eq(players.id, player.id))
         .run();
 
-      addXpForPlayer(player.id, quest.targetXp);
-    });
+      addXpForPlayer(player.id, quest.targetXp)
+    })
 
     const updatedPlayer = db.select().from(players).where(eq(players.id, player.id)).get()!;
     const response: ClaimQuestResponse = { player: toPlayerDtoEquipped(updatedPlayer), claimed: true };

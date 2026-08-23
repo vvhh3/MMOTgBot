@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Tabs, Text, Box, Grid, Card, Progress, Flex, Button } from "@radix-ui/themes";
-import type { PlayerQuestDto, QuestsDifficulty } from "@mmobot/shared";
+import type { PlayerDto, PlayerQuestDto, QuestsDifficulty } from "@mmobot/shared";
 import { claimQuest, getDailyQuests } from "../api";
 
 const DIFFICULTY_LABEL: Record<QuestsDifficulty, string> = {
@@ -16,7 +16,12 @@ const OBJECTIVE_LABEL: Record<string, string> = {
   visit: "посещений"
 };
 
-export default function Tasks({ token }: { token: string | null }) {
+type TasksProps = {
+  token: string | null
+  onPlayer?: (player: PlayerDto) => void
+}
+
+export default function Tasks({ token, onPlayer }: TasksProps) {
   const [quests, setQuests] = useState<PlayerQuestDto[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,7 +40,8 @@ export default function Tasks({ token }: { token: string | null }) {
   const onClaim = async (id: number) => {
     if (!token) return;
     try {
-      await claimQuest(token, id);
+      const res = await claimQuest(token, id);
+      if (onPlayer && res.player) onPlayer(res.player);
       load();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Не удалось забрать награду");
@@ -52,7 +58,7 @@ export default function Tasks({ token }: { token: string | null }) {
             <Text as="div" size="3" weight="bold">
               {quest.quest.title}
             </Text>
-            <div className="pl-1 pr-1 bg-[#E8603C] text-[#ffff] h-[21px] min-w-[80px] text-[8px] flex justify-center items-center font-extrabold rounded-[10px]">
+            <div className="pl-1 pr-1 bg-[#E8603C] text-[#ffff] h-5.25 min-w-20 text-[8px] flex justify-center items-center font-extrabold rounded-[10px]">
               <p>{DIFFICULTY_LABEL[quest.quest.difficulty]}</p>
             </div>
           </div>
@@ -85,7 +91,7 @@ export default function Tasks({ token }: { token: string | null }) {
         </div>
       )}
       <Tabs.Root defaultValue="active" className="flex flex-col items-center">
-        <Tabs.List color="orange" size="2" className="flex w-full max-w-[600px] justify-center" style={{ justifyContent: "center" }}>
+        <Tabs.List color="orange" size="2" className="flex w-full max-w-150 justify-center" style={{ justifyContent: "center" }}>
           <Tabs.Trigger className="w-1/2" value="active">Активные</Tabs.Trigger>
           <Tabs.Trigger className="w-1/2" value="claimed">Выполненные</Tabs.Trigger>
         </Tabs.List>
