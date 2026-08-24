@@ -12,7 +12,7 @@ import { db } from "./db.js"
 import { friendships, players } from "./db/schema.js"
 import { buildLocationState } from "./state.js"
 import { removePlayerFromLocation } from "./presence.js"
-import { buildFriendsOverview } from "./addFriends.js"
+import { buildFriendsOverview } from "./db.js"
 
 // Глобальный экземпляр Socket.IO сервера
 // До вызова initRealTime() здесь null
@@ -249,15 +249,21 @@ export function broadcastLocation(locationId: string): void {
 }
 
 function pushFriendsPresence(playerId: number): void {
-  emitToPlayer(playerId, "friendsUpdate", buildFriendsOverview(playerId));
-  const rows = db.select().from(friendships)
-    .where(and(
-      eq(friendships.status, "accepted"),
-      or(eq(friendships.fromId, playerId), eq(friendships.toId, playerId))
-    ))
-    .all();
-  const friendIds = rows.map((r) => (r.fromId === playerId ? r.toId : r.fromId));
-  for (const fid of friendIds) {
-    emitToPlayer(fid, "friendsUpdate", buildFriendsOverview(fid));
+  try {
+    const overview = buildFriendsOverview(playerId);
+    console.log(`[friends] pushFriendsPresence for ${playerId}: friends=${overview.friends.length}, online=${overview.friends.filter(f => f.online).map(f => f.id)}`);
+    emitToPlayer(playerId, "friendsUpdate", overview);
+    const rows = db.select().from(friendships)
+      .where(and(
+        eq(friendships.status, "accepted"),
+        or(eq(friendships.fromId, playerId), eq(friendships.toId, playerId))
+      ))
+      .all();
+    const friendIds = rows.map((r) => (r.fromId === playerId ? r.toId : r.fromId));
+    for (const fid of friendIds) {
+      emitToPlayer(fid, "friendsUpdate", buildFriendsOverview(fid));
+    }
+  } catch (error) {
+    console.error(`[friends] pushFriendsPresence failed for ${playerId}:`, error);
   }
 }

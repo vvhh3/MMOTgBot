@@ -23,7 +23,7 @@
 
 import type { Express } from "express"
 import type { AuthedRequest } from "./auth.js"
-import { db, toFriendDto } from "./db.js"
+import { db, buildFriendsOverview, toFriendDto } from "./db.js"
 import { friendships, players } from "./db/schema.js"
 import { and, eq, inArray, or } from "drizzle-orm"
 import { nowGameTime } from "./time.js"
@@ -175,7 +175,7 @@ export const createAddFriend = (app: Express) => {
         const player = (req as AuthedRequest).player
         const fr = db.select().from(friendships).where(eq(friendships.id, Number(req.params.id))).get()
 
-        if (!fr || (fr.fromId !== player.id && fr.toId !== player.id)) {
+        if (!fr || fr.fromId !== player.id) {
             res.status(404).json({ error: "Не найдено" })
             return
         }
@@ -186,31 +186,4 @@ export const createAddFriend = (app: Express) => {
 
         res.json({ ok: true })
     })
-}
-
-export function buildFriendsOverview(playerId: number): FriendsOverviewResponse {
-  const rows = db.select().from(friendships)
-    .where(or(eq(friendships.fromId, playerId), eq(friendships.toId, playerId)))
-    .all();
-  const accepted = rows.filter((r) => r.status === "accepted");
-  const pending = rows.filter((r) => r.status === "pending");
-  const friendIds = accepted.map((r) => (r.fromId === playerId ? r.toId : r.fromId));
-  const friendRows = friendIds.length
-    ? db.select({ id: players.id, name: players.name, level: players.level })
-        .from(players).where(inArray(players.id, friendIds)).all()
-    : [];
-  const friends: FriendDto[] = friendRows.map((p) => toFriendDto(p));
-  const requests: FriendRequestDto[] = pending.map((r) => {
-    const otherId = r.fromId === playerId ? r.toId : r.fromId;
-    const other = db.select({ id: players.id, name: players.name, level: players.level })
-      .from(players).where(eq(players.id, otherId)).get();
-    return {
-      id: r.id,
-      playerId: other?.id ?? 0,
-      name: other?.name ?? "?",
-      level: other?.level ?? 1,
-      direction: r.fromId === playerId ? "outgoing" : "incoming"
-    };
-  });
-  return { friends, requests };
 }

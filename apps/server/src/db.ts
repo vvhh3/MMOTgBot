@@ -4,10 +4,10 @@ import { fileURLToPath } from "node:url";
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
-import { sql } from "drizzle-orm";
-import type { EventDto, InventoryItemDto, LocationDto, PlayerDto, MobDto, ItemDto, QuestsDto, FriendDto } from "@mmobot/shared";
+import { and, eq, inArray, or, sql } from "drizzle-orm";
+import type { EventDto, FriendsOverviewResponse, FriendDto, InventoryItemDto, LocationDto, PlayerDto, MobDto, ItemDto, QuestsDto } from "@mmobot/shared";
 import { config } from "./config.js";
-import { items, locations, mobs, quests } from "./db/schema.js";
+import { friendships, items, locations, mobs, players, quests } from "./db/schema.js";
 import type { EventRow, InventoryItemRow, LocationRow, PlayerRow, MobRow, ItemRow, QuestsRow } from "./db/schema.js";
 import { getPlayerStats } from "./combat.js";
 import { getLevelXpBounds } from "./level.js";
@@ -156,6 +156,39 @@ export function toFriendDto(p: { id: number; name: string; level: number }): Fri
        online: isPlayerOnline(p.id) 
       }
 }
+
+// Собирает полный обзор друзей игрока: принятые друзья + ожидающие заявки
+// (входящие/исходящие). Онлайн каждого друга вычисляется через isPlayerOnline.
+export function buildFriendsOverview(playerId: number): FriendsOverviewResponse {
+  const rows = db.select().from(friendships)
+    .where(or(eq(friendships.fromId, playerId), eq(friendships.toId, playerId)))
+    .all();
+  const accepted = rows.filter((r) => r.status === "accepted");
+  const pending = rows.filter((r) => r.status === "pending");
+
+  const friendIds = accepted.map((r) => (r.fromId === playerId ? r.toId : r.fromId));
+  const friendRows = friendIds.length
+    ? db.select({ id: players.id, name: players.name, level: players.level })
+        .from(players).where(inArray(players.id, friendIds)).all()
+    : [];
+  const friends: FriendDto[] = friendRows.map((p) => toFriendDto(p));
+
+  const requests = pending.map((r) => {
+    const otherId = r.fromId === playerId ? r.toId : r.fromId;
+    const other = db.select({ id: players.id, name: players.name, level: players.level })
+      .from(players).where(eq(players.id, otherId)).get();
+    return {
+      id: r.id,
+      playerId: other?.id ?? 0,
+      name: other?.name ?? "?",
+      level: other?.level ?? 1,
+      direction: (r.fromId === playerId ? "outgoing" : "incoming") as "incoming" | "outgoing"
+    };
+  });
+
+  return { friends, requests };
+}
+
 export function toItemDto(row: ItemRow): ItemDto {
   return {
     id: row.id,
