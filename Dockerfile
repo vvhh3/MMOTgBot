@@ -8,6 +8,7 @@ COPY package.json package-lock.json ./
 COPY tsconfig.base.json ./
 COPY apps ./apps
 COPY packages ./packages
+COPY data ./data
 RUN npm ci --include=dev
 RUN npm run build:prod
 
@@ -16,5 +17,6 @@ ENV NODE_ENV=production
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/apps ./apps
 COPY --from=build /app/packages ./packages
+COPY --from=build /app/data ./data
 COPY --from=build /app/package.json ./package.json
 CMD ["node", "apps/server/dist/index.js"]

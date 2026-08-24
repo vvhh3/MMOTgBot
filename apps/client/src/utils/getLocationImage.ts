@@ -1,6 +1,5 @@
-const API_URL = "https://mmotgbot-production.up.railway.app "
+const API_URL = import.meta.env.VITE_API_BASE_URL 
 
 export function getLocationImage(fileName: string) {
-  console.log(`${API_URL}/location-images/${fileName}`)
   return `${API_URL}/location-images/${fileName}`
 }
