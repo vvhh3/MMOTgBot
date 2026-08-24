@@ -7,7 +7,7 @@ import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { sql } from "drizzle-orm";
 import type { EventDto, InventoryItemDto, LocationDto, PlayerDto, MobDto, ItemDto, QuestsDto } from "@mmobot/shared";
 import { config } from "./config.js";
-import { locations, mobs, quests } from "./db/schema.js";
+import { items, locations, mobs, quests } from "./db/schema.js";
 import type { EventRow, InventoryItemRow, LocationRow, PlayerRow, MobRow, ItemRow, QuestsRow } from "./db/schema.js";
 import { getPlayerStats } from "./combat.js";
 import { getLevelXpBounds } from "./level.js";
@@ -51,6 +51,14 @@ export function initializeDatabase(): void {
     { id: 4, name: "Снайпер", description: "какое то описание", level: 5, loot: [5], pointsReward: 60, locationId: "railway",maxHealth: 60, strength: 12, defense: 4, respawnSeconds: 240 }
   ]
 
+  const seedItems: typeof items.$inferInsert[] = [
+    { id: 1, name: "Ржавый нож", description: "Простой нож", type: "weapon", damage: 3, defense: 0, healAmount: 0, price: 10 },
+    { id: 2, name: "Кожаная броня", description: "Лёгкая защитная броня", type: "armor", damage: 0, defense: 2, healAmount: 0, price: 15 },
+    { id: 3, name: "Малая аптечка", description: "Восстанавливает здоровье", type: "potion", damage: 0, defense: 0, healAmount: 10, price: 12 },
+    { id: 4, name: "Металлолом", description: "Полезный материал", type: "material", damage: 0, defense: 0, healAmount: 0, price: 5 },
+    { id: 5, name: "Старая винтовка", description: "Рабочее оружие", type: "weapon", damage: 8, defense: 0, healAmount: 0, price: 30 }
+  ]
+
   // Вставляем сид. Для локаций onConflictDoUpdate: при изменении координат/названия
   // в коде они обновляются в БД при следующем запуске сервера
   // В ПРОДЕ ПОТОМ ПЕРЕДЕЛАТЬ ПОД МИГРАЦИИ
@@ -69,6 +77,7 @@ export function initializeDatabase(): void {
     })
     .run()
   db.insert(mobs).values(seedMobs).onConflictDoNothing().run()
+  db.insert(items).values(seedItems).onConflictDoNothing().run()
 
   // Стартовые квесты (каталог). Добавляются только если таблица пуста,
   // чтобы не дублироваться при каждом запуске.

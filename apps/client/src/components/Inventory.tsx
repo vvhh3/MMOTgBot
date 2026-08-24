@@ -31,15 +31,43 @@ export default function Inventory({ token, player, inventory }: InventoryProps) 
     }, [token])
 
 
-    const list = (inventory ?? []).map(inv => ({   // inv — элемент inventory
+    const list = (inventory ?? []).map(inv => ({
         item: inventoryItems.find(i => i.id === inv.itemType),
         quantity: inv.quantity,
         equiped: inv.equiped,
     }))
 
+    const renderGrid = (type?: ItemDto["type"] | "other") => {
+        const visibleItems = list.filter(({ item }) => item && (
+            !type || (type === "other" ? (item.type === "other" || item.type === "material") : item.type === type)
+        ))
 
-    console.log(inventoryItems)
-    console.log(list)
+        return (
+            <div className="p-2.5 items-center justify-center flex">
+                <Grid rows="5" columns="5" gap="3">
+                    {Array.from({ length: 25 }).map((_, index) => {
+                        const entry = visibleItems[index]
+
+                        return (
+                            <div
+                                key={index}
+                                className="border-[#898888] border h-10 w-10 p-0.5 flex flex-col justify-between overflow-hidden"
+                            >
+                                {entry?.item && (
+                                    <>
+                                        <Text size="1" title={entry.item.description} className="truncate">
+                                            {entry.item.name}
+                                        </Text>
+                                        <Text size="1" align="right">x{entry.quantity}</Text>
+                                    </>
+                                )}
+                            </div>
+                        )
+                    })}
+                </Grid>
+            </div>
+        )
+    }
 
     return (
         <div className=' h-full ' >
@@ -134,60 +162,19 @@ export default function Inventory({ token, player, inventory }: InventoryProps) 
                 </div>
                 <Box pt="3">
                     <Tabs.Content value="All">
-                        <div className="p-2.5 items-center justify-center flex">
-                            <Grid rows="5" columns="5" gap="3">
-                                {Array.from({ length: 25 }).map((_, index) => (
-                                    <div
-                                        key={index}
-                                        className="border-[#898888] border h-10 w-10" />
-                                ))}
-                            </Grid>
-                        </div>
+                        {renderGrid()}
                     </Tabs.Content>
                     <Tabs.Content value="Arming">
-                        <div className="p-2.5 items-center justify-center flex">
-                            <Grid rows="5" columns="5" gap="3">
-                                {Array.from({ length: 25 }).map((_, index) => (
-                                    <div
-                                        key={index}
-                                        className="border-[#898888] border h-10 w-10" />
-                                ))}
-                            </Grid>
-                        </div>
+                        {renderGrid("weapon")}
                     </Tabs.Content>
                     <Tabs.Content value="Armor">
-                        <div className="p-2.5 items-center justify-center flex">
-                            <Grid rows="5" columns="5" gap="3">
-                                {Array.from({ length: 25 }).map((_, index) => (
-                                    <div
-                                        key={index}
-                                        className="border-[#898888] border h-10 w-10" />
-                                ))}
-                            </Grid>
-                        </div>
+                        {renderGrid("armor")}
                     </Tabs.Content>
                     <Tabs.Content value="Potions">
-                        <div className="p-2.5 items-center justify-center flex">
-                            <Grid rows="5" columns="5" gap="3">
-                                {Array.from({ length: 25 }).map((_, index) => (
-                                    <div
-                                        key={index}
-                                        className="border-[#898888] border h-10 w-10" />
-                                ))}
-                            </Grid>
-                        </div>
+                        {renderGrid("potion")}
                     </Tabs.Content>
                     <Tabs.Content value="Other">
-                        <div className="p-2.5 items-center justify-center flex">
-                            <Grid rows="5" columns="5" gap="3">
-                                {Array.from({ length: 25 }).map((_, index) => (
-                                    <div
-                                        key={index}
-                                        className="border-[#898888] border h-10 w-10"
-                                    />
-                                ))}
-                            </Grid>
-                        </div>
+                        {renderGrid("other")}
                     </Tabs.Content>
                 </Box>
             </Tabs.Root>
