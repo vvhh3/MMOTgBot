@@ -1,8 +1,10 @@
-import { Tabs, Text, Box, Card, Progress, Badge, Grid } from "@radix-ui/themes"
-import playerM from "../public/playerM.svg"
+
+
 import { InventoryItemDto, ItemDto, PlayerDto } from "@mmobot/shared"
 import { useEffect, useState } from "react"
 import { getItem, getItems } from "../api"
+import {Tabs,Text,Box,Card, Progress,Badge, Grid} from "@radix-ui/themes"
+import playerM from "../avatarPlayer/playerM.svg"
 
 type InventoryProps = {
     token: string | null
