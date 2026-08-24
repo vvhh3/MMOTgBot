@@ -110,6 +110,8 @@ export type LocationDto = {
   description: string;
   x: number;
   y: number;
+  homeImg:string;
+  fightImg:string;
 }
 
 export type ActionDto = {

@@ -5,7 +5,6 @@ import {
 } from "react-zoom-pan-pinch";
 import { Card, Inset } from "@radix-ui/themes";
 import map from "./mapMat.png"
-import fon from "../../../public/Home.svg"
 import { LocationDto, LocationStateResponse, PlayerDto } from "@mmobot/shared";
 import { enterLocation, getLocations } from "../../../api";
 import { useNavigate } from "react-router-dom";
@@ -198,7 +197,7 @@ export default function GameMap({ token,onLocationState,onPlayer }:MapeProps) {
             width: 300
           }}>
           <Inset>
-            <img src={fon} style={{ padding: "10px", borderRadius: "16px" }}
+            <img src={selectedLocation.homeImg} style={{ padding: "10px", borderRadius: "16px" }}
             />
           </Inset>
 
