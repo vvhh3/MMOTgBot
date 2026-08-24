@@ -1,21 +1,22 @@
-import fightImage from "../public/fight.svg"
-import playerM from "../public/playerM.svg"
-import monstr from "../public/monstr.svg"
+
+import playerM from "../avatarPlayer/playerM.svg"
+import monstr from "../enemies/monstr.svg"
 import { Button, Card, Progress, Text, Grid, Flex } from "@radix-ui/themes"
 import { Link, useNavigate } from "react-router-dom"
-import { CombatStateResponse, InventoryItemDto, PlayerDto } from "@mmobot/shared"
+import { CombatStateResponse, InventoryItemDto, PlayerDto,LocationDto,LocationStateResponse } from "@mmobot/shared"
 import { useEffect, useState } from "react"
-import { combatAction, getCombatState } from "../api"
+import { combatAction, getCombatState,getLocationState} from "../api"
 
 type TakeAWalkProps = {
     token: string | null
     player: PlayerDto | null
     onPlayer: (state: PlayerDto) => void
     onInventory: (state: InventoryItemDto[]) => void
+    locationState: LocationStateResponse|null
 }
 
-export default function TakeAWalk({ token, player,onPlayer,onInventory }: TakeAWalkProps) {
-
+export default function TakeAWalk({ token, player,onPlayer,onInventory,locationState }: TakeAWalkProps) {
+    const [location,setLocation] = useState<LocationDto>()
     const [error, setError] = useState<string | null>(null)
     const [state,setState] = useState<CombatStateResponse>()
 
@@ -27,7 +28,18 @@ export default function TakeAWalk({ token, player,onPlayer,onInventory }: TakeAW
         .then((res) => setState(res))
         .catch(e => setError(e instanceof Error ? e.message :"Ошибка")) 
     }
+    useEffect(() => {
+        if(locationState){
+            setLocation(locationState.location)
+            return
+        }
 
+        if(!token || !player?.currentLocationId) return
+        getLocationState(token, player.currentLocationId)
+        .then((res) => {setLocation(res.location)})
+        .catch((error) => alert(error ?? "Ошибка"))
+
+    },[token,locationState,player?.currentLocationId])
     useEffect(() => {
         getState()
     },[token])
@@ -47,7 +59,7 @@ export default function TakeAWalk({ token, player,onPlayer,onInventory }: TakeAW
     return (
         <div className="flex ">
             <div className="flex w-full flex-col justify-end" style={{
-                backgroundImage: `url(${fightImage})`,
+                backgroundImage: `url(${location?.fightImg})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',

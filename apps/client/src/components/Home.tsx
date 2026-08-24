@@ -1,8 +1,7 @@
 import { Flex, Card,Text, Button,Box,Progress,Inset,Strong, Grid} from "@radix-ui/themes";
 import { Link, useNavigate } from "react-router-dom";
-import playerM from '../public/playerM.svg'
-import playerG from '../public/playerG.svg'
-import fon from "../public/Home.svg"
+import playerM from '../avatarPlayer/playerM.svg'
+import playerG from '../avatarPlayer/playerG.svg'
 import { useEffect, useState } from "react";
 import { LocationDto, LocationStateResponse, PlayerDto } from "@mmobot/shared";
 import { getLocationState, startCombat } from "../api";
@@ -58,7 +57,7 @@ export default function Home({token,player,locationState}: HomeProps){
     return(
         <div className="flex flex-col justify-center items-center ">
             <div className="flex flex-col justify-center items-center w-full h-full object-contain bg-bottom border-b-2" 
-            style={{backgroundImage:`url(${fon})`}}>
+            style={{backgroundImage:`url(${location?.homeImg})`}}>
                  <div className="bg-[#00000074] rounded-2xl px-2.5 m-0.75">
                     <header className="text-[#E85D2F] font-[800px]">{location?.name}</header>
                  </div>
@@ -108,9 +107,8 @@ export default function Home({token,player,locationState}: HomeProps){
                     </Link>
                 </Card>
                 <Card >
-                    {/* <Link to="/TakeAWalk"> */}
                         <div className="flex flex-row  justify-between">
-                            <button className="max-w-60" onClick={functionStartCombat}>
+                            <div className="max-w-60" onClick={functionStartCombat}>
                                 <Text as="div" size="2" weight="bold">
                                     <div className="flex-row flex gap-2">
                                         Пройтись
@@ -120,9 +118,8 @@ export default function Home({token,player,locationState}: HomeProps){
                                 <Text as="div" color="gray" size="1">
                                     Пройтись по локации
                                 </Text>
-                            </button>   
+                            </div>   
                         </div>
-                    {/* </Link> */}
                 </Card>
                 <Card >
                     <div className="flex flex-row justify-between">

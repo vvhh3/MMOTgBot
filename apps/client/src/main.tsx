@@ -126,8 +126,8 @@ function App() {
             <Route path="Exchange" element={<Exchange />} />
             <Route path="AdminPanel" element={<Admin token={token}/>}/>
           </Route>
-          <Route path="/TakeAWalk" element={<TakeAWalk token={token} player={player} onPlayer={setPlayer} onInventory={setInventory}/>} />
-          <Route path="/Fight" element={<Fight />} />
+          <Route path="/TakeAWalk" element={<TakeAWalk token={token} player={player} onPlayer={setPlayer} onInventory={setInventory} locationState={locationState}/>} />
+          <Route path="/Fight" element={<Fight token={token} player={player}  locationState={locationState} />} />
         </Routes>
       </Theme>
     </>

@@ -34,11 +34,11 @@ export function initializeDatabase(): void {
   // Ниже — сид (начальные данные), который заносится в БД при первом запуске.
   // Список стартовых локаций: id, название, описание и координаты.
   const seedLocations: LocationDto[] = [
-    { id: "square", name: "Площадь", description: "Описание площади", x: 31, y: 40 },
-    { id: "market", name: "Сити парк", description: "Описание сити парка", x: 42, y: 33 },
-    { id: "park", name: "Парк Победы", description: "Описание парка победы", x: 40, y: 27 },
-    { id: "forest", name: "Солдатсикй лес", description: "Описание солдатского леса", x: 64, y: 33 },
-    { id: "railway", name: "Липяги", description: "Описание станции", x: 70, y: 38 }
+    { id: "square", name: "Площадь", description: "Описание площади", x: 31, y: 40 ,homeImg:"./data/location/square-home.svg",fightImg:"./data/location/square-fight.svg"},
+    { id: "market", name: "Сити парк", description: "Описание сити парка", x: 42, y: 33 ,homeImg:"./data/location/market-home.svg",fightImg:"./data/location/market-fight.svg"},
+    { id: "park", name: "Парк Победы", description: "Описание парка победы", x: 40, y: 27,homeImg:"./data/location/park-home.svg",fightImg:"./data/location/park-fight.svg" },
+    { id: "forest", name: "Солдатсикй лес", description: "Описание солдатского леса", x: 64, y: 33,homeImg:"./data/location/forest-home.svg",fightImg:"./data/location/forest-fight.svg" },
+    { id: "railway", name: "Липяги", description: "Описание станции", x: 70, y: 38,homeImg:"./data/location/railway-home.svg",fightImg:"./data/location/railway-fight.svg" }
   ]
 
   // Стартовые мобы. locationId должен ссылаться на существующую локацию из seedLocations,
@@ -62,7 +62,9 @@ export function initializeDatabase(): void {
         name: sql`excluded.name`,
         description: sql`excluded.description`,
         x: sql`excluded.x`,
-        y: sql`excluded.y`
+        y: sql`excluded.y`,
+        homeImg:sql`excluded.homeImg`,
+        fightImg:sql`excluded.fightImg`
       }
     })
     .run()
@@ -154,7 +156,9 @@ export function toLocationDto(row: LocationRow): LocationDto {
     name: row.name,
     description: row.description,
     x: row.x,
-    y: row.y
+    y: row.y,
+    homeImg:row.homeImg,
+    fightImg:row.fightImg
   };
 }
 

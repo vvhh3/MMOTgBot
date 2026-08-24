@@ -1,13 +1,35 @@
-import fightImage from "../public/fight.svg"
-import player from "../public/playerM.svg"
-import player2 from "../public/playerM.svg"
+import fightImage from "../location/square-fight.svg"
+import player2 from "../avatarPlayer/playerM.svg"
 import { Button, Card,Progress,Text,Grid } from "@radix-ui/themes"
 import { Link } from "react-router-dom"
-export default function Fight(){
+import { LocationDto, LocationStateResponse, PlayerDto } from "@mmobot/shared";
+import { getLocationState, startCombat } from "../api";
+import { useState ,useEffect} from "react";
+
+type FightProps = {
+    token: string| null
+    player: PlayerDto| null
+    locationState: LocationStateResponse|null
+}
+
+export default function Fight({token,player,locationState}: FightProps){
+    const [location,setLocation] = useState<LocationDto>()
+    useEffect(() => {
+        if(locationState){
+            setLocation(locationState.location)
+            return
+        }
+
+        if(!token || !player?.currentLocationId) return
+        getLocationState(token, player.currentLocationId)
+        .then((res) => {setLocation(res.location)})
+        .catch((error) => alert(error ?? "Ошибка"))
+
+    },[token,locationState,player?.currentLocationId])
     return(
         <div className="flex ">
             <div className="flex w-full flex-col justify-end"  style={{
-                backgroundImage: `url(${fightImage})`,
+                backgroundImage: `url(${location?.fightImg})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
@@ -30,7 +52,7 @@ export default function Fight(){
                                 </div>
                             </Card>
                         </div>
-                        <img className="h-[180px]" style={{transform: 'scaleX(-1)' }} src={player}/>
+                        <img className="h-[180px]" style={{transform: 'scaleX(-1)' }} src={player2}/>
                     </div>
                     <div>
                         <div>

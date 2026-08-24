@@ -9,7 +9,10 @@ export const locations = sqliteTable("locations", {
   name: text("name").notNull(),
   description: text("description").notNull(),
   x: real("x").notNull(),
-  y: real("y").notNull()
+  y: real("y").notNull(),
+  homeImg:text("homeImg").notNull(),
+  fightImg:text("fightImg").notNull()
+
 })
 
 // Игроки. Значения по умолчанию задают стартовые характеристики нового персонажа.

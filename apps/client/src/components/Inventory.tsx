@@ -1,5 +1,5 @@
 import {Tabs,Text,Box,Card, Progress,Badge, Grid} from "@radix-ui/themes"
-import playerM from "../public/playerM.svg"
+import playerM from "../avatarPlayer/playerM.svg"
 import { PlayerDto } from "@mmobot/shared"
 
 type InventoryProps ={ 
