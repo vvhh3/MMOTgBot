@@ -1,14 +1,15 @@
 import { Avatar, Badge, Button, Card, Flex, Grid, Text, TextField } from "@radix-ui/themes"
 import { useEffect, useState } from "react"
-import type { FriendDto, FriendRequestDto, PlayerDto } from "@mmobot/shared";
+import type { FriendDto, FriendRequestDto, FriendsOverviewResponse, PlayerDto } from "@mmobot/shared";
 import { getFriends, removeFriend, respondFriendRequest, searchFriends, sendFriendRequest } from "../api";
 
 type TeamProps = {
   token: string | null
   player: PlayerDto | null
+  liveOverview?: FriendsOverviewResponse | null
 }
 
-export default function Team({ token,player }: TeamProps) {
+export default function Team({ token, player,liveOverview }: TeamProps) {
   const [overview, setOverview] = useState<{ friends: FriendDto[]; requests: FriendRequestDto[] }>({ friends: [], requests: [] })
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<FriendDto[]>([])
@@ -25,6 +26,10 @@ export default function Team({ token,player }: TeamProps) {
   useEffect(() => {
     reload()
   }, [token])
+
+  useEffect(() => {
+    if(liveOverview) setOverview(liveOverview)
+  },[liveOverview])
 
   const doSearch = async () => {
     if (!token || !query.trim()) return
@@ -77,20 +82,20 @@ export default function Team({ token,player }: TeamProps) {
         <p> Ваш индефикатор дружбы: {player?.friendId}</p>
       </div>
       <div className="flex justify-center items-center px-2.5 gap-1 pt-4">
-        <TextField.Root
-          radius="large"
-          placeholder="Искать по нику или коду..."
-          className="flex w-full max-w-150 justify-center"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") doSearch() }}>
-          <TextField.Slot>
-            <svg width="16px" height='16px' viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14.9536 14.9458L21 21M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-          </TextField.Slot>
-        </TextField.Root>
-        <Button className="h-7.5 w-7.5" radius="large" onClick={doSearch} disabled={loading}>
+        <div className="relative w-full max-w-150">
+          <svg width="16" height="16" viewBox="0 0 24 24"  fill="none" xmlns="http://www.w3.org/2000/svg"
+            className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+            <path d="M14.9536 14.9458L21 21M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          <input
+            placeholder="Введите код друга..."
+            className="w-full border-2 rounded-lg p-1 pr-8 border-black focus:outline-none duration-300 focus:border-[#E85D2F]"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}/>
+        </div>
+        <button className="h-9 w-25 p-1 flex justify-center items-center text-white  bg-[#E85D2F] rounded-lg" onClick={doSearch} disabled={loading}>
           Найти
-        </Button>
+        </button>
       </div>
 
       {error && <Text color="red" size="1" className="px-4 pt-2">{error}</Text>}
@@ -109,7 +114,7 @@ export default function Team({ token,player }: TeamProps) {
                       <Badge color="orange">Lv.{p.level}</Badge>
                     </div>
                   </Flex>
-                  <Button size="1" onClick={() => addFriend(p.id)}>Добавить</Button>
+                  <button className="h-9 w-25 p-1 flex justify-center items-center text-white  bg-[#E85D2F] rounded-lg" onClick={() => addFriend(p.id)}>Добавить</button>
                 </Flex>
               </Card>
             ))}
@@ -133,8 +138,8 @@ export default function Team({ token,player }: TeamProps) {
                       </div>
                     </Flex>
                     <Flex gap="2">
-                      <Button size="1" color="green" onClick={() => accept(r.id)}>Принять</Button>
-                      <Button size="1" color="red" variant="soft" onClick={() => decline(r.id)}>Отклонить</Button>
+                      <button className="h-9 w-25 p-1 flex justify-center items-center text-white  bg-green-600 rounded-lg"  onClick={() => accept(r.id)}>Принять</button>
+                      <button className="h-9 w-25 p-1 flex justify-center items-center text-white  bg-red-600 rounded-lg"  onClick={() => decline(r.id)}>Отклонить</button>
                     </Flex>
                   </Flex>
                 </Card>
@@ -154,7 +159,7 @@ export default function Team({ token,player }: TeamProps) {
                       <Avatar radius="full" fallback={r.name[0] ?? "A"} color="green" size="2" />
                       <Text size="2">{r.name}</Text>
                     </Flex>
-                    <Button size="1" variant="soft" color="gray" onClick={() => remove(r.id)}>Отменить</Button>
+                    <button className="h-9 w-25 p-1 flex justify-center items-center text-white  bg-[#E85D2F] rounded-lg" onClick={() => remove(r.id)}>Отменить</button>
                   </Flex>
                 </Card>
               ))}
@@ -167,6 +172,7 @@ export default function Team({ token,player }: TeamProps) {
           {overview.friends.length === 0 && (
             <Text size="1" color="gray">Пока нет друзей. Найдите игрока по коду выше</Text>
           )}
+          {/* Поправить тут проверку онлайн */}
           {overview.friends.map((f) => (
             <Card key={f.id}>
               <Flex justify="between" align="center">
@@ -183,7 +189,7 @@ export default function Team({ token,player }: TeamProps) {
                     <Text size="1" color={f.online ? "green" : "gray"}>{f.online ? "В сети" : "Не в сети"}</Text>
                   </div>
                 </Flex>
-                <Button size="1" variant="soft" color="gray" onClick={() => remove(f.id)}>Удалить</Button>
+                <button className="h-9 w-25 p-1 flex justify-center items-center text-white  bg-red-600 rounded-lg" onClick={() => remove(f.id)}>Удалить</button>
               </Flex>
             </Card>
           ))}

@@ -96,7 +96,7 @@ export function createApp(): express.Express {
     const MAX_ATTEMPTS = 10;
 
     for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-      const friendId = Math.floor(10000 + Math.random() * 90000)
+      const friendId = Math.floor(1000 + Math.random() * 9000)
       try {
         db.insert(players)
           .values({ ...playerData, friendId })

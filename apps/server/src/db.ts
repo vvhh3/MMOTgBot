@@ -105,7 +105,8 @@ function migrationsFolder(): string {
 
 //получить дефолтные статы игрока
 export function toPlayerDto(row: PlayerRow): PlayerDto {
-  const { levelStartXp, nextLevelXp } = getLevelXpBounds(row.xp);
+  const { levelStartXp, nextLevelXp } = getLevelXpBounds(row.xp)
+  
   return {
     id: row.id,
     friendId: row.friendId,

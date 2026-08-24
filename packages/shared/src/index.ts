@@ -188,6 +188,7 @@ export type ServerToClientEvents = {
   inventory: (inventory: InventoryItemDto[]) => void
   tradeUpdate: (state: TradeStateDto | null) => void
   pvpState: (state: PvpStateDto| null) => void
+  friendsUpdate: (state: FriendsOverviewResponse) => void
 };
 
 export type ClientToServerEvents = {

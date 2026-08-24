@@ -9,7 +9,7 @@
 //   2b. POST  /friends/:id/decline              — B отклоняет
 //   3. DELETE /friends/:id                      — удалить друга / отозвать заявку
 //   *  GET    /friends                          — мои друзья + заявки
-//   *  GET    /friends/search?q=                — поиск игроков по коду/имени
+//   *  GET    /friends/search?q=                — поиск игрока по коду (friendId)
 //
 // Заявка и дружба хранятся в одной таблице friendships:
 //   status = pending   — заявка ждёт ответа
@@ -25,7 +25,7 @@ import type { Express } from "express"
 import type { AuthedRequest } from "./auth.js"
 import { db, toFriendDto } from "./db.js"
 import { friendships, players } from "./db/schema.js"
-import { and, eq, inArray, or, sql } from "drizzle-orm"
+import { and, eq, inArray, or } from "drizzle-orm"
 import { nowGameTime } from "./time.js"
 import { notify } from "./notification.js"
 import { isPlayerOnline } from "./realTime.js"
@@ -33,185 +33,184 @@ import type { FriendDto, FriendRequestDto, FriendsOverviewResponse } from "@mmob
 
 export const createAddFriend = (app: Express) => {
 
-  // Поиск игроков: по 5-значному коду друга (friendId) и по имени
-  // Самого себя не возвращаем. Результат — массив FriendDto (online вычисляем)
-  app.get("/friends/search", (req: AuthedRequest extends never ? never : any, res: any) => {
-    const player = (req as AuthedRequest).player
-    const q = String((req as any).query?.q ?? "").trim()
-    if (!q) {
-      res.json({ players: [] })
-      return
+    // Собрать DTO друга/игрока со статусом онлайна
+    function toFriendDto(p: { id: number; name: string; level: number }): FriendDto {
+        return { id: p.id, name: p.name, level: p.level, online: isPlayerOnline(p.id) }
     }
 
-    const byCode = db.select().from(players).where(eq(players.friendId, Number(q))).all()
-    const byName = q.length >= 2
-      ? db.select().from(players)
-        .where(and(sql`${players.name} LIKE ${"%" + q + "%"}`, sql`${players.id} != ${player.id}`))
-        .limit(20).all()
-      : []
+    // Поиск игрока ТОЛЬКО по 5-значному коду друга (friendId).
+    // Самого себя не возвращаем. Результат — массив FriendDto (online вычисляем)
+    app.get("/friends/search", (req: any, res: any) => {
+        const player = (req as AuthedRequest).player
+        const friendId = Number(String((req as any).query?.q ?? "").trim())
 
-    const map = new Map<number, typeof players.$inferSelect>()
-    for (const p of [...byCode, ...byName]) {
-      if (p.id === player.id) continue
-      map.set(p.id, p)
-    }
+        if (!Number.isInteger(friendId)) {
+            res.json({ players: [] })
+            return
+        }
 
-    const players_dto: FriendDto[] = [...map.values()].map((p) => toFriendDto(p))
-    const response: { players: FriendDto[] } = { players: players_dto }
-    res.json(response)
-  })
+        const found = db.select().from(players).where(eq(players.friendId, friendId)).all()
+        const players_dto: FriendDto[] = found
+            .filter((p) => p.id !== player.id)
+            .map((p) => toFriendDto(p))
 
-  // ШАГ 1: отправить заявку в друзья по коду (friendId)
-  app.post("/friends/request", (req: any, res: any) => {
-    const player = (req as AuthedRequest).player
-    const friendId = Number(req.body?.friendId)
-
-    const target = db.select().from(players).where(eq(players.friendId, friendId)).get()
-    if (!target) {
-      res.status(404).json({ error: "Игрок не найден" })
-      return
-    }
-    if (target.id === player.id) {
-      res.status(400).json({ error: "Нельзя добавить себя в друзья" })
-      return
-    }
-
-    // Ищем уже существующую связь между нами (в любую сторону)
-    const existing = db.select().from(friendships)
-      .where(or(
-        and(eq(friendships.fromId, player.id), eq(friendships.toId, target.id)),
-        and(eq(friendships.fromId, target.id), eq(friendships.toId, player.id))
-      ))
-      .get()
-
-    if (existing) {
-      if (existing.status === "accepted") {
-        res.status(409).json({ error: "Уже в друзьях" })
-        return
-      }
-      // Встречная заявка от него ко мне — сразу принимаем, оба довольны
-      if (existing.status === "pending" && existing.fromId === target.id) {
-        db.update(friendships)
-          .set({ status: "accepted", updatedAt: nowGameTime() })
-          .where(eq(friendships.id, existing.id)).run()
-        res.status(201).json({ ok: true, status: "accepted" })
-        return
-      }
-      if (existing.status === "pending" && existing.fromId === player.id) {
-        res.status(409).json({ error: "Заявка уже отправлена" })
-        return
-      }
-      // declined/removed — превращаем в новую исходящую заявку
-      db.update(friendships)
-        .set({
-          status: "pending",
-          fromId: player.id,
-          toId: target.id,
-          createdAt: nowGameTime(),
-          updatedAt: nowGameTime()
-        })
-        .where(eq(friendships.id, existing.id)).run()
-      notify(target.id, `${player.name} хочет добавить вас в друзья`)
-      res.status(201).json({ ok: true, status: "pending" })
-      return
-    }
-
-    db.insert(friendships).values({
-      fromId: player.id,
-      toId: target.id,
-      status: "pending",
-      createdAt: nowGameTime(),
-      updatedAt: nowGameTime()
-    }).run()
-
-    notify(target.id, `${player.name} хочет добавить вас в друзья`)
-    res.status(201).json({ ok: true, status: "pending" })
-  })
-
-  // СПИСОК: друзья + входящие/исходящие заявки
-  app.get("/friends", (req: any, res: any) => {
-    const player = (req as AuthedRequest).player
-
-    const rows = db.select().from(friendships)
-      .where(or(eq(friendships.fromId, player.id), eq(friendships.toId, player.id)))
-      .all()
-
-    const accepted = rows.filter((r) => r.status === "accepted")
-    const pending = rows.filter((r) => r.status === "pending")
-
-    // Друзья: собираем id "другого" игрока из принятых заявок
-    const friendIds = accepted.map((r) => r.fromId === player.id ? r.toId : r.fromId)
-    const friendRows = friendIds.length
-      ? db.select({ id: players.id, name: players.name, level: players.level })
-        .from(players).where(inArray(players.id, friendIds)).all(): []
-    const friends: FriendDto[] = friendRows.map(toFriendDto)
-
-    // Заявки: определяем направление по тому, кто requester
-    const requests: FriendRequestDto[] = pending.map((r) => {
-      const otherId = r.fromId === player.id ? r.toId : r.fromId
-      const other = db.select({ id: players.id, name: players.name, level: players.level })
-        .from(players).where(eq(players.id, otherId)).get()
-      return {
-        id: r.id,
-        playerId: other?.id ?? 0,
-        name: other?.name ?? "?",
-        level: other?.level ?? 1,
-        direction: r.fromId === player.id ? "outgoing" : "incoming"
-      }
+        const response: { players: FriendDto[] } = { players: players_dto }
+        res.json(response)
     })
 
-    const response: FriendsOverviewResponse = { friends, requests }
-    res.json(response)
-  })
+    // ШАГ 1: отправить заявку в друзья по коду (friendId)
+    app.post("/friends/request", (req: any, res: any) => {
+        const player = (req as AuthedRequest).player
+        const friendId = Number(req.body?.friendId)
 
-  // ШАГ 2: принять входящую заявку (только адресат)
-  app.post("/friends/:id/accept", (req: any, res: any) => {
-    const player = (req as AuthedRequest).player
-    const fr = db.select().from(friendships).where(eq(friendships.id, Number(req.params.id))).get()
+        if (!Number.isInteger(friendId)) {
+            res.status(400).json({ error: "friendId должен быть числом" })
+            return
+        }
 
-    if (!fr || fr.toId !== player.id || fr.status !== "pending") {
-      res.status(404).json({ error: "Заявка не найдена" })
-      return
-    }
+        const target = db.select().from(players).where(eq(players.friendId, friendId)).get()
+        if (!target) {
+            res.status(404).json({ error: "Игрок не найден" })
+            return
+        }
+        if (target.id === player.id) {
+            res.status(400).json({ error: "Нельзя добавить себя в друзья" })
+            return
+        }
 
-    db.update(friendships)
-      .set({ status: "accepted", updatedAt: nowGameTime() })
-      .where(eq(friendships.id, fr.id)).run()
+        // Ищем уже существующую связь между нами (в любую сторону)
+        const existing = db.select().from(friendships)
+            .where(or(
+                and(eq(friendships.fromId, player.id), eq(friendships.toId, target.id)),
+                and(eq(friendships.fromId, target.id), eq(friendships.toId, player.id))
+            ))
+            .get()
 
-    res.json({ ok: true })
-  })
+        if (existing) {
+            if (existing.status === "accepted") {
+                res.status(409).json({ error: "Уже в друзьях" })
+                return
+            }
+            // Встречная заявка от него ко мне — сразу принимаем, оба довольны
+            if (existing.status === "pending" && existing.fromId === target.id) {
+                db.update(friendships)
+                    .set({ status: "accepted", updatedAt: nowGameTime() })
+                    .where(eq(friendships.id, existing.id)).run()
+                res.status(201).json({ ok: true, status: "accepted" })
+                return
+            }
+            if (existing.status === "pending" && existing.fromId === player.id) {
+                res.status(409).json({ error: "Заявка уже отправлена" })
+                return
+            }
+            // declined/removed — превращаем в новую исходящую заявку
+            db.update(friendships)
+                .set({
+                    status: "pending",
+                    fromId: player.id,
+                    toId: target.id,
+                    createdAt: nowGameTime(),
+                    updatedAt: nowGameTime()
+                })
+                .where(eq(friendships.id, existing.id)).run()
+            notify(target.id, `${player.name} хочет добавить вас в друзья`)
+            res.status(201).json({ ok: true, status: "pending" })
+            return
+        }
 
-  // ШАГ 2b: отклонить входящую заявку (только адресат)
-  app.post("/friends/:id/decline", (req: any, res: any) => {
-    const player = (req as AuthedRequest).player
-    const fr = db.select().from(friendships).where(eq(friendships.id, Number(req.params.id))).get()
+        db.insert(friendships).values({
+            fromId: player.id,
+            toId: target.id,
+            status: "pending",
+            createdAt: nowGameTime(),
+            updatedAt: nowGameTime()
+        }).run()
 
-    if (!fr || fr.toId !== player.id || fr.status !== "pending") {
-      res.status(404).json({ error: "Заявка не найдена" })
-      return
-    }
+        notify(target.id, `${player.name} хочет добавить вас в друзья`)
+        res.status(201).json({ ok: true, status: "pending" })
+    })
 
-    db.update(friendships)
-      .set({ status: "declined", updatedAt: nowGameTime() })
-      .where(eq(friendships.id, fr.id)).run()
+    // СПИСОК: друзья + входящие/исходящие заявки
+    app.get("/friends", (req: any, res: any) => {
+        const player = (req as AuthedRequest).player
+        res.json(buildFriendsOverview(player.id))
+    })
 
-    res.json({ ok: true })
-  })
+    // ШАГ 2: принять входящую заявку (только получатель)
+    app.post("/friends/:id/accept", (req: any, res: any) => {
+        const player = (req as AuthedRequest).player
+        const fr = db.select().from(friendships).where(eq(friendships.id, Number(req.params.id))).get()
 
-  // ШАГ 3: удалить друга или отозвать/отклонить свою заявку (любой участник)
-  app.delete("/friends/:id", (req: any, res: any) => {
-    const player = (req as AuthedRequest).player
-    const fr = db.select().from(friendships).where(eq(friendships.id, Number(req.params.id))).get()
+        if (!fr || fr.toId !== player.id || fr.status !== "pending") {
+            res.status(404).json({ error: "Заявка не найдена" })
+            return
+        }
 
-    if (!fr || (fr.fromId !== player.id && fr.toId !== player.id)) {
-      res.status(404).json({ error: "Не найдено" })
-      return
-    }
+        db.update(friendships)
+            .set({ status: "accepted", updatedAt: nowGameTime() })
+            .where(eq(friendships.id, fr.id)).run()
+        notify(fr.fromId, `${player.name} принял вашу заявку на дружбу!`)
+        res.json({ ok: true })
+    })
 
-    db.update(friendships)
-      .set({ status: "removed", updatedAt: nowGameTime() })
-      .where(eq(friendships.id, fr.id)).run()
+    // ШАГ 2b: отклонить входящую заявку (только получатель)
+    app.post("/friends/:id/decline", (req: any, res: any) => {
+        const player = (req as AuthedRequest).player
+        const fr = db.select().from(friendships).where(eq(friendships.id, Number(req.params.id))).get()
 
-    res.json({ ok: true })
-  })
+        if (!fr || fr.toId !== player.id || fr.status !== "pending") {
+            res.status(404).json({ error: "Заявка не найдена" })
+            return
+        }
+
+        db.update(friendships)
+            .set({ status: "declined", updatedAt: nowGameTime() })
+            .where(eq(friendships.id, fr.id)).run()
+        notify(fr.fromId, `${player.name} отклонил вашу заявку на дружбу!`)
+        res.json({ ok: true })
+    })
+
+    // ШАГ 3: удалить друга или отозвать/отклонить свою заявку (любой участник)
+    app.delete("/friends/:id", (req: any, res: any) => {
+        const player = (req as AuthedRequest).player
+        const fr = db.select().from(friendships).where(eq(friendships.id, Number(req.params.id))).get()
+
+        if (!fr || (fr.fromId !== player.id && fr.toId !== player.id)) {
+            res.status(404).json({ error: "Не найдено" })
+            return
+        }
+
+        db.update(friendships)
+            .set({ status: "removed", updatedAt: nowGameTime() })
+            .where(eq(friendships.id, fr.id)).run()
+
+        res.json({ ok: true })
+    })
+}
+
+export function buildFriendsOverview(playerId: number): FriendsOverviewResponse {
+  const rows = db.select().from(friendships)
+    .where(or(eq(friendships.fromId, playerId), eq(friendships.toId, playerId)))
+    .all();
+  const accepted = rows.filter((r) => r.status === "accepted");
+  const pending = rows.filter((r) => r.status === "pending");
+  const friendIds = accepted.map((r) => (r.fromId === playerId ? r.toId : r.fromId));
+  const friendRows = friendIds.length
+    ? db.select({ id: players.id, name: players.name, level: players.level })
+        .from(players).where(inArray(players.id, friendIds)).all()
+    : [];
+  const friends: FriendDto[] = friendRows.map((p) => toFriendDto(p));
+  const requests: FriendRequestDto[] = pending.map((r) => {
+    const otherId = r.fromId === playerId ? r.toId : r.fromId;
+    const other = db.select({ id: players.id, name: players.name, level: players.level })
+      .from(players).where(eq(players.id, otherId)).get();
+    return {
+      id: r.id,
+      playerId: other?.id ?? 0,
+      name: other?.name ?? "?",
+      level: other?.level ?? 1,
+      direction: r.fromId === playerId ? "outgoing" : "incoming"
+    };
+  });
+  return { friends, requests };
 }

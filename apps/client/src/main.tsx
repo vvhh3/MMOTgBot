@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client"
 import "@radix-ui/themes/styles.css"
 import "./styles.css"
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
-import type { CombatStateResponse, InventoryItemDto, LocationStateResponse, PlayerDto } from "@mmobot/shared";
+import type { CombatStateResponse, FriendsOverviewResponse, InventoryItemDto, LocationStateResponse, PlayerDto } from "@mmobot/shared";
 import Loading from './components/Loading'
 import { auth, getMe } from "./api";
 
@@ -38,10 +38,11 @@ export default function ScrollToTop() {
 function App() {
   const [player, setPlayer] = useState<PlayerDto | null>(null)
   const [token, setToken] = useState<string | null>(null)
-  const [inventory, setInventory] = useState<InventoryItemDto[]>([]);
-  const [locationState, setLocationState] = useState<LocationStateResponse | null>(null);
-  const [combat, setCombat] = useState<CombatStateResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [inventory, setInventory] = useState<InventoryItemDto[]>([])
+  const [locationState, setLocationState] = useState<LocationStateResponse | null>(null)
+  const [combat, setCombat] = useState<CombatStateResponse | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [friendsOverview, setFriendsOverview] = useState<FriendsOverviewResponse | null>(null)
 
   useEffect(() => {
     const initData = getTelegramInitData();
@@ -94,19 +95,22 @@ function App() {
     const onPlayer = (nextPlayer: PlayerDto) => setPlayer(nextPlayer);
     const onInventory = (nextInventory: InventoryItemDto[]) => setInventory(nextInventory);
     const onCombatState = (combatState: CombatStateResponse) => setCombat(combatState);
+    const onFriendsUpdate = (friendState: FriendsOverviewResponse) => setFriendsOverview(friendState)
 
+    
     socket.on("connect_error", onConnectError);
     socket.on("locationState", onLocationState);
     socket.on("player", onPlayer);
     socket.on("inventory", onInventory);
     socket.on("combatState", onCombatState)
-    
+    socket.on("friendsUpdate",onFriendsUpdate)
     return () => {
       socket.off("connect_error", onConnectError)
       socket.off("locationState", onLocationState)
       socket.off("player", onPlayer)
       socket.off("inventory", onInventory)
       socket.off("combatState", onCombatState)
+      socket.off("friendsUpdate",onFriendsUpdate)
     }
   }, [player])
 
@@ -121,13 +125,13 @@ function App() {
             <Route path="Map" element={<Map token={token} onLocationState={setLocationState} onPlayer={setPlayer} />} />
             <Route path="Profile" element={<Profile player={player} />} />
             <Route path="Tasks" element={<Tasks token={token} onPlayer={setPlayer} />} />
-            <Route path="Team" element={<Team token={token} player={player}/>} />
-            <Route path="Inventory" element={<Inventory token={token} player={player} inventory={inventory}/>} />
+            <Route path="Team" element={<Team token={token} player={player} liveOverview={friendsOverview}/>} />
+            <Route path="Inventory" element={<Inventory token={token} player={player} inventory={inventory} />} />
             <Route path="Exchange" element={<Exchange />} />
-            <Route path="AdminPanel" element={<Admin token={token}/>}/>
+            <Route path="AdminPanel" element={<Admin token={token} />} />
           </Route>
-          <Route path="/TakeAWalk" element={<TakeAWalk token={token} player={player} onPlayer={setPlayer} onInventory={setInventory} locationState={locationState}/>} />
-          <Route path="/Fight" element={<Fight token={token} player={player}  locationState={locationState} />} />
+          <Route path="/TakeAWalk" element={<TakeAWalk token={token} player={player} onPlayer={setPlayer} onInventory={setInventory} locationState={locationState} />} />
+          <Route path="/Fight" element={<Fight token={token} player={player} locationState={locationState} />} />
         </Routes>
       </Theme>
     </>

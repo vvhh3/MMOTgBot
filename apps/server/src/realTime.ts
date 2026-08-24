@@ -1,6 +1,6 @@
 import type { Server as HttpServer } from "node:http"
 import { Server, type Socket } from "socket.io"
-import { eq } from "drizzle-orm"
+import { eq,and,or } from "drizzle-orm"
 import type { ClientToServerEvents, ServerToClientEvents } from "@mmobot/shared"
 
 type AppServer = Server<ClientToServerEvents, ServerToClientEvents>
@@ -9,9 +9,10 @@ type AppSocket = Socket<ClientToServerEvents, ServerToClientEvents>
 import { config } from "./config.js"
 import { verifySessionToken } from "./auth.js"
 import { db } from "./db.js"
-import { players } from "./db/schema.js"
+import { friendships, players } from "./db/schema.js"
 import { buildLocationState } from "./state.js"
 import { removePlayerFromLocation } from "./presence.js"
+import { buildFriendsOverview } from "./addFriends.js"
 
 // Глобальный экземпляр Socket.IO сервера
 // До вызова initRealTime() здесь null
@@ -119,6 +120,12 @@ export function initRealTime(httpServer: HttpServer): AppServer {
     // Добавляем текущий сокет игрока
     sockets.add(socket)
 
+    // Если это первый сокет игрока (был офлайн → стал онлайн) —
+    // шлём ему и всем его друзьям свежий список с актуальным статусом.
+    if (sockets.size === 1) {
+      pushFriendsPresence(playerId)
+    }
+
     // Когда конкретный сокет отключается
     socket.on("disconnect", () => {
       const sockets = playerSockets.get(playerId)
@@ -138,6 +145,8 @@ export function initRealTime(httpServer: HttpServer): AppServer {
         if(localtionId){
           broadcastLocation(localtionId)
         }
+        // Игрок ушёл в офлайн — сообщаем друзьям обновлённый статус
+        pushFriendsPresence(playerId)
       }
     })
   })
@@ -214,7 +223,7 @@ export function emitToPlayer<K extends keyof ServerToClientEvents>(
     .emit(event, ...args)
 }
 
-// Отправляет актуальное состояние локации всем игрокам, которые сейчас в ней.
+// Отправляет актуальное состояние локации всем игрокам, которые сейчас в ней
 // Дебаунс: если локацию "трогают" много раз подряд (каждый walk каждого игрока
 // вызывает broadcastLocation), состояние пересобирается и рассылается не чаще,
 // чем раз в BROADCAST_DEBOUNCE_MS — иначе нагрузка растёт как O(N²) от онлайна.
@@ -237,4 +246,18 @@ export function broadcastLocation(locationId: string): void {
 
     getIo().to(`location:${locationId}`).emit("locationState", state)
   }, BROADCAST_DEBOUNCE_MS))
+}
+
+function pushFriendsPresence(playerId: number): void {
+  emitToPlayer(playerId, "friendsUpdate", buildFriendsOverview(playerId));
+  const rows = db.select().from(friendships)
+    .where(and(
+      eq(friendships.status, "accepted"),
+      or(eq(friendships.fromId, playerId), eq(friendships.toId, playerId))
+    ))
+    .all();
+  const friendIds = rows.map((r) => (r.fromId === playerId ? r.toId : r.fromId));
+  for (const fid of friendIds) {
+    emitToPlayer(fid, "friendsUpdate", buildFriendsOverview(fid));
+  }
 }
