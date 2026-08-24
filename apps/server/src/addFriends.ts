@@ -43,6 +43,7 @@ export const createAddFriend = (app: Express) => {
     app.get("/friends/search", (req: any, res: any) => {
         const player = (req as AuthedRequest).player
         const friendId = Number(String((req as any).query?.q ?? "").trim())
+        console.log(`[friends] GET /friends/search q=${friendId} от player ${player.id}`)
 
         if (!Number.isInteger(friendId)) {
             res.json({ players: [] })
@@ -62,6 +63,7 @@ export const createAddFriend = (app: Express) => {
     app.post("/friends/request", (req: any, res: any) => {
         const player = (req as AuthedRequest).player
         const friendId = Number(req.body?.friendId)
+        console.log(`[friends] POST /friends/request friendId=${friendId} от player ${player.id}`)
 
         if (!Number.isInteger(friendId)) {
             res.status(400).json({ error: "friendId должен быть числом" })
@@ -133,6 +135,7 @@ export const createAddFriend = (app: Express) => {
     // СПИСОК: друзья + входящие/исходящие заявки
     app.get("/friends", (req: any, res: any) => {
         const player = (req as AuthedRequest).player
+        console.log(`[friends] GET /friends от player ${player.id}`)
         res.json(buildFriendsOverview(player.id))
     })
 
@@ -140,6 +143,7 @@ export const createAddFriend = (app: Express) => {
     app.post("/friends/:id/accept", (req: any, res: any) => {
         const player = (req as AuthedRequest).player
         const fr = db.select().from(friendships).where(eq(friendships.id, Number(req.params.id))).get()
+        console.log(`[friends] POST /friends/${req.params.id}/accept от player ${player.id}`)
 
         if (!fr || fr.toId !== player.id || fr.status !== "pending") {
             res.status(404).json({ error: "Заявка не найдена" })
@@ -150,6 +154,7 @@ export const createAddFriend = (app: Express) => {
             .set({ status: "accepted", updatedAt: nowGameTime() })
             .where(eq(friendships.id, fr.id)).run()
         notify(fr.fromId, `${player.name} принял вашу заявку на дружбу!`)
+        console.log(`[friends] accept ok: friendship ${fr.id}`)
         res.json({ ok: true })
     })
 
@@ -157,6 +162,7 @@ export const createAddFriend = (app: Express) => {
     app.post("/friends/:id/decline", (req: any, res: any) => {
         const player = (req as AuthedRequest).player
         const fr = db.select().from(friendships).where(eq(friendships.id, Number(req.params.id))).get()
+        console.log(`[friends] POST /friends/${req.params.id}/decline от player ${player.id}`)
 
         if (!fr || fr.toId !== player.id || fr.status !== "pending") {
             res.status(404).json({ error: "Заявка не найдена" })
@@ -171,11 +177,20 @@ export const createAddFriend = (app: Express) => {
     })
 
     // ШАГ 3: удалить друга или отозвать/отклонить свою заявку (любой участник)
+    // :id здесь — id игрока-друга (так приходит с клиента), ищем связь по паре игроков.
     app.delete("/friends/:id", (req: any, res: any) => {
         const player = (req as AuthedRequest).player
-        const fr = db.select().from(friendships).where(eq(friendships.id, Number(req.params.id))).get()
+        const otherId = Number(req.params.id)
+        console.log(`[friends] DELETE /friends/${otherId} от player ${player.id}`)
 
-        if (!fr || fr.fromId !== player.id) {
+        const fr = db.select().from(friendships)
+            .where(or(
+                and(eq(friendships.fromId, player.id), eq(friendships.toId, otherId)),
+                and(eq(friendships.fromId, otherId), eq(friendships.toId, player.id))
+            )).get()
+
+        if (!fr) {
+            console.log(`[friends] DELETE не найдено: связь player ${player.id} <-> ${otherId}`)
             res.status(404).json({ error: "Не найдено" })
             return
         }
@@ -184,6 +199,7 @@ export const createAddFriend = (app: Express) => {
             .set({ status: "removed", updatedAt: nowGameTime() })
             .where(eq(friendships.id, fr.id)).run()
 
+        console.log(`[friends] DELETE ok: friendship ${fr.id}`)
         res.json({ ok: true })
     })
 }
