@@ -107,6 +107,11 @@ export async function getCombatState(token:string) {
     return response.data
 }
 
+
+// для инвенторя
+export async function getInventory(token:string) {
+  
+}
 //Api для crud Мобов
 export async function createMob(token: string, mob: MobDto): Promise<MobResponse> {
   const response = await api.post<MobResponse>(`/mobs`, mob, { headers: authHeader(token) })
@@ -134,15 +139,19 @@ export async function updateItem(token: string, id: number, item: ItemDto): Prom
   const response = await api.put<ItemResponse>(`/items/${id}`, item, { headers: authHeader(token) })
   return response.data
 }
-
 export async function deleteItem(token: string, id: number) {
   await api.delete(`/items/${id}`, { headers: authHeader(token) })
 }
-
 export async function getItems(token: string): Promise<ItemsResponse> {
   const responce = await api.get<ItemsResponse>("/items", { headers: authHeader(token) })
   return responce.data
 }
+export async function getItem(token: string,id: number): Promise<ItemResponse> {
+  const responce = await api.get<ItemResponse>(`/items/${id}`,{ headers: authHeader(token) })
+  return responce.data
+}
+
+
 
 //Api для crud квестов
 export async function createQuest(token: string, quest: QuestsDto): Promise<QuestResponse> {
