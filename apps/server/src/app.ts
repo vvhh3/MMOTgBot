@@ -185,7 +185,7 @@ export function createApp(): express.Express {
   })
 
   app.use("/location-images",
-    express.static(path.resolve(process.cwd(), "data/location"))
+    express.static(path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../data/location"))
   )
 
   app.get("/locations/:id/state", requireAuth, (req, res) => {
