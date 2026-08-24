@@ -1,5 +1,6 @@
 export type PlayerDto = { // описание игрока
   id: number
+  friendId:number
   name: string
   level: number
   xp: number

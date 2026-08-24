@@ -1,13 +1,14 @@
 import { Avatar, Badge, Button, Card, Flex, Grid, Text, TextField } from "@radix-ui/themes"
 import { useEffect, useState } from "react"
-import type { FriendDto, FriendRequestDto } from "@mmobot/shared";
+import type { FriendDto, FriendRequestDto, PlayerDto } from "@mmobot/shared";
 import { getFriends, removeFriend, respondFriendRequest, searchFriends, sendFriendRequest } from "../api";
 
 type TeamProps = {
   token: string | null
+  player: PlayerDto | null
 }
 
-export default function Team({ token }: TeamProps) {
+export default function Team({ token,player }: TeamProps) {
   const [overview, setOverview] = useState<{ friends: FriendDto[]; requests: FriendRequestDto[] }>({ friends: [], requests: [] })
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<FriendDto[]>([])
@@ -72,6 +73,9 @@ export default function Team({ token }: TeamProps) {
 
   return (
     <div className="flex flex-col h-full">
+      <div>
+        <p> Ваш индефикатор дружбы: {player?.friendId}</p>
+      </div>
       <div className="flex justify-center items-center px-2.5 gap-1 pt-4">
         <TextField.Root
           radius="large"
@@ -79,8 +83,7 @@ export default function Team({ token }: TeamProps) {
           className="flex w-full max-w-150 justify-center"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") doSearch() }}
-        >
+          onKeyDown={(e) => { if (e.key === "Enter") doSearch() }}>
           <TextField.Slot>
             <svg width="16px" height='16px' viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14.9536 14.9458L21 21M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
           </TextField.Slot>
@@ -162,7 +165,7 @@ export default function Team({ token }: TeamProps) {
         <Text size="2" weight="bold" className="block mt-4">Друзья ({overview.friends.length})</Text>
         <Grid columns="1" gap="2" className="mt-2">
           {overview.friends.length === 0 && (
-            <Text size="1" color="gray">Пока нет друзей. Найдите игрока по коду выше.</Text>
+            <Text size="1" color="gray">Пока нет друзей. Найдите игрока по коду выше</Text>
           )}
           {overview.friends.map((f) => (
             <Card key={f.id}>
