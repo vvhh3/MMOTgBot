@@ -1,120 +1,191 @@
-import {Avatar, Card, Grid, TextField,Text ,Badge} from "@radix-ui/themes"
+import { Avatar, Badge, Button, Card, Flex, Grid, Text, TextField } from "@radix-ui/themes"
+import { useEffect, useState } from "react"
+import type { FriendDto, FriendRequestDto } from "@mmobot/shared";
+import { getFriends, removeFriend, respondFriendRequest, searchFriends, sendFriendRequest } from "../api";
 
-export default function Team(){
+type TeamProps = {
+  token: string | null
+}
 
-    return(
-        <div className="flex flex-col h-full ">
-            <div className="flex justify-center items-center px-2.5 gap-1 pt-4">
-                <TextField.Root radius="large" placeholder="Искать по нику или коду...." className="flex w-full max-w-150как  justify-center">
-                    <TextField.Slot>
-                        <svg width="16px" height='16px' viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M14.9536 14.9458L21 21M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
-                    </TextField.Slot>
-                </TextField.Root>
-                <button className="h-7.5 w-7.5 bg-[#E8603C] flex justify-center items-center rounded-[10px]">
-                    <svg className="h-3.75 w-3.75" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" fill="#fff"><path d="M157.9767 0C103.5064 0 59.0821 44.424 59.0821 98.8945s44.4243 98.8965 98.8946 98.8965 98.8965-44.426 98.8965-98.8965S212.447 0 157.9767 0Zm0 25c40.9592 0 73.8965 32.9349 73.8965 73.8945s-32.9373 73.8964-73.8965 73.8965-73.8946-32.9369-73.8946-73.8965S117.0175 25 157.9767 25Zm42.3808 175v200h200V200h-200Zm-42.3906 13.6328C70.2152 200.6548.0715 279.1693-.3065 374.4492L-.3575 387h176.7148v-25H25.3085c5.9893-77.1106 63.5961-136.3444 132.6582-136.3672h.01c6.2307 0 12.3661.4909 18.3809 1.4258v-25.2461c-6.029-.769-12.1615-1.1788-18.3868-1.1797Zm67.3906 11.3672h150v27.3672l-14.5234-12.2442-74.127 87.9199-49.6953-41.8965-11.6543 13.8223v-74.9687Zm150 36.6797v113.3203h-150v-65.9786l45.2344 38.1348 19.1133 16.1153 16.1152-19.1133 69.5371-82.4785Z"/></svg>                
-                </button>
-            </div>
-            <div className="flex flex-col w-full justify-center items-center">
-                <Grid columns="1" rows="1" gap='3' style={{padding:"20px",paddingTop:"10px",display:"flex",flexDirection:"column",alignItems:"center",minWidth:"230px",justifyItems:"center", maxWidth:"800px",width:"100%"}}>
-                <Card className="w-full">
-                    <div className="flex flex-row  items-center justify-between">
-                        <div className="flex flex-row gap-5">
-                            <div className="relative inline-block">
-                                <Avatar radius="full" fallback="A" color="green" size="2" />
-                                <span className="absolute right-0 bottom-0 block h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-white" />
-                            </div>
-                            <div className="flex flex-col">
-                                <div className="flex flex-row gap-3 ">
-                                    <Text size="2">
-                                        PLayer 1
-                                    </Text>
-                                    <Badge color="orange">Lv.4</Badge>
-                                </div>
-                                <Text size="1">
-                                    В сети
-                                </Text>
-                            </div>
-                        </div>
-                        <button className="h-8 w-8 flex justify-center items-center ">
-                            <svg className=" w-5 h-5"viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M21.0039 12C21.0039 16.9706 16.9745 21 12.0039 21H3.00463C3.00463 21 4.56382 17.2561 3.93982 16.0008C3.34076 14.7956 3.00391 13.4372 3.00391 12C3.00391 7.02944 7.03334 3 12.0039 3M20.1213 3.87868C21.2929 5.05025 21.2929 6.94975 20.1213 8.12132C18.9497 9.29289 17.0503 9.29289 15.8787 8.12132C14.7071 6.94975 14.7071 5.05025 15.8787 3.87868C17.0503 2.70711 18.9497 2.70711 20.1213 3.87868Z" stroke="#E8603C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
-                        </button>
+export default function Team({ token }: TeamProps) {
+  const [overview, setOverview] = useState<{ friends: FriendDto[]; requests: FriendRequestDto[] }>({ friends: [], requests: [] })
+  const [query, setQuery] = useState("")
+  const [results, setResults] = useState<FriendDto[]>([])
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  const reload = () => {
+    if (!token) return
+    getFriends(token)
+      .then((data) => setOverview(data))
+      .catch((e) => setError(e.message))
+  }
+
+  useEffect(() => {
+    reload()
+  }, [token])
+
+  const doSearch = async () => {
+    if (!token || !query.trim()) return
+    setLoading(true)
+    setError(null)
+    try {
+      const data = await searchFriends(token, query.trim())
+      setResults(data.players)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Ошибка поиска")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const addFriend = async (friendId: number) => {
+    if (!token) return
+    try {
+      await sendFriendRequest(token, friendId)
+      setResults([])
+      setQuery("")
+      reload()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Не удалось отправить заявку")
+    }
+  }
+
+  const accept = async (id: number) => {
+    if (!token) return
+    await respondFriendRequest(token, id, true).catch((e) => setError(e.message))
+    reload()
+  }
+  const decline = async (id: number) => {
+    if (!token) return
+    await respondFriendRequest(token, id, false).catch((e) => setError(e.message))
+    reload()
+  }
+  const remove = async (id: number) => {
+    if (!token) return
+    await removeFriend(token, id).catch((e) => setError(e.message))
+    reload()
+  }
+
+  const incoming = overview.requests.filter((r) => r.direction === "incoming")
+  const outgoing = overview.requests.filter((r) => r.direction === "outgoing")
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="flex justify-center items-center px-2.5 gap-1 pt-4">
+        <TextField.Root
+          radius="large"
+          placeholder="Искать по нику или коду..."
+          className="flex w-full max-w-150 justify-center"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") doSearch() }}
+        >
+          <TextField.Slot>
+            <svg width="16px" height='16px' viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14.9536 14.9458L21 21M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+          </TextField.Slot>
+        </TextField.Root>
+        <Button className="h-7.5 w-7.5" radius="large" onClick={doSearch} disabled={loading}>
+          Найти
+        </Button>
+      </div>
+
+      {error && <Text color="red" size="1" className="px-4 pt-2">{error}</Text>}
+
+      {results.length > 0 && (
+        <div className="px-4 pt-3">
+          <Text size="2" weight="bold">Результаты поиска</Text>
+          <Grid columns="1" gap="2" className="mt-2">
+            {results.map((p) => (
+              <Card key={p.id}>
+                <Flex justify="between" align="center">
+                  <Flex gap="3" align="center">
+                    <Avatar radius="full" fallback={p.name[0] ?? "A"} color="green" size="2" />
+                    <div className="flex flex-col">
+                      <Text size="2">{p.name}</Text>
+                      <Badge color="orange">Lv.{p.level}</Badge>
                     </div>
-                </Card>
-                <Card className="w-full">
-                    <div className="flex flex-row  items-center justify-between">
-                        <div className="flex flex-row gap-5">
-                            <div className="relative inline-block">
-                                <Avatar radius="full" fallback="A" color="green" size="2" />
-                                <span className="absolute right-0 bottom-0 block h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-white" />
-                            </div>
-                            <div className="flex flex-col">
-                                <div className="flex flex-row gap-3 ">
-                                    <Text size="2">
-                                        PLayer 5
-                                    </Text>
-                                    <Badge color="orange">Lv.4</Badge>
-                                </div>
-                                <Text size="1">
-                                    В сети
-                                </Text>
-                            </div>
-                        </div>
-                        <button className="h-8 w-8 flex justify-center items-center ">
-                            <svg className=" w-5 h-5"viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M21.0039 12C21.0039 16.9706 16.9745 21 12.0039 21H3.00463C3.00463 21 4.56382 17.2561 3.93982 16.0008C3.34076 14.7956 3.00391 13.4372 3.00391 12C3.00391 7.02944 7.03334 3 12.0039 3M20.1213 3.87868C21.2929 5.05025 21.2929 6.94975 20.1213 8.12132C18.9497 9.29289 17.0503 9.29289 15.8787 8.12132C14.7071 6.94975 14.7071 5.05025 15.8787 3.87868C17.0503 2.70711 18.9497 2.70711 20.1213 3.87868Z" stroke="#E8603C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
-                        </button>
-                    </div>
-                </Card>
-                <Card className="w-full">
-                    <div className="flex flex-row  items-center justify-between">
-                        <div className="flex flex-row gap-5">
-                            <div className="relative inline-block">
-                                <Avatar radius="full" fallback="A" color="green" size="2" />
-                                <span className="absolute right-0 bottom-0 block h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-white" />
-                            </div>
-                            <div className="flex flex-col">
-                                <div className="flex flex-row gap-3 ">
-                                    <Text size="2">
-                                        PLayer 4
-                                    </Text>
-                                    <Badge color="orange">Lv.4</Badge>
-                                </div>
-                                <Text size="1">
-                                    В сети
-                                </Text>
-                            </div>
-                        </div>
-                        <button className="h-8 w-8 flex justify-center items-center ">
-                            <svg className=" w-5 h-5"viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M21.0039 12C21.0039 16.9706 16.9745 21 12.0039 21H3.00463C3.00463 21 4.56382 17.2561 3.93982 16.0008C3.34076 14.7956 3.00391 13.4372 3.00391 12C3.00391 7.02944 7.03334 3 12.0039 3M20.1213 3.87868C21.2929 5.05025 21.2929 6.94975 20.1213 8.12132C18.9497 9.29289 17.0503 9.29289 15.8787 8.12132C14.7071 6.94975 14.7071 5.05025 15.8787 3.87868C17.0503 2.70711 18.9497 2.70711 20.1213 3.87868Z" stroke="#E8603C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
-                        </button>
-                    </div>
-                </Card>
-                <Card className="w-full">
-                    <div className="flex flex-row  items-center justify-between">
-                        <div className="flex flex-row gap-5">
-                            <div className="relative inline-block">
-                                <Avatar radius="full" fallback="A" color="green" size="2" />
-                                <span className="absolute right-0 bottom-0 block h-2.5 w-2.5 rounded-full bg-[gray] ring-2 ring-white" />
-                            </div>
-                            <div className="flex flex-col">
-                                <div className="flex flex-row gap-3 ">
-                                    <Text size="2">
-                                        PLayer 3
-                                    </Text>
-                                    <Badge color="orange">Lv.4</Badge>
-                                </div>
-                                <Text size="1">
-                                    Не в сети
-                                </Text>
-                            </div>
-                        </div>
-                        <button className="h-8 w-8 flex justify-center items-center ">
-                            <svg className=" w-5 h-5"viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M21.0039 12C21.0039 16.9706 16.9745 21 12.0039 21H3.00463C3.00463 21 4.56382 17.2561 3.93982 16.0008C3.34076 14.7956 3.00391 13.4372 3.00391 12C3.00391 7.02944 7.03334 3 12.0039 3M20.1213 3.87868C21.2929 5.05025 21.2929 6.94975 20.1213 8.12132C18.9497 9.29289 17.0503 9.29289 15.8787 8.12132C14.7071 6.94975 14.7071 5.05025 15.8787 3.87868C17.0503 2.70711 18.9497 2.70711 20.1213 3.87868Z" stroke="#E8603C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
-                        </button>
-                    </div>
-                </Card>
-                
-            </Grid>
-            </div>
+                  </Flex>
+                  <Button size="1" onClick={() => addFriend(p.id)}>Добавить</Button>
+                </Flex>
+              </Card>
+            ))}
+          </Grid>
         </div>
-    )
+      )}
+
+      <div className="px-4 pt-4">
+        {incoming.length > 0 && (
+          <>
+            <Text size="2" weight="bold">Входящие заявки</Text>
+            <Grid columns="1" gap="2" className="mt-2">
+              {incoming.map((r) => (
+                <Card key={r.id}>
+                  <Flex justify="between" align="center">
+                    <Flex gap="3" align="center">
+                      <Avatar radius="full" fallback={r.name[0] ?? "A"} color="green" size="2" />
+                      <div className="flex flex-col">
+                        <Text size="2">{r.name}</Text>
+                        <Badge color="orange">Lv.{r.level}</Badge>
+                      </div>
+                    </Flex>
+                    <Flex gap="2">
+                      <Button size="1" color="green" onClick={() => accept(r.id)}>Принять</Button>
+                      <Button size="1" color="red" variant="soft" onClick={() => decline(r.id)}>Отклонить</Button>
+                    </Flex>
+                  </Flex>
+                </Card>
+              ))}
+            </Grid>
+          </>
+        )}
+
+        {outgoing.length > 0 && (
+          <>
+            <Text size="2" weight="bold" className="block mt-4">Исходящие заявки</Text>
+            <Grid columns="1" gap="2" className="mt-2">
+              {outgoing.map((r) => (
+                <Card key={r.id}>
+                  <Flex justify="between" align="center">
+                    <Flex gap="3" align="center">
+                      <Avatar radius="full" fallback={r.name[0] ?? "A"} color="green" size="2" />
+                      <Text size="2">{r.name}</Text>
+                    </Flex>
+                    <Button size="1" variant="soft" color="gray" onClick={() => remove(r.id)}>Отменить</Button>
+                  </Flex>
+                </Card>
+              ))}
+            </Grid>
+          </>
+        )}
+
+        <Text size="2" weight="bold" className="block mt-4">Друзья ({overview.friends.length})</Text>
+        <Grid columns="1" gap="2" className="mt-2">
+          {overview.friends.length === 0 && (
+            <Text size="1" color="gray">Пока нет друзей. Найдите игрока по коду выше.</Text>
+          )}
+          {overview.friends.map((f) => (
+            <Card key={f.id}>
+              <Flex justify="between" align="center">
+                <Flex gap="3" align="center">
+                  <div className="relative inline-block">
+                    <Avatar radius="full" fallback={f.name[0] ?? "A"} color="green" size="2" />
+                    <span className={`absolute right-0 bottom-0 block h-2.5 w-2.5 rounded-full ring-2 ring-white ${f.online ? "bg-green-500" : "bg-gray-400"}`} />
+                  </div>
+                  <div className="flex flex-col">
+                    <Flex gap="3" align="center">
+                      <Text size="2">{f.name}</Text>
+                      <Badge color="orange">Lv.{f.level}</Badge>
+                    </Flex>
+                    <Text size="1" color={f.online ? "green" : "gray"}>{f.online ? "В сети" : "Не в сети"}</Text>
+                  </div>
+                </Flex>
+                <Button size="1" variant="soft" color="gray" onClick={() => remove(f.id)}>Удалить</Button>
+              </Flex>
+            </Card>
+          ))}
+        </Grid>
+      </div>
+    </div>
+  )
 }

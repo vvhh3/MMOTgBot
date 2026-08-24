@@ -32,6 +32,7 @@ import { createItemRoutes } from "./items.js";
 import { createQuestRoutes, progressQuests } from "./quests.js";
 import { createTradeRoutes } from "./trades.js";
 import { createPvpRoutes } from "./pvp.js";
+import { createAddFriend } from "./addFriends.js";
 import { buildLocationState } from "./state.js";
 
 import { broadcastLocation, emitToPlayer, moveSocketToLocation } from "./realTime.js";
@@ -83,9 +84,36 @@ export function createApp(): express.Express {
   app.use("/pvp", requireAuth)
   createPvpRoutes(app)
 
+  //Друзья
+  app.use("/friends", requireAuth)
+  createAddFriend(app)
+
   app.get("/health", (_req, res) => {
     res.json({ ok: true });
-  });
+  })
+
+  function insertPlayerWithUniqueFriendId(playerData: Omit<typeof players.$inferInsert, "friendId">) {
+    const MAX_ATTEMPTS = 10;
+
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+      const friendId = Math.floor(10000 + Math.random() * 90000)
+      try {
+        db.insert(players)
+          .values({ ...playerData, friendId })
+          .run();
+        return friendId;
+      } catch (error) {
+        // конфликт уникальности - пробуем другое число
+        if (isUniqueConstraintError(error)) continue
+        throw error
+      }
+    }
+    throw new Error("Не удалось сгенерировать уникальный friendId");
+  }
+  
+  function isUniqueConstraintError(error: unknown): boolean {
+    return error instanceof Error && error.message.includes("UNIQUE constraint failed");
+  }
 
   app.post("/auth", (req, res) => {
     const body = req.body as AuthRequest;
@@ -99,10 +127,16 @@ export function createApp(): express.Express {
       const now = nowGameTime();
       const name = telegramUser.username || [telegramUser.first_name, telegramUser.last_name].filter(Boolean).join(" ") || `Player ${telegramUser.id}`;
 
-      db.insert(players)
-        .values({ id: telegramUser.id, name, createdAt: now, lastSeenAt: now })
-        .onConflictDoUpdate({ target: players.id, set: { name, lastSeenAt: now } })
-        .run();
+      const existing = db.select().from(players).where(eq(players.id, telegramUser.id)).get();
+
+      if (existing) {
+        db.update(players)
+          .set({ name, lastSeenAt: now })
+          .where(eq(players.id, telegramUser.id))
+          .run();
+      } else {
+        insertPlayerWithUniqueFriendId({ id: telegramUser.id, name, createdAt: now, lastSeenAt: now });
+      }
 
       const player = db.select().from(players).where(eq(players.id, telegramUser.id)).get()!;
       const response: AuthResponse = {
@@ -113,7 +147,7 @@ export function createApp(): express.Express {
     } catch (error) {
       res.status(401).json({ error: error instanceof Error ? error.message : "Invalid initData" });
     }
-  });
+  })
 
   app.get("/me", requireAuth, (req, res) => {
     const player = (req as AuthedRequest).player;
@@ -524,6 +558,7 @@ function serveClient(app: express.Express): void {
       req.path.startsWith("/quests") ||
       req.path.startsWith("/trades") ||
       req.path.startsWith("/pvp") ||
+      req.path.startsWith("/friends") ||
       req.path.startsWith("/inventory") ||
       req.path.startsWith("/leaderboard") ||
       req.path.startsWith("/combat")

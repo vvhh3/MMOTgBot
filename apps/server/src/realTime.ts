@@ -156,6 +156,12 @@ export function getIo(): AppServer {
   return io
 }
 
+// Онлайн ли игрок прямо сейчас (есть ли у него активные сокеты).
+// Используется, чтобы показать в списке друзей "В сети" / "Не в сети".
+export function isPlayerOnline(playerId: number): boolean {
+  return (playerSockets.get(playerId)?.size ?? 0) > 0
+}
+
 // Перемещает все сокеты игрока в новую location-комнату
 //
 // Например

@@ -20,6 +20,7 @@ export const locations = sqliteTable("locations", {
 export const players = sqliteTable("players",
   {
     id: integer("id").primaryKey(),
+    friendId: integer("friend_id").notNull().default(0),
     name: text("name").notNull(),
     health: integer('health').notNull().default(100),
     maxHealth: integer('max_health').notNull().default(100),
@@ -37,7 +38,10 @@ export const players = sqliteTable("players",
     lastRegenTime: text("last_regen_time").notNull().$defaultFn(() => nowGameTime())
   },
   // Индекс ускоряет поиск игроков по текущей локации (напр. "кто сейчас на площади").
-  (table) => [index("players_current_location_idx").on(table.currentLocationId)]
+  (table) => [
+    index("players_current_location_idx").on(table.currentLocationId),
+    uniqueIndex("players_friend_id_idx").on(table.friendId)
+  ]
 )
 
 // Мобы (враги), обитающие в локациях.
@@ -177,6 +181,26 @@ export const trades = sqliteTable("trades", {
 ]);
 
 
+// Друзья: заявка/дружба между двумя игроками.
+// fromId — кто отправил заявку, toId — кто её получил.
+// status:
+//   pending  — заявка отправлена, ждёт ответа
+//   accepted — игроки стали друзьями
+//   declined — получатель отклонил заявку
+//   removed  — кто-то удалил друга / отозвал заявку
+// Уникальный индекс на пару (fromId, toId) не даёт отправить
+// одну и ту же заявку дважды, а также хранить зеркальную пару (A→B и B→A).
+export const friendships = sqliteTable("friendships", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  fromId: integer("from_id").notNull().references(() => players.id, { onDelete: "cascade" }),
+  toId: integer("to_id").notNull().references(() => players.id, { onDelete: "cascade" }),
+  status: text("status", { enum: ["pending", "accepted", "declined", "removed"] }).notNull().default("pending"),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull()
+}, (table) => [
+  uniqueIndex("friendships_pair_unique").on(table.fromId, table.toId)
+]);
+
 export const pvpSessions = sqliteTable("pvp_sessions", {
   id: integer("id").primaryKey({autoIncrement: true}),
   player1Id: integer("player_1_id").notNull().references(() => players.id,{onDelete: "cascade"}),
@@ -211,3 +235,4 @@ export type PlayerQuestsRow = typeof playerQuests.$inferSelect
 
 export type TradeRow = typeof trades.$inferSelect
 export type PvpSessionRow = typeof pvpSessions.$inferSelect
+export type FriendshipRow = typeof friendships.$inferSelect

@@ -99,6 +99,13 @@
       "when": 1787571563705,
       "tag": "0013_mean_mauler",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "6",
+      "when": 1787650000000,
+      "tag": "0014_friendly_friends",
+      "breakpoints": true
     }
   ]
 }

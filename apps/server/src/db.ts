@@ -5,12 +5,13 @@ import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { sql } from "drizzle-orm";
-import type { EventDto, InventoryItemDto, LocationDto, PlayerDto, MobDto, ItemDto, QuestsDto } from "@mmobot/shared";
+import type { EventDto, InventoryItemDto, LocationDto, PlayerDto, MobDto, ItemDto, QuestsDto, FriendDto } from "@mmobot/shared";
 import { config } from "./config.js";
 import { items, locations, mobs, quests } from "./db/schema.js";
 import type { EventRow, InventoryItemRow, LocationRow, PlayerRow, MobRow, ItemRow, QuestsRow } from "./db/schema.js";
 import { getPlayerStats } from "./combat.js";
 import { getLevelXpBounds } from "./level.js";
+import { isPlayerOnline } from "./realTime.js";
 
 export type { EventRow, InventoryItemRow, LocationRow, PlayerRow, MobRow, ItemRow } from "./db/schema.js";
 
@@ -145,7 +146,14 @@ export function toMobDto(row: MobRow): MobDto{
     respawnSeconds: row.respawnSeconds
   }
 }
-
+export function toFriendDto(p: { id: number; name: string; level: number }): FriendDto {
+    return { 
+      id: p.id, 
+      name: p.name, 
+      level: p.level,
+       online: isPlayerOnline(p.id) 
+      }
+}
 export function toItemDto(row: ItemRow): ItemDto {
   return {
     id: row.id,
