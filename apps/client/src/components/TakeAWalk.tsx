@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { CombatStateResponse, InventoryItemDto, PlayerDto,LocationDto,LocationStateResponse } from "@mmobot/shared"
 import { useEffect, useState } from "react"
 import { combatAction, getCombatState,getLocationState} from "../api"
+import { getLocationImage } from "../utils/getLocationImage"
 
 type TakeAWalkProps = {
     token: string | null
@@ -59,7 +60,7 @@ export default function TakeAWalk({ token, player,onPlayer,onInventory,locationS
     return (
         <div className="flex ">
             <div className="flex w-full flex-col justify-end" style={{
-                backgroundImage: `url(${location?.fightImg})`,
+                backgroundImage:`url(${location ? getLocationImage(location.fightImg): "none"})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',

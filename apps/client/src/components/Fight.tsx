@@ -5,7 +5,7 @@ import { Link } from "react-router-dom"
 import { LocationDto, LocationStateResponse, PlayerDto } from "@mmobot/shared";
 import { getLocationState, startCombat } from "../api";
 import { useState ,useEffect} from "react";
-
+import { getLocationImage } from "../utils/getLocationImage";
 type FightProps = {
     token: string| null
     player: PlayerDto| null
@@ -29,7 +29,7 @@ export default function Fight({token,player,locationState}: FightProps){
     return(
         <div className="flex ">
             <div className="flex w-full flex-col justify-end"  style={{
-                backgroundImage: `url(${location?.fightImg})`,
+                backgroundImage:`url(${location ? getLocationImage(location.fightImg): "none"})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
