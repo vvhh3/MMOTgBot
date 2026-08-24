@@ -5,7 +5,7 @@ import playerG from '../avatarPlayer/playerG.svg'
 import { useEffect, useState } from "react";
 import { LocationDto, LocationStateResponse, PlayerDto } from "@mmobot/shared";
 import { getLocationState, startCombat } from "../api";
-
+import { getLocationImage } from "../utils/getLocationImage";
 type HomeProps = {
     token: string| null
     player: PlayerDto| null
@@ -57,7 +57,7 @@ export default function Home({token,player,locationState}: HomeProps){
     return(
         <div className="flex flex-col justify-center items-center ">
             <div className="flex flex-col justify-center items-center w-full h-full object-contain bg-bottom border-b-2" 
-            style={{backgroundImage:`url(${location?.homeImg})`}}>
+            style={{backgroundImage:`url(${location ? getLocationImage(location.homeImg): "none"})`}}>
                  <div className="bg-[#00000074] rounded-2xl px-2.5 m-0.75">
                     <header className="text-[#E85D2F] font-[800px]">{location?.name}</header>
                  </div>
