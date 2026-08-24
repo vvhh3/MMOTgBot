@@ -8,7 +8,7 @@ import map from "./mapMat.png"
 import { LocationDto, LocationStateResponse, PlayerDto } from "@mmobot/shared";
 import { enterLocation, getLocations } from "../../../api";
 import { useNavigate } from "react-router-dom";
-
+import { getLocationImage } from "../../../utils/getLocationImage";
 const IMG_W = 1622;
 const IMG_H = 970;
 
@@ -197,7 +197,7 @@ export default function GameMap({ token,onLocationState,onPlayer }:MapeProps) {
             width: 300
           }}>
           <Inset>
-            <img src={selectedLocation.homeImg} style={{ padding: "10px", borderRadius: "16px" }}
+            <img src={getLocationImage(selectedLocation.homeImg)} style={{ padding: "10px", borderRadius: "16px" }}
             />
           </Inset>
 

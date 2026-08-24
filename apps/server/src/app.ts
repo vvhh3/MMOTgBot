@@ -183,7 +183,10 @@ export function createApp(): express.Express {
     const response: LocationsResponse = { locations: locationRows.map(toLocationDto) };
     res.json(response);
   });
-
+  app.use(
+  "/location-images",
+    express.static(path.resolve(process.cwd(), "data/location"))
+  );
   app.get("/locations/:id/state", requireAuth, (req, res) => {
     const state = buildLocationState(req.params.id);
     if (!state) {

@@ -34,11 +34,11 @@ export function initializeDatabase(): void {
   // Ниже — сид (начальные данные), который заносится в БД при первом запуске.
   // Список стартовых локаций: id, название, описание и координаты.
   const seedLocations: LocationDto[] = [
-    { id: "square", name: "Площадь", description: "Описание площади", x: 31, y: 40 ,homeImg:"./data/location/square-home.svg",fightImg:"./data/location/square-fight.svg"},
-    { id: "market", name: "Сити парк", description: "Описание сити парка", x: 42, y: 33 ,homeImg:"./data/location/market-home.svg",fightImg:"./data/location/market-fight.svg"},
-    { id: "park", name: "Парк Победы", description: "Описание парка победы", x: 40, y: 27,homeImg:"./data/location/park-home.svg",fightImg:"./data/location/park-fight.svg" },
-    { id: "forest", name: "Солдатсикй лес", description: "Описание солдатского леса", x: 64, y: 33,homeImg:"./data/location/forest-home.svg",fightImg:"./data/location/forest-fight.svg" },
-    { id: "railway", name: "Липяги", description: "Описание станции", x: 70, y: 38,homeImg:"./data/location/railway-home.svg",fightImg:"./data/location/railway-fight.svg" }
+    { id: "square", name: "Площадь", description: "Описание площади", x: 31, y: 40 ,homeImg:"square-home.svg",fightImg:"square-fight.svg"},
+    { id: "market", name: "Сити парк", description: "Описание сити парка", x: 42, y: 33 ,homeImg:"market-home.svg",fightImg:"market-fight.svg"},
+    { id: "park", name: "Парк Победы", description: "Описание парка победы", x: 40, y: 27,homeImg:"park-home.svg",fightImg:"park-fight.svg" },
+    { id: "forest", name: "Солдатсикй лес", description: "Описание солдатского леса", x: 64, y: 33,homeImg:"forest-home.svg",fightImg:"forest-fight.svg" },
+    { id: "railway", name: "Липяги", description: "Описание станции", x: 70, y: 38,homeImg:"railway-home.svg",fightImg:"railway-fight.svg" }
   ]
 
   // Стартовые мобы. locationId должен ссылаться на существующую локацию из seedLocations,
