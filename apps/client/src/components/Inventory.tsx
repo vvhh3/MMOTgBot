@@ -2,8 +2,8 @@
 
 import { InventoryItemDto, ItemDto, PlayerDto } from "@mmobot/shared"
 import { useEffect, useState } from "react"
-import { getItem, getItems } from "../api"
-import {Tabs,Text,Box,Card, Progress,Badge, Grid} from "@radix-ui/themes"
+import { getCatalog } from "../api"
+import { Tabs, Text, Box, Card, Progress, Badge, Grid } from "@radix-ui/themes"
 import playerM from "../avatarPlayer/playerM.svg"
 
 type InventoryProps = {
@@ -15,26 +15,31 @@ type InventoryProps = {
 export default function Inventory({ token, player, inventory }: InventoryProps) {
 
     console.log(inventory)
-    console.log(token)
-    console.log(player)
 
-    // const [items, setItems] = useState<ItemDto[]>([])
     const [error, setError] = useState<string | null>(null)
 
     const [inventoryItems, setInventoryItems] = useState<ItemDto[]>([])
-    
+
     useEffect(() => {
         if (!token) return
-        getItems(token).then(i => setInventoryItems(i.items)).catch(e => e instanceof Error ? e.message : "Ошибка получения предметов")
+        getCatalog(token)
+        .then(r => {
+            console.log(r)
+            setInventoryItems(r.items)
+        })
+        .catch(e => setError(e instanceof Error ? e.message : "ОШибка"))
     }, [token])
 
-    const list = inventory?.map(inv => ({
+
+    const list = (inventory ?? []).map(inv => ({   // inv — элемент inventory
         item: inventoryItems.find(i => i.id === inv.itemType),
         quantity: inv.quantity,
-        equped: inv.equiped
+        equiped: inv.equiped,
     }))
 
 
+    console.log(inventoryItems)
+    console.log(list)
 
     return (
         <div className=' h-full ' >
@@ -52,6 +57,7 @@ export default function Inventory({ token, player, inventory }: InventoryProps) 
                             </div>
                             <div className="flex-1 min-w-0 flex flex-col">
                                 <div className="flex justify-end w-full">
+                                    {error}
                                     <Badge color="orange">Lv {player?.level}</Badge>
                                 </div>
                                 <div className="flex flex-col">

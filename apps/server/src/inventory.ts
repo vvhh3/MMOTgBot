@@ -1,9 +1,10 @@
 
 import { AuthedRequest } from "./auth.js"
 import type { Express, Request, Response } from "express"
-import { db, toInventoryItemDto, toPlayerDto } from "./db.js"
+import { db, toInventoryItemDto, toItemDto, toPlayerDto } from "./db.js"
 import { inventoryItems, items, players } from "./db/schema.js"
-import { eq, and } from "drizzle-orm"
+import { eq, and,asc } from "drizzle-orm"
+import { ItemsResponse } from "@mmobot/shared"
 
 export const InventoryRoutes = (app: Express) => {
 
@@ -13,6 +14,12 @@ export const InventoryRoutes = (app: Express) => {
         const value = Number((body as { itemType?: unknown })?.itemType);
         return Number.isInteger(value) ? value : null;
     }
+
+    app.get("/inventory", (req, res) => {
+        const state = db.select().from(items).orderBy(asc(items.id)).all()
+        const response: ItemsResponse = { items: state.map(toItemDto) }
+        res.json(response)
+    })
 
     app.post("/inventory/equip", (req: Request, res: Response) => {
         const player = (req as AuthedRequest).player

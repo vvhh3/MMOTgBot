@@ -142,6 +142,7 @@ export async function updateItem(token: string, id: number, item: ItemDto): Prom
 export async function deleteItem(token: string, id: number) {
   await api.delete(`/items/${id}`, { headers: authHeader(token) })
 }
+
 export async function getItems(token: string): Promise<ItemsResponse> {
   const responce = await api.get<ItemsResponse>("/items", { headers: authHeader(token) })
   return responce.data
@@ -151,7 +152,10 @@ export async function getItem(token: string,id: number): Promise<ItemResponse> {
   return responce.data
 }
 
-
+export async function getCatalog(token: string) {
+  const r = await api.get<ItemsResponse>("/inventory", { headers: authHeader(token) })
+  return r.data
+}
 
 //Api для crud квестов
 export async function createQuest(token: string, quest: QuestsDto): Promise<QuestResponse> {
