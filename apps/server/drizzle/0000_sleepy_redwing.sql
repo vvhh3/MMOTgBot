@@ -25,9 +25,7 @@ CREATE TABLE `locations` (
 	`name` text NOT NULL,
 	`description` text NOT NULL,
 	`x` real NOT NULL,
-	`y` real NOT NULL,
-	`homeImg`text NOT NULL,
-	`fightImg`text NOT NULL
+	`y` real NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE `players` (
