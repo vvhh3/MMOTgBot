@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.CLIENT_URL ?? ""
+const API_URL = "https://mmotgbot-production.up.railway.app "
 
 export function getLocationImage(fileName: string) {
   console.log(`${API_URL}/location-images/${fileName}`)
