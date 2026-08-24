@@ -108,6 +108,7 @@ export function toPlayerDto(row: PlayerRow): PlayerDto {
   const { levelStartXp, nextLevelXp } = getLevelXpBounds(row.xp);
   return {
     id: row.id,
+    friendId: row.friendId,
     name: row.name,
     level: row.level,
     xp: row.xp,
