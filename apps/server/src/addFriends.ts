@@ -181,7 +181,7 @@ export const createAddFriend = (app: Express) => {
     app.delete("/friends/:id", (req: any, res: any) => {
         const player = (req as AuthedRequest).player
         const otherId = Number(req.params.id)
-        console.log(`[friends] DELETE /friends/${otherId} от player ${player.id}`)
+        console.log(`[friends] DELETE /friends/${otherId} от player ${player.name}, ${player.id}`)
 
         const fr = db.select().from(friendships)
             .where(or(
@@ -199,7 +199,7 @@ export const createAddFriend = (app: Express) => {
             .set({ status: "removed", updatedAt: nowGameTime() })
             .where(eq(friendships.id, fr.id)).run()
 
-        console.log(`[friends] DELETE ok: friendship ${fr.id}`)
+        console.log(`[friends] DELETE ok: friendship ${player.name}, ${player.id}`)
         res.json({ ok: true })
     })
 }

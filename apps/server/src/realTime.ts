@@ -87,6 +87,7 @@ export function initRealTime(httpServer: HttpServer): AppServer {
   // Срабатывает после успешной авторизации
   io.on("connection", (socket) => {
     const playerId = socket.data.playerId as number
+    console.log(`[realtime] socket connected playerId=${playerId} totalSockets=${playerSockets.size}`)
 
     // Добавляем сокет в персональную комнату игрока
     //
@@ -128,6 +129,7 @@ export function initRealTime(httpServer: HttpServer): AppServer {
 
     // Когда конкретный сокет отключается
     socket.on("disconnect", () => {
+      console.log(`[realtime] socket disconnected playerId=${playerId}`)
       const sockets = playerSockets.get(playerId)
 
       if (!sockets) {
