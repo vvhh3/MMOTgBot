@@ -29,6 +29,7 @@ export default function TakeAWalk({ token, player,onPlayer,onInventory,locationS
         .then((res) => setState(res))
         .catch(e => setError(e instanceof Error ? e.message :"Ошибка")) 
     }
+
     useEffect(() => {
         if(locationState){
             setLocation(locationState.location)
@@ -41,6 +42,7 @@ export default function TakeAWalk({ token, player,onPlayer,onInventory,locationS
         .catch((error) => alert(error ?? "Ошибка"))
 
     },[token,locationState,player?.currentLocationId])
+
     useEffect(() => {
         getState()
     },[token])
@@ -57,6 +59,7 @@ export default function TakeAWalk({ token, player,onPlayer,onInventory,locationS
             setError(e instanceof Error ? e.message : 'Ошибка запроса, попробуйте попозже')
         }
     }
+
     return (
         <div className="flex ">
             <div className="flex w-full flex-col justify-end" style={{

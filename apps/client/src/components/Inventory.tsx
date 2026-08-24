@@ -51,8 +51,7 @@ export default function Inventory({ token, player, inventory }: InventoryProps) 
                         return (
                             <div
                                 key={index}
-                                className="border-[#898888] border h-10 w-10 p-0.5 flex flex-col justify-between overflow-hidden"
-                            >
+                                className="border-[#898888] border h-17 w-17 p-0.5 flex flex-col justify-between overflow-hidden">
                                 {entry?.item && (
                                     <>
                                         <Text size="1" title={entry.item.description} className="truncate">
@@ -71,7 +70,7 @@ export default function Inventory({ token, player, inventory }: InventoryProps) 
 
     return (
         <div className=' h-full ' >
-            <div className="p-5]">
+            <div className="p-5">
                 <Card>
                     <div className="flex flex-col">
                         <div className="flex flex-row ">
