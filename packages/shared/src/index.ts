@@ -113,6 +113,7 @@ export type LocationDto = {
   y: number;
   homeImg:string;
   fightImg:string;
+  actions: string[];
 }
 
 export type ActionDto = {

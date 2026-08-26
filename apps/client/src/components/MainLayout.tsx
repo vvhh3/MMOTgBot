@@ -33,7 +33,7 @@ export default function MainLayout({ player }: LayoutProps) {
                         <div className="rounded-2xl bg-[#ffff] text-[#E8603C]">
                             <p className="text-[13px] pr-2 pl-2">Lv {player?.level}</p>
                         </div>
-                        <Avatar radius="full" fallback="A" color="green" size="4" ></Avatar>
+                        <Avatar radius="full" fallback={`${player ? player.name[0] : "А"}`} color="green" size="4" ></Avatar>
                     </div>
                 </Link>
             </div>
