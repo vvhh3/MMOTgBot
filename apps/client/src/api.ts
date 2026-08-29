@@ -222,3 +222,17 @@ export async function createTrade(token: string, toPlayerId: number) {
   const response = await api.post("/trades", { toPlayerId }, { headers: authHeader(token) })
   return response.data
 }
+
+
+
+
+// PVP между игроков 
+// получить онлайн игроков
+export async function getOnlinePlayer(token:string) {
+    const response = await api.get("/players/online", {headers: authHeader(token)})
+    return response.data
+}
+export async function createPvp(token:string, toPLayerId: number) {
+    const response = await api.post("/pvp", {toPLayerId}, {headers: authHeader(token)})
+    return response.data
+}
