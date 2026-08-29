@@ -157,7 +157,7 @@ export default function Home({token,player,locationState,friendsOverview}: HomeP
                     </button>
                 </Card>
             </Grid>
-            <ModalSelectOfFriend isShow={showModal} friends={friendsOverview?.friends ?? []} token={token}/>
+            <ModalSelectOfFriend isShow={showModal} token={token} onClose={() => setShowModal(false)} />
         </div>
     )
 }

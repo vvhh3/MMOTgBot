@@ -1,19 +1,27 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, Text, Button } from "@radix-ui/themes";
 import { FriendDto } from "@mmobot/shared";
-import { createTrade } from "../../../api";
+import { createTrade, getFriends } from "../../../api";
 import { useNavigate } from "react-router-dom";
 
 type ModalSelectOfFriendProps = {
     isShow: boolean
-    friends: FriendDto[]
     token: string | null
+    onClose: () => void
 }
 
-export default function ModalSelectOfFriend({ isShow, friends, token }: ModalSelectOfFriendProps) {
+export default function ModalSelectOfFriend({ isShow, token, onClose }: ModalSelectOfFriendProps) {
+    const [friends, setFriends] = useState<FriendDto[]>([])
     const [busy, setBusy] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const navigate = useNavigate()
+
+    useEffect(() => {
+        if (!isShow || !token) return
+        getFriends(token)
+            .then((data) => setFriends(data.friends))
+            .catch((e) => setError(e instanceof Error ? e.message : "Не удалось загрузить друзей"))
+    }, [isShow, token])
 
     if (!isShow) return null
 
@@ -23,6 +31,7 @@ export default function ModalSelectOfFriend({ isShow, friends, token }: ModalSel
         setError(null)
         try {
             await createTrade(token, friendId)
+            onClose()
             navigate("/Exchange")
         } catch (e) {
             setError(e instanceof Error ? e.message : "Не удалось предложить обмен")
@@ -32,12 +41,19 @@ export default function ModalSelectOfFriend({ isShow, friends, token }: ModalSel
     }
 
     return (
-        <div className="fixed inset-0 z-20 flex items-end justify-center bg-black/40" >
-            <div className="w-full max-h-[80%] overflow-y-auto rounded-t-2xl bg-white p-4">
+        <div className="fixed inset-0 z-20 flex items-end justify-center bg-black/40">
+            <div className="relative w-full max-h-[80%] overflow-y-auto rounded-t-2xl bg-white p-4">
+                <button
+                    onClick={onClose}
+                    aria-label="Закрыть"
+                    className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full border-2 border-black text-lg leading-none"
+                >
+                    ×
+                </button>
                 <Text size="3" weight="bold">Выберите друга для обмена</Text>
-                {error && <Text color="red" size="1">{error}</Text>}
-                {friends.length === 0 && (
-                    <Text color="gray" size="1">У вас пока нет друзей</Text>
+                {error && <Text color="red" size="1" className="block mt-2">{error}</Text>}
+                {friends.length === 0 && !error && (
+                    <Text color="gray" size="1" className="block mt-3">У вас пока нет друзей</Text>
                 )}
                 <div className="flex flex-col gap-2 mt-3">
                     {friends.map((f) => (
