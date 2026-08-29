@@ -27,6 +27,18 @@ export default function Team({ token, player,liveOverview }: TeamProps) {
     reload()
   }, [token])
 
+  // Прокси/VPN блокирует Socket.IO, поэтому онлайн обновляем обычным
+  // REST-поллингом /friends (там у каждого друга есть поле online).
+  useEffect(() => {
+    if (!token) return
+    const id = setInterval(() => {
+      getFriends(token)
+        .then((data) => setOverview(data))
+        .catch(() => {})
+    }, 5000)
+    return () => clearInterval(id)
+  }, [token])
+
   useEffect(() => {
     if(liveOverview) setOverview(liveOverview)
   },[liveOverview])
