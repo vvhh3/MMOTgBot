@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Card, Text, Button } from "@radix-ui/themes";
 import { FriendDto, PlayerDto } from "@mmobot/shared";
-import { createPvp, createTrade, getFriends, getOnlinePlayer } from "../../../api";
+import {
+  createPvp,
+  createTrade,
+  getFriends,
+  getOnlinePlayer,
+} from "../../../api";
 import { useNavigate } from "react-router-dom";
 
 type ModalSelectOfFriendProps = {
@@ -70,15 +75,15 @@ export default function ModalSelectOfFriend({
   const handlePvp = async (playerId: number) => {
     if (!token) return;
     setLoading(true);
-    setError(null)
-    try{
-        await createPvp(token,playerId)
-        onClose()
-        navigate("/Fight")
-    }catch(e){
-        setError(e instanceof Error ? e.message : "Не удалось вызвать соперника" )
-    }finally {
-        setLoading(false)
+    setError(null);
+    try {
+      await createPvp(token, playerId);
+      onClose();
+      navigate("/Fight");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Не удалось вызвать соперника");
+    } finally {
+      setLoading(false);
     }
   };
   return (
@@ -99,14 +104,14 @@ export default function ModalSelectOfFriend({
             {error}
           </Text>
         )}
-        {friends.length === 0 && !error && (
-          <Text color="gray" size="1" className="block mt-3">
-            У вас пока нет друзей
-          </Text>
-        )}
         <div className="flex flex-col gap-2 mt-3">
           {type === "trade" ? (
             <>
+              {friends.length === 0 && !error && (
+                <Text color="gray" size="1" className="block mt-3">
+                  У вас пока нет друзей
+                </Text>
+              )}
               {friends.map((f) => (
                 <Card
                   key={f.id}
@@ -133,6 +138,11 @@ export default function ModalSelectOfFriend({
           ) : null}
           {type === "figth" ? (
             <>
+              {onlinePlayers.length === 0 && !error && (
+                <Text color="gray" size="1" className="block mt-3">
+                  Нету онлайн игроков
+                </Text>
+              )}
               {onlinePlayers.map((player) => (
                 <Card
                   key={player.id}
@@ -148,7 +158,7 @@ export default function ModalSelectOfFriend({
                   </div>
                   <Button
                     disabled={loading}
-                    onClick={() => handleTrade(player.id)}
+                    onClick={() => handlePvp(player.id)}
                     style={{ background: "#E8603C", border: "solid 2px black" }}
                   >
                     {textOnButton}
