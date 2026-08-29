@@ -90,6 +90,7 @@ function App() {
         return;
       }
       setError(err.message);
+      console.log("error",err)
     };
     const onLocationState = (nextState: LocationStateResponse) => setLocationState(nextState);
     const onPlayer = (nextPlayer: PlayerDto) => setPlayer(nextPlayer);
@@ -114,13 +115,12 @@ function App() {
     }
   }, [player])
 
-
   return (
     <>
       <Theme>
         <ScrollToTop />
         <Routes>
-          <Route path="" element={<MainLayout player={player} />}>
+          <Route path="" element={<MainLayout player={player} error={error}/>}>
             <Route path="/" element={<Home token={token} player={player} locationState={locationState} friendsOverview={friendsOverview} />} />
             <Route path="Map" element={<Map token={token} onLocationState={setLocationState} onPlayer={setPlayer} />} />
             <Route path="Profile" element={<Profile player={player} />} />

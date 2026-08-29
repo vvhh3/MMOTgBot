@@ -1,6 +1,7 @@
 import axios, { type AxiosError } from "axios";
 import {
   CombatActionResponse,
+  PlayerDto,
   type AuthRequest,
   type AuthResponse,
   type ClaimQuestResponse,
@@ -228,11 +229,11 @@ export async function createTrade(token: string, toPlayerId: number) {
 
 // PVP между игроков 
 // получить онлайн игроков
-export async function getOnlinePlayer(token:string) {
+export async function getOnlinePlayer(token:string): Promise<{players: PlayerDto[]}> {
     const response = await api.get("/players/online", {headers: authHeader(token)})
     return response.data
 }
-export async function createPvp(token:string, toPLayerId: number) {
-    const response = await api.post("/pvp", {toPLayerId}, {headers: authHeader(token)})
+export async function createPvp(token:string, toPlayerId: number) {
+    const response = await api.post("/pvp", {toPlayerId}, {headers: authHeader(token)})
     return response.data
 }
