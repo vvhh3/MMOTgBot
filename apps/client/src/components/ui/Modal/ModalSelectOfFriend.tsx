@@ -46,7 +46,7 @@ export default function ModalSelectOfFriend({
         );
     } else if (type === "figth") {
       getOnlinePlayer(token)
-        .then((data) => setOnlinePlayers(data.players))
+        .then((data) => setOnlinePlayers(Array.isArray(data.players) ? data.players : []))
         .catch((e) =>
           setError(
             e instanceof Error ? e.message : "Не удалось загрузить игроков",

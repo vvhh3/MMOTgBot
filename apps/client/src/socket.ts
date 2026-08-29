@@ -20,7 +20,8 @@ export function connectSocket(token: string): AppSocket {
     }
 
     socket = io(import.meta.env.VITE_API_BASE_URL ?? "", {
-        auth: { token }
+        auth: { token },
+        transports: ["websocket"],
     }) as AppSocket
     return socket
 }
