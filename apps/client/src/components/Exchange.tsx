@@ -1,6 +1,13 @@
+import { PlayerDto } from "@mmobot/shared";
 import { Button, Card, Text } from "@radix-ui/themes";
 
-export default function Exchange(){
+
+type ExhangeType ={
+    player: PlayerDto | null
+}
+
+export default function Exchange({player} : ExhangeType){
+    
     return(
         <div className="flex flex-col">
             <div className=" flex flex-row items-center gap-1.5 pl-5 h-7.5 border-b-2">

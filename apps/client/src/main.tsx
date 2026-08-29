@@ -121,13 +121,13 @@ function App() {
         <ScrollToTop />
         <Routes>
           <Route path="" element={<MainLayout player={player} />}>
-            <Route path="/" element={<Home token={token} player={player} locationState={locationState} />} />
+            <Route path="/" element={<Home token={token} player={player} locationState={locationState} friendsOverview={friendsOverview} />} />
             <Route path="Map" element={<Map token={token} onLocationState={setLocationState} onPlayer={setPlayer} />} />
             <Route path="Profile" element={<Profile player={player} />} />
             <Route path="Tasks" element={<Tasks token={token} onPlayer={setPlayer} />} />
             <Route path="Team" element={<Team token={token} player={player} liveOverview={friendsOverview}/>} />
             <Route path="Inventory" element={<Inventory token={token} player={player} inventory={inventory} />} />
-            <Route path="Exchange" element={<Exchange />} />
+            <Route path="Exchange" element={<Exchange player={player}/>} />
             <Route path="AdminPanel" element={<Admin token={token} />} />
           </Route>
           <Route path="/TakeAWalk" element={<TakeAWalk token={token} player={player} onPlayer={setPlayer} onInventory={setInventory} locationState={locationState} />} />

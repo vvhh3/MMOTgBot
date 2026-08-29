@@ -216,3 +216,9 @@ export async function removeFriend(token: string, id: number) {
   const response = await api.delete(`/friends/${id}`, { headers: authHeader(token) })
   return response.data
 }
+
+// Предложить обмен другому игроку (POST /trades)
+export async function createTrade(token: string, toPlayerId: number) {
+  const response = await api.post("/trades", { toPlayerId }, { headers: authHeader(token) })
+  return response.data
+}

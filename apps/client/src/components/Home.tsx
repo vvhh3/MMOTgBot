@@ -3,16 +3,20 @@ import { Link, useNavigate } from "react-router-dom";
 import playerM from '../avatarPlayer/playerM.svg'
 import playerG from '../avatarPlayer/playerG.svg'
 import { useEffect, useState } from "react";
-import { LocationDto, LocationStateResponse, PlayerDto } from "@mmobot/shared";
+import { LocationDto, LocationStateResponse, PlayerDto, FriendsOverviewResponse } from "@mmobot/shared";
 import { getLocationState, startCombat } from "../api";
 import { getLocationImage } from "../utils/getLocationImage";
+import ModalSelectOfFriend from "./ui/Modal/ModalSelectOfFriend";
 type HomeProps = {
     token: string| null
     player: PlayerDto| null
     locationState: LocationStateResponse|null
+    friendsOverview: FriendsOverviewResponse| null
 }
 
-export default function Home({token,player,locationState}: HomeProps){
+export default function Home({token,player,locationState,friendsOverview}: HomeProps){
+
+    const [showModal,setShowModal] = useState(false)
 
     const [location,setLocation] = useState<LocationDto>()
     const navigate = useNavigate()
@@ -136,7 +140,7 @@ export default function Home({token,player,locationState}: HomeProps){
                     </div>
                 </Card>
                 <Card >
-                    <Link to="/Exchange">
+                    <button onClick={() => setShowModal(showModal ? false: true)}>
                         <div className="flex flex-row justify-between">
                             <div className="max-w-60">
                                 <Text as="div" size="2" weight="bold">
@@ -150,9 +154,10 @@ export default function Home({token,player,locationState}: HomeProps){
                                 </Text>
                             </div>   
                         </div>
-                    </Link>
+                    </button>
                 </Card>
             </Grid>
+            <ModalSelectOfFriend isShow={showModal} friends={friendsOverview?.friends ?? []} token={token}/>
         </div>
     )
 }
