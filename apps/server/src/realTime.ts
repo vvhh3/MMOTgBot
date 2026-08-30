@@ -25,6 +25,33 @@ let io: AppServer | null = null
 // 15 -> { socketA, socketB }
 const playerSockets = new Map<number, Set<AppSocket>>()
 
+// ===== Диагностическое логирование WebSocket =====
+const P = (tag: string, msg: string) => console.log(`[WS ${tag}] ${new Date().toISOString()} ${msg}`)
+
+// Безопасный вывод заголовка (маскируем чувствительное)
+function safeHeader(name: string, value: string | string[] | string[] | undefined): string {
+  if (value === undefined) return "<missing>"
+  const raw = Array.isArray(value) ? value.join(",") : value
+  const lower = name.toLowerCase()
+  if (lower === "cookie" || lower === "authorization" || lower.includes("token") || lower.includes("key") || lower.includes("secret") || lower.includes("initdata")) {
+    return "<masked>"
+  }
+  if (raw.length > 40) return raw.slice(0, 25) + "…<masked>"
+  return raw
+}
+
+// Ключевые заголовки для диагностики (остальные опускаем), каждый безопасно маскируется
+function logHandshakeHeaders(socket: AppSocket): void {
+  const h = socket.handshake.headers
+  const address = socket.handshake.address
+  const url = socket.handshake.url
+  const query = socket.handshake.query
+  P("UPGRADE", `address=${address} url=${url} transport=${String(query?.transport ?? "-")}`)
+  P("UPGRADE", `origin=${safeHeader("origin", h.origin)} host=${safeHeader("host", h.host)} userAgent=${safeHeader("user-agent", h["user-agent"])}`)
+  P("UPGRADE", `x-forwarded-proto=${safeHeader("x-forwarded-proto", h["x-forwarded-proto"])} x-forwarded-for=${safeHeader("x-forwarded-for", h["x-forwarded-for"])}`)
+  P("UPGRADE", `newline=${safeHeader("sec-websocket-version", h["sec-websocket-version"])} key=${h["sec-websocket-key"] ? "<present>" : "<missing>"}`)
+}
+
 export function initRealTime(httpServer: HttpServer): AppServer {
   // Создаём Socket.IO сервер поверх обычного HTTP сервера
   io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
@@ -32,11 +59,23 @@ export function initRealTime(httpServer: HttpServer): AppServer {
       origin(origin, callback) {
         // Проверяем разрешён ли origin клиента
         const allowed = !origin || config.devBypassAuth || origin === config.clientUrl || config.corsOrigins.includes(origin)
+        P("SERVER", `cors-check origin=${origin ?? "(none)"} allowed=${allowed} clientUrl=${config.clientUrl} devBypassAuth=${config.devBypassAuth}`)
         // Если origin разрешён пропускаем подключение
         // Иначе возвращаем ошибку CORS
         callback(allowed ? null : new Error("Not allowed by CORS"), allowed)
       }
     }
+  })
+
+  P("SERVER", `socket.io server created on httpServer, port=${config.port}`)
+
+  // Событие когда HTTP(upgrade) запрос достиг движка engine.io, но до socket.io
+  io.engine.on("connection", (engineSocket) => {
+    P("CONNECTION", `engine connection remoteAddress=${engineSocket.remoteAddress}`)
+  })
+  // Ошибки HTTP/upgrade на уровне engine.io
+  io.engine.on("connection_error", (err) => {
+    P("ERROR", `engine connection_error code=${err.code} message=${err.message} context=${JSON.stringify(err.context ?? {})}`)
   })
 
   // Middleware авторизации
@@ -46,8 +85,12 @@ export function initRealTime(httpServer: HttpServer): AppServer {
     // io(url, { auth: { token } })
     const token = socket.handshake.auth?.token as string | undefined
 
+    logHandshakeHeaders(socket)
+    P("UPGRADE", `auth tokenPresent=${!!token}`)
+
     // Без токена подключение запрещаем
     if (!token) {
+      P("ERROR", `auth reject: Missing auth token`)
       next(new Error("Missing auth token"))
       return
     }
@@ -60,6 +103,7 @@ export function initRealTime(httpServer: HttpServer): AppServer {
     } catch {
       // Если токен неправильный или просроченный
       // запрещаем подключение
+      P("ERROR", `auth reject: Invalid auth token`)
       next(new Error("Invalid auth token"))
       return
     }
@@ -72,6 +116,7 @@ export function initRealTime(httpServer: HttpServer): AppServer {
       .get()
 
     if (!player) {
+      P("ERROR", `auth reject: Player not found (playerId=${playerId})`)
       next(new Error("Player not found"))
       return
     }
@@ -87,7 +132,20 @@ export function initRealTime(httpServer: HttpServer): AppServer {
   // Срабатывает после успешной авторизации
   io.on("connection", (socket) => {
     const playerId = socket.data.playerId as number
+    P("CONNECTION", `socket.io connected playerId=${playerId} totalSockets=${playerSockets.size} transport=${socket.conn?.transport?.name ?? "?"}`)
     console.log(`[realtime] socket connected playerId=${playerId} totalSockets=${playerSockets.size}`)
+
+    // Логируем входящие события от клиента (без раскрытия содержимого)
+    socket.onAny((event, ...args) => {
+      P("MESSAGE", `recv event=${event} args=${JSON.stringify(args).slice(0, 120)}${String(JSON.stringify(args)).length > 120 ? "…" : ""}`)
+    })
+    // Логируем отправку событий клиенту (без раскрытия содержимого)
+    socket.onAnyOutgoing((event, ...args) => {
+      P("MESSAGE", `send event=${event} args=${JSON.stringify(args).slice(0, 120)}${String(JSON.stringify(args)).length > 120 ? "…" : ""}`)
+    })
+    socket.on("error", (err) => {
+      P("ERROR", `socket error playerId=${playerId} message=${err?.message ?? err}`)
+    })
 
     // Добавляем сокет в персональную комнату игрока
     //
@@ -128,7 +186,8 @@ export function initRealTime(httpServer: HttpServer): AppServer {
     }
 
     // Когда конкретный сокет отключается
-    socket.on("disconnect", () => {
+    socket.on("disconnect", (reason) => {
+      P("CLOSE", `socket.io disconnect playerId=${playerId} reason=${reason} transport=${socket.conn?.transport?.name ?? "?"}`)
       console.log(`[realtime] socket disconnected playerId=${playerId}`)
       const sockets = playerSockets.get(playerId)
 
