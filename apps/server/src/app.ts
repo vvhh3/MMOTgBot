@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, ne, sql } from "drizzle-orm";
 import cors from "cors";
 import express from "express";
 import path from "node:path";
@@ -35,7 +35,7 @@ import { createPvpRoutes } from "./pvp.js";
 import { createAddFriend } from "./addFriends.js";
 import { buildLocationState } from "./state.js";
 
-import { broadcastLocation, emitToPlayer, moveSocketToLocation } from "./realTime.js";
+import { broadcastLocation, emitToPlayer, isPlayerOnline, moveSocketToLocation } from "./realTime.js";
 import { InventoryRoutes } from "./inventory.js";
 import { addXpForPlayer, STAT_GAIN } from "./level.js";
 import { nowGameTime } from "./time.js";
@@ -383,7 +383,35 @@ export function createApp(): express.Express {
     broadcastLocation(location.id)
 
     res.json(response);
-  });
+  })
+  
+  // Получить онлайн игроков для выбора противника в ПвП.
+  // Онлайн определяется наличием активных сокетов у игрока (isPlayerOnline),
+  // самого себя из списка исключаем.
+  app.get('/players/online', requireAuth, (req, res) => {
+    const me = (req as AuthedRequest).player
+
+    const all = db.select({
+      id: players.id,
+      name: players.name,
+      level: players.level,
+      currentLocationId: players.currentLocationId
+    })
+      .from(players)
+      .where(ne(players.id, me.id))
+      .all()
+
+    const onlinePlayers = all
+      .filter((p) => isPlayerOnline(p.id))
+      .map((p) => ({
+        id: p.id,
+        name: p.name,
+        level: p.level,
+        locationId: p.currentLocationId
+      }))
+
+    res.json({ players: onlinePlayers })
+  })
 
   // === БОЁВКА ===
 

@@ -1,6 +1,7 @@
 import axios, { type AxiosError } from "axios";
 import {
   CombatActionResponse,
+  PlayerDto,
   type AuthRequest,
   type AuthResponse,
   type ClaimQuestResponse,
@@ -215,4 +216,24 @@ export async function respondFriendRequest(token: string, id: number, accept: bo
 export async function removeFriend(token: string, id: number) {
   const response = await api.delete(`/friends/${id}`, { headers: authHeader(token) })
   return response.data
+}
+
+// Предложить обмен другому игроку (POST /trades)
+export async function createTrade(token: string, toPlayerId: number) {
+  const response = await api.post("/trades", { toPlayerId }, { headers: authHeader(token) })
+  return response.data
+}
+
+
+
+
+// PVP между игроков 
+// получить онлайн игроков
+export async function getOnlinePlayer(token:string): Promise<{players: PlayerDto[]}> {
+    const response = await api.get("/players/online", {headers: authHeader(token)})
+    return response.data
+}
+export async function createPvp(token:string, toPlayerId: number) {
+    const response = await api.post("/pvp", {toPlayerId}, {headers: authHeader(token)})
+    return response.data
 }

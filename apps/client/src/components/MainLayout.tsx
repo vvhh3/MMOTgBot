@@ -8,9 +8,10 @@ import { PlayerDto } from "@mmobot/shared";
 
 type LayoutProps = {
     player: PlayerDto | null
+    error: string | null
 }
 
-export default function MainLayout({ player }: LayoutProps) {
+export default function MainLayout({ player,error }: LayoutProps) {
 
     useEffect(() => {
         const tg = window.Telegram?.WebApp;
@@ -28,6 +29,7 @@ export default function MainLayout({ player }: LayoutProps) {
                 <Link to="/">
                     <header className="font-bold pl-3">MMONSK</header>
                 </Link>
+                <p className="text-red-500">{error}</p>
                 <Link to="/Profile">
                     <div className="flex flex-row items-center gap-4">
                         <div className="rounded-2xl bg-[#ffff] text-[#E8603C]">
