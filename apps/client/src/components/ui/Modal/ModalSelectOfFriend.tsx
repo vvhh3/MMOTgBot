@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Card, Text, Button } from "@radix-ui/themes";
-import { FriendDto, PlayerDto, PvpStateDto } from "@mmobot/shared";
+import { Card, Text, } from "@radix-ui/themes";
+import { FriendDto, PlayerDto, PvpStateDto, TradeStateDto } from "@mmobot/shared";
 import {
-  acceptPvp,
   cancelPvp,
   createPvp,
   createTrade,
@@ -18,8 +17,8 @@ type ModalSelectOfFriendProps = {
   title: string;
   textOnButton: string;
   type: "figth" | "trade";
-  pvpState?: PvpStateDto| null
-  player: PlayerDto | null
+  pvpState?: PvpStateDto | null;
+  tradeState?: TradeStateDto | null
 };
 
 export default function ModalSelectOfFriend({
@@ -30,7 +29,7 @@ export default function ModalSelectOfFriend({
   textOnButton,
   type,
   pvpState,
-  player
+  tradeState
 }: ModalSelectOfFriendProps) {
   const [friends, setFriends] = useState<FriendDto[]>([]);
   const [onlinePlayers, setOnlinePlayers] = useState<PlayerDto[]>([]);
@@ -72,6 +71,14 @@ export default function ModalSelectOfFriend({
     }
   }, [type, isShow, pvpState, navigate]);
 
+  // Трейд открыт → перекидывает на страницу обмена
+  useEffect(() => {
+    if (type === "trade" && isShow && tradeState?.status === "open") {
+      navigate("/Exchange");
+    }
+  }, [type, isShow, tradeState, navigate]);
+
+
   if (!isShow) return null;
 
   const handleTrade = async (friendId: number) => {
@@ -80,8 +87,6 @@ export default function ModalSelectOfFriend({
     setError(null);
     try {
       await createTrade(token, friendId);
-      onClose();
-      navigate("/Exchange");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Не удалось предложить обмен");
     } finally {
@@ -95,41 +100,27 @@ export default function ModalSelectOfFriend({
     setError(null);
     try {
       await createPvp(token, playerId);
-      // модалка не закрывается — ждём ответа соперника (pvpState)
     } catch (e) {
       setError(e instanceof Error ? e.message : "Не удалось вызвать соперника");
     } finally {
       setLoading(false);
     }
-  }
-  const handleAccept = async () => {
-    if (!token || !pvpState) return;
-    setLoading(true);
-    setError(null);
-    try {
-      await acceptPvp(token, pvpState.id);
-      // после accept сервер пришлёт pvpState active → эффект выше уведёт на /Fight
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Не удалось принять бой");
-    } finally {
-      setLoading(false);
-    }
-  }
-  const handleCancle = async (id:number) => {
-    if(!token) return
+  } 
 
-    try{
-      cancelPvp( token,id)
-    }catch(e){
-      setError(e instanceof Error ? e.message : "Ошибка отмены")
+  const handleCancle = async (id: number) => {
+    if (!token) return;
+
+    try {
+      cancelPvp(token, id);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Ошибка отмены");
     }
-  }
+  };
   return (
     <div className="fixed inset-0 z-20 flex items-end justify-center bg-black/40">
       <div className="relative w-full max-h-[80%] overflow-y-auto rounded-t-2xl bg-white p-4">
         <button
           onClick={onClose}
-          aria-label="Закрыть"
           className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full border-2 border-black text-lg leading-none"
         >
           ×
@@ -163,13 +154,13 @@ export default function ModalSelectOfFriend({
                       Lv {f.level} {f.online ? "• в сети" : ""}
                     </Text>
                   </div>
-                  <Button
+                  <button
                     disabled={loading}
                     onClick={() => handleTrade(f.id)}
-                    style={{ background: "#E8603C", border: "solid 2px black" }}
+                    className="bg-[#E8603C] border-2 border-black rounded-2xl"
                   >
                     {textOnButton}
-                  </Button>
+                  </button>
                 </Card>
               ))}
             </>
@@ -177,36 +168,18 @@ export default function ModalSelectOfFriend({
 
           {type === "figth" ? (
             <>
-              {pvpState?.status === "pending" && pvpState.direction === "outgoing" ? (
+              {pvpState?.status === "pending" &&
+              pvpState.direction === "outgoing" ? (
                 <>
-                  <p className="text-black text-lg">Ожидаем ответ соперника.....</p>
+                  <p className="text-black text-lg">
+                    Ожидаем ответ соперника.....
+                  </p>
                   <button
                     onClick={() => handleCancle(pvpState.id)}
-                    className="w-full p-3 bg-red-500 text-2xl text-white"
+                    className="w-full p-3 bg-red-500 text-2xl text-white rounded-2xl"
                   >
                     Отмена
                   </button>
-                </>
-              ) : null}
-              {pvpState?.status === "pending" && pvpState.direction === "incoming" ? (
-                <>
-                  <p className="text-black text-lg">{pvpState.partnerName} вызывает вас на бой!</p>
-                  <div className="flex gap-2 w-full">
-                    <button
-                      onClick={handleAccept}
-                      disabled={loading}
-                      className="flex-1 p-3 bg-green-600 text-2xl text-white rounded-lg"
-                    >
-                      Принять
-                    </button>
-                    <button
-                      onClick={() => handleCancle(pvpState.id)}
-                      disabled={loading}
-                      className="flex-1 p-3 bg-red-500 text-2xl text-white rounded-lg"
-                    >
-                      Отклонить
-                    </button>
-                  </div>
                 </>
               ) : null}
               {!pvpState || pvpState.status !== "pending" ? (
@@ -219,8 +192,7 @@ export default function ModalSelectOfFriend({
                   {onlinePlayers.map((player) => (
                     <Card
                       key={player.id}
-                      className="flex flex-row items-center justify-between"
-                    >
+                      className="flex flex-row items-center justify-between">
                       <div className="flex flex-col">
                         <Text size="2" weight="bold">
                           {player.name}
@@ -229,16 +201,12 @@ export default function ModalSelectOfFriend({
                           Lv {player.level}
                         </Text>
                       </div>
-                      <Button
+                      <button
                         disabled={loading}
                         onClick={() => handlePvp(player.id)}
-                        style={{
-                          background: "#E8603C",
-                          border: "solid 2px black",
-                        }}
-                      >
+                        className="bg-[#E8603C] border-2 border-black rounded-2xl">
                         {textOnButton}
-                      </Button>
+                      </button>
                     </Card>
                   ))}
                 </>

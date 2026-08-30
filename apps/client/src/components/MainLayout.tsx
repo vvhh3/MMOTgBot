@@ -115,8 +115,10 @@ export default function MainLayout({ player, token, error,onError, pvpState, tra
 
                             {pvpIncoiming && (
                                 <div className="flex flex-col gap-2 border-b pb-2">
-                                    <svg  height="20px" width="20px" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" version="1.1" fill="none" stroke="#E85D2F" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" > <g id="SVGRepo_bgCarrier" stroke-width="0"></g> <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" ></g> <g id="SVGRepo_iconCarrier">{" "}<path d="m2.75 9.25 1.5 2.5 2 1.5m-4.5 0 1 1m1.5-2.5-1.5 1.5m3-1 8.5-8.5v-2h-2l-8.5 8.5"></path>{" "} <path d="m10.25 12.25-2.25-2.25m2-2 2.25 2.25m1-1-1.5 2.5-2 1.5m4.5 0-1 1m-1.5-2.5 1.5 1.5m-7.25-5.25-4.25-4.25v-2h2l4.25 4.25"></path>{" "}</g></svg>
-                                    <p className="text-sm">{pvpState.partnerName} вызывает вас на бой!</p>
+                                    <div className="flex w-full">
+                                        <svg  height="20px" width="20px" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" version="1.1" fill="none" stroke="#E85D2F" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" > <g id="SVGRepo_bgCarrier" stroke-width="0"></g> <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" ></g> <g id="SVGRepo_iconCarrier">{" "}<path d="m2.75 9.25 1.5 2.5 2 1.5m-4.5 0 1 1m1.5-2.5-1.5 1.5m3-1 8.5-8.5v-2h-2l-8.5 8.5"></path>{" "} <path d="m10.25 12.25-2.25-2.25m2-2 2.25 2.25m1-1-1.5 2.5-2 1.5m4.5 0-1 1m-1.5-2.5 1.5 1.5m-7.25-5.25-4.25-4.25v-2h2l4.25 4.25"></path>{" "}</g></svg>
+                                        <p className="text-sm">{pvpState.partnerName} вызывает вас на бой!</p>
+                                    </div>
                                     <div className="flex gap-2">
                                         <button onClick={handlePvpAccept} className="flex-1 p-2 bg-green-600 text-white rounded-lg">Принять</button>
                                         <button onClick={handlePvpDecline} className="flex-1 p-2 bg-red-500 text-white rounded-lg">Отклонить</button>
