@@ -25,7 +25,9 @@ import {
   type MobsResponse,
   type QuestResponse,
   type QuestsDto,
-  type QuestsResponse
+  type QuestsResponse,
+  type PvpOverviewResponse,
+  type TradesOverviewResponse
 } from "@mmobot/shared";
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
@@ -223,6 +225,10 @@ export async function createTrade(token: string, toPlayerId: number) {
   const response = await api.post("/trades", { toPlayerId }, { headers: authHeader(token) })
   return response.data
 }
+export async function getTradesOverview(token: string): Promise<TradesOverviewResponse> {
+    const response = await api.get<TradesOverviewResponse>("/trades", { headers: authHeader(token) })
+    return response.data
+}
 export async function acceptTrade(token:string,id:number) {
     const response = await api.post(`/trades/${id}/accept`,undefined, {headers: authHeader(token)})
     return response.data
@@ -242,6 +248,10 @@ export async function getOnlinePlayer(token:string): Promise<{players: PlayerDto
 }
 export async function createPvp(token:string, toPlayerId: number) {
     const response = await api.post("/pvp", {toPlayerId}, {headers: authHeader(token)})
+    return response.data
+}
+export async function getPvpOverview(token: string): Promise<PvpOverviewResponse> {
+    const response = await api.get<PvpOverviewResponse>("/pvp", { headers: authHeader(token) })
     return response.data
 }
 export async function acceptPvp (token:string,id:number) {

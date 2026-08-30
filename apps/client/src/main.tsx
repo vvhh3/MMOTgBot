@@ -5,7 +5,7 @@ import "./styles.css"
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import type { CombatStateResponse, FriendsOverviewResponse, InventoryItemDto, LocationStateResponse, PlayerDto, PvpStateDto, TradeStateDto } from "@mmobot/shared";
 import Loading from './components/Loading'
-import { auth, getMe,getLocations } from "./api";
+import { auth, getMe,getLocations, getPvpOverview, getTradesOverview } from "./api";
 import { getLocationImage } from "./utils/getLocationImage";
 
 import { getTelegramInitData } from "./telegram";
@@ -94,9 +94,45 @@ function App() {
       .then(async (authData) => {
         setPlayer(authData.player);
         setToken(authData.token);
-        const [meData] = await Promise.all([getMe(authData.token)]);
+        const [meData, pvpOverview, tradesOverview] = await Promise.all([
+          getMe(authData.token),
+          getPvpOverview(authData.token).catch(() => null),
+          getTradesOverview(authData.token).catch(() => null)
+        ]);
         setPlayer(meData.player);
         setInventory(meData.inventory);
+
+        const incomingPvp = pvpOverview?.invites.find((i) => i.direction === "incoming");
+        if (incomingPvp) {
+          setPvpState({
+            id: incomingPvp.id,
+            status: "pending",
+            direction: "incoming",
+            myName: meData.player.name,
+            partnerName: incomingPvp.partnerName,
+            myHp: 0,
+            myMaxHp: 0,
+            partnerHp: 0,
+            partnerMaxHp: 0,
+            myTurn: false,
+            finished: false,
+            isWon: null
+          });
+        }
+        const incomingTrade = tradesOverview?.invites.find((i) => i.direction === "incoming" && i.status === "pending");
+        if (incomingTrade) {
+          setTradeState({
+            id: incomingTrade.id,
+            status: "pending",
+            myOffer: [],
+            partnerOffer: [],
+            iAmReady: false,
+            partnerIsReady: false,
+            partnerName: incomingTrade.partnerName,
+            direction: "incoming"
+          });
+        }
+
         connectSocket(authData.token);
         await preloadLocationImages(authData.token, setLoadingProgress)
       })

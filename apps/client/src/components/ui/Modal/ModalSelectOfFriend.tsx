@@ -51,7 +51,7 @@ export default function ModalSelectOfFriend({
         );
     } else if (type === "figth") {
       // Онлайн-игроков запрашиваем один раз при открытии модалки
-      // (список — это моментальный срез, поэтому поллинг не нужен).
+      // (список — это моментальный срез, поэтому поллинг не нужен)
       getOnlinePlayer(token)
         .then((data) =>
           setOnlinePlayers(Array.isArray(data.players) ? data.players : []),
