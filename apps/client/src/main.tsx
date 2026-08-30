@@ -123,7 +123,7 @@ function App() {
           <Route path="" element={<MainLayout player={player} error={error}/>}>
             <Route path="/" element={<Home token={token} player={player} locationState={locationState} friendsOverview={friendsOverview} />} />
             <Route path="Map" element={<Map token={token} onLocationState={setLocationState} onPlayer={setPlayer} />} />
-            <Route path="Profile" element={<Profile player={player} />} />
+            <Route path="Profile" element={<Profile player={player} locationState={locationState}/>} />
             <Route path="Tasks" element={<Tasks token={token} onPlayer={setPlayer} />} />
             <Route path="Team" element={<Team token={token} player={player} liveOverview={friendsOverview}/>} />
             <Route path="Inventory" element={<Inventory token={token} player={player} inventory={inventory} />} />
