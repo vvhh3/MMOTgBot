@@ -223,7 +223,14 @@ export async function createTrade(token: string, toPlayerId: number) {
   const response = await api.post("/trades", { toPlayerId }, { headers: authHeader(token) })
   return response.data
 }
-
+export async function acceptTrade(token:string,id:number) {
+    const response = await api.post(`/trades/${id}/accept`, {headers: authHeader(token)})
+    return response.data
+}
+export async function cancelTrade(token:string,id:number) {
+    const response = await api.delete(`/trades/${id}`, {headers: authHeader(token)})
+    return response.data
+}
 
 
 

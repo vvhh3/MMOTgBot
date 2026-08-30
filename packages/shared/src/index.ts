@@ -243,6 +243,7 @@ export type TradeStateDto = {
   iAmReady: boolean;
   partnerIsReady: boolean;
   partnerName: string;
+  direction: "incoming" | "outcoming"
 }
 
 export type TradeListItemDto = {

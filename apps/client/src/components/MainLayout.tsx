@@ -2,16 +2,49 @@ import { Avatar, Button } from "@radix-ui/themes";
 import { Header } from "@radix-ui/themes/components/table";
 import Map from "./ui/Maps/Maps";
 import Profile from "./Profile";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
 import { StrictMode, useEffect, useState, useRef } from "react"
-import { PlayerDto } from "@mmobot/shared";
+import { PlayerDto, PvpStateDto, TradeStateDto } from "@mmobot/shared";
+import { acceptPvp, acceptTrade, cancelPvp, cancelTrade } from "../api";
 
 type LayoutProps = {
     player: PlayerDto | null
+    token: string | null
     error: string | null
+    pvpState: PvpStateDto | null
+    tradeState: TradeStateDto | null
 }
 
-export default function MainLayout({ player,error }: LayoutProps) {
+export default function MainLayout({ player, token, error, pvpState, tradeState }: LayoutProps) {
+
+    const [showIsModal,setIsShowModal] = useState(false)
+    const navigate = useNavigate()
+
+    const pvpIncoiming = pvpState?.status === "pending" && pvpState.direction === "incoming"
+    const tradeIncoiming = tradeState?.status === "pending" && tradeState.direction === "incoming"
+
+    // Счётчик непрочитанных уведомлений
+    // const unreadCount = (pvpIncoiming ? 1 : 0) + (tradeIncoiming ? 1 : 0)
+
+    // Принять/отклонить бой
+    const handlePvpAccept = async () => {
+        if (!token || !pvpState) return
+        try { await acceptPvp(token, pvpState.id) } catch (e) { console.error(e) }
+    }
+    const handlePvpDecline = async () => {
+        if (!token || !pvpState) return
+        try { await cancelPvp(token, pvpState.id) } catch (e) { console.error(e) }
+    }
+
+    // Принять/отклонить трейд
+    const handleTradeAccept = async () => {
+        if (!token || !tradeState) return
+        try { await acceptTrade(token, tradeState.id); navigate("/Exchange") } catch (e) { console.error(e) }
+    }
+    const handleTradeDecline = async () => {
+        if (!token || !tradeState) return
+        try { await cancelTrade(token, tradeState.id) } catch (e) { console.error(e) }
+    }
 
     useEffect(() => {
         const tg = window.Telegram?.WebApp;
@@ -23,6 +56,7 @@ export default function MainLayout({ player,error }: LayoutProps) {
     const ids = [828311361,1762717096]
     // const adminId = (import.meta.env.VITE_ADMIN_IDS ?? "").split(",").map(Number).filter(Boolean)
     const isAdmin = (import.meta.env.VITE_ADMIN_PANEL == "true" ? true :  (ids.map(Number).filter(Boolean).includes(player?.id ?? -1) ? true : false ))
+    
     return (
         <div className="flex flex-col w-full overflow-hidden" style={{ height: "var(--tg-viewport-stable-height, 100dvh)", }}>
             <div className="flex justify-between items-center p-1 shrink-0 border-b-2" style={{ paddingTop: "calc(var(--tg-safe-area-inset-top, 0px) + var(--tg-content-safe-area-inset-top, 0px) + 4px)", }}>
@@ -30,14 +64,62 @@ export default function MainLayout({ player,error }: LayoutProps) {
                     <header className="font-bold pl-3">MMONSK</header>
                 </Link>
                 <p className="text-red-500">{error}</p>
-                <Link to="/Profile">
-                    <div className="flex flex-row items-center gap-4">
-                        <div className="rounded-2xl bg-[#ffff] text-[#E8603C]">
-                            <p className="text-[13px] pr-2 pl-2">Lv {player?.level}</p>
+                <div className="flex flex-row items-center gap-4">
+                    {/* Кнопка уведомлений (свг-иконка тут) */}
+                    <button onClick={() => setIsShowModal(v => !v)} className="relative" aria-label="Уведомления">
+                        <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="#8A7A60" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                        </svg>
+                        {pvpIncoiming || tradeIncoiming  && (
+                            <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] text-white">
+                                <div className="w-1 h-1 bg-red-500 rounded-full"></div>
+                            </span>
+                        )}
+                    </button>
+
+                    {/* Выпадающая панель уведомлений */}
+                    {showIsModal && (
+                        <div className="absolute top-14 left-2 right-2 z-30 mx-auto max-w-md rounded-2xl border bg-white p-3 shadow-lg">
+                            <p className="font-bold mb-2">Уведомления</p>
+
+                            {pvpIncoiming && (
+                                <div className="flex flex-col gap-2 border-b pb-2">
+                                    {/* свг-иконка боя */}
+                                    <p className="text-sm">{pvpState.partnerName} вызывает вас на бой!</p>
+                                    <div className="flex gap-2">
+                                        <button onClick={handlePvpAccept} className="flex-1 p-2 bg-green-600 text-white rounded-lg">Принять</button>
+                                        <button onClick={handlePvpDecline} className="flex-1 p-2 bg-red-500 text-white rounded-lg">Отклонить</button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {tradeIncoiming && (
+                                <div className="flex flex-col gap-2 border-b pb-2">
+                                    {/* свг-иконка обмена */}
+                                    <p className="text-sm">{tradeState.partnerName} предлагает вам обмен</p>
+                                    <div className="flex gap-2">
+                                        <button onClick={handleTradeAccept} className="flex-1 p-2 bg-green-600 text-white rounded-lg">Принять</button>
+                                        <button onClick={handleTradeDecline} className="flex-1 p-2 bg-red-500 text-white rounded-lg">Отклонить</button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {!pvpIncoiming && !tradeIncoiming && (
+                                <p className="text-sm text-gray-400">Уведомлений нет</p>
+                            )}
                         </div>
-                        <Avatar radius="full" fallback={`${player ? player.name[0] : "А"}`} color="green" size="4" ></Avatar>
-                    </div>
-                </Link>
+                    )}
+
+                    <Link to="/Profile">
+                        <div className="flex flex-row items-center gap-4">
+                            <div className="rounded-2xl bg-[#ffff] text-[#E8603C]">
+                                <p className="text-[13px] pr-2 pl-2">Lv {player?.level}</p>
+                            </div>
+                            <Avatar radius="full" fallback={`${player ? player.name[0] : "А"}`} color="green" size="4" ></Avatar>
+                        </div>
+                    </Link>
+                </div>
             </div>
 
             <div className="relative w-full min-h-0 flex-1 overflow-y-auto overflow-x-hidden">

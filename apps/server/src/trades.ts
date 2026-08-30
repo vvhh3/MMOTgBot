@@ -73,7 +73,8 @@ function buildTradeState(trade: TradeRow, playerId: number): TradeStateDto | nul
     partnerOffer: role === "from" ? trade.toOffer : trade.fromOffer,
     iAmReady: role === "from" ? trade.fromReady : trade.toReady,
     partnerIsReady: role === "from" ? trade.toReady : trade.fromReady,
-    partnerName: partner?.name ?? "?"
+    partnerName: partner?.name ?? "?",
+    direction: role  === "from" ? "outcoming" : "incoming"
   }
 }
 
