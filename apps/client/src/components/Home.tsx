@@ -87,7 +87,7 @@ export default function Home({
                 style={{ background: "white" }}
                 size="1"
                 color="green"
-                value={10}
+                value={player?.health}
               />
             </Box>
             <img className="h-37.5 min-w-35" src={playerM} />
