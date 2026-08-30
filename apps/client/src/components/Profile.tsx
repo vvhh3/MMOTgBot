@@ -2,14 +2,21 @@ import playerM from '../avatarPlayer/playerM.svg'
 import map from '../components/ui/Maps/mapMat.png'
 import { Flex, Card, Text, Button, Box, Progress, Inset, Strong, Grid } from "@radix-ui/themes";
 import { Link } from 'react-router-dom'
-import { PlayerDto } from '@mmobot/shared';
+import { PlayerDto,LocationStateResponse,LocationDto} from '@mmobot/shared';
+import { useEffect, useState } from 'react';
 
 type ProfileProps = {
     player: PlayerDto | null
+    locationState:LocationStateResponse|null
 }
-
-export default function Profile({ player }: ProfileProps) {
-
+export default function Profile({ player,locationState }: ProfileProps) {
+    const [location, setLocation] = useState<LocationDto>();
+    useEffect(() => {
+        if (locationState) {
+          setLocation(locationState.location);
+          return;
+        }
+    },[])
     return (
         <div className='flex flex-col items-center h-full ' >
             <div className='flex flex-col justify-center items-center '>
@@ -67,15 +74,19 @@ export default function Profile({ player }: ProfileProps) {
                                         width: "100%",
                                         height: 140,
                                         backgroundColor: "var(--gray-5)",
-                                        objectPosition: "40% 31%",
-                                        transformOrigin: `${31}% ${40}%`,
+                                        objectPosition: `${location?.x}% ${location?.y}%`,
+                                        transformOrigin: `${location?.x}% ${location?.y}%`,
                                         transform: "scale(6)",
 
                                     }}
                                 />
                             </Inset>
                             <Text as="div" size="2" weight="bold">
-                                Площадь
+                                {location ? 
+                                    location?.name
+                                :
+                                    "Выберите локацию"
+                                }
                             </Text>
                             <Text as="div" color="gray" size="1">
                                 Нажми чтоб посмотреть карту

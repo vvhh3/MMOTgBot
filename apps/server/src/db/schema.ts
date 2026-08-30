@@ -11,8 +11,10 @@ export const locations = sqliteTable("locations", {
   x: real("x").notNull(),
   y: real("y").notNull(),
   homeImg:text("homeImg").notNull(),
-  fightImg:text("fightImg").notNull()
-
+  fightImg:text("fightImg").notNull(),
+  actions: text("actions", { mode: "json" })
+    .$type<string[]>()
+    .notNull()
 })
 
 // Игроки. Значения по умолчанию задают стартовые характеристики нового персонажа.
