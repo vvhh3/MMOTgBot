@@ -11,39 +11,68 @@ type LayoutProps = {
     player: PlayerDto | null
     token: string | null
     error: string | null
+    onError: (error: string) => void
     pvpState: PvpStateDto | null
     tradeState: TradeStateDto | null
 }
 
-export default function MainLayout({ player, token, error, pvpState, tradeState }: LayoutProps) {
+export default function MainLayout({ player, token, error,onError, pvpState, tradeState }: LayoutProps) {
 
     const [showIsModal,setIsShowModal] = useState(false)
+    const notifRef = useRef<HTMLDivElement | null>(null) // ссылка на панель уведомлений
     const navigate = useNavigate()
+
+    // Закрываем панель уведомлений при клике вне её
+    useEffect(() => {
+        if (!showIsModal) return
+        const handleClickOutside = (event: MouseEvent) => {
+            if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
+                setIsShowModal(false)
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside)
+        return () => document.removeEventListener("mousedown", handleClickOutside)
+    }, [showIsModal])
 
     const pvpIncoiming = pvpState?.status === "pending" && pvpState.direction === "incoming"
     const tradeIncoiming = tradeState?.status === "pending" && tradeState.direction === "incoming"
 
-    // Счётчик непрочитанных уведомлений
-    // const unreadCount = (pvpIncoiming ? 1 : 0) + (tradeIncoiming ? 1 : 0)
-
     // Принять/отклонить бой
     const handlePvpAccept = async () => {
         if (!token || !pvpState) return
-        try { await acceptPvp(token, pvpState.id) } catch (e) { console.error(e) }
+        try { 
+            await acceptPvp(token, pvpState.id)
+            navigate("/Fight")
+        } catch (e) { 
+            onError(e instanceof Error ? e.message : "Ошибка принятия боя")
+        }
     }
     const handlePvpDecline = async () => {
         if (!token || !pvpState) return
-        try { await cancelPvp(token, pvpState.id) } catch (e) { console.error(e) }
+        try { 
+            await cancelPvp(token, pvpState.id) 
+        } catch (e) { 
+           onError(e instanceof Error ? e.message : "Ошибка отклонения боя")
+        }
     }
 
     // Принять/отклонить трейд
     const handleTradeAccept = async () => {
         if (!token || !tradeState) return
-        try { await acceptTrade(token, tradeState.id); navigate("/Exchange") } catch (e) { console.error(e) }
+        try { 
+            await acceptTrade(token, tradeState.id); 
+            navigate("/Exchange") 
+        } catch (e) {
+            onError(e instanceof Error ? e.message : "Ошибка принятия обмена")
+        }
     }
     const handleTradeDecline = async () => {
         if (!token || !tradeState) return
-        try { await cancelTrade(token, tradeState.id) } catch (e) { console.error(e) }
+        try { 
+            await cancelTrade(token, tradeState.id) 
+        } catch (e) { 
+            onError(e instanceof Error ? e.message : "Ошибка отклонения обмена") 
+        }
     }
 
     useEffect(() => {
@@ -61,10 +90,11 @@ export default function MainLayout({ player, token, error, pvpState, tradeState 
         <div className="flex flex-col w-full overflow-hidden" style={{ height: "var(--tg-viewport-stable-height, 100dvh)", }}>
             <div className="flex justify-between items-center p-1 shrink-0 border-b-2" style={{ paddingTop: "calc(var(--tg-safe-area-inset-top, 0px) + var(--tg-content-safe-area-inset-top, 0px) + 4px)", }}>
                 <Link to="/">
-                    <header className="font-bold pl-3">MMONSK</header>
+                    <header className="font-bold pl-3 w-fit">MMONSK</header>
                 </Link>
-                <p className="text-red-500">{error}</p>
+                <p className="text-red-500 w-full">{error}</p>
                 <div className="flex flex-row items-center gap-4">
+
                     {/* Кнопка уведомлений (свг-иконка тут) */}
                     <button onClick={() => setIsShowModal(v => !v)} className="relative" aria-label="Уведомления">
                         <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="#8A7A60" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -72,7 +102,7 @@ export default function MainLayout({ player, token, error, pvpState, tradeState 
                             <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                         </svg>
                         {pvpIncoiming || tradeIncoiming  && (
-                            <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] text-white">
+                            <span className="absolute -top-1 -right-1 flex h-1 min-w-1 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] text-white">
                                 <div className="w-1 h-1 bg-red-500 rounded-full"></div>
                             </span>
                         )}
@@ -80,7 +110,7 @@ export default function MainLayout({ player, token, error, pvpState, tradeState 
 
                     {/* Выпадающая панель уведомлений */}
                     {showIsModal && (
-                        <div className="absolute top-14 left-2 right-2 z-30 mx-auto max-w-md rounded-2xl border bg-white p-3 shadow-lg">
+                        <div ref={notifRef} className="absolute top-14 left-2 right-2 z-30 mx-auto max-w-md rounded-2xl border bg-white p-3 shadow-lg">
                             <p className="font-bold mb-2">Уведомления</p>
 
                             {pvpIncoiming && (

@@ -169,7 +169,7 @@ function App() {
         {ready ? (
 
           <Routes>
-          <Route path="" element={<MainLayout player={player} token={token} error={error} pvpState={pvpState} tradeState={tradeState}/>}>
+          <Route path="" element={<MainLayout player={player} token={token} error={error} onError={setError} pvpState={pvpState} tradeState={tradeState}/>}>
             <Route path="/" element={<Home token={token} player={player} locationState={locationState} friendsOverview={friendsOverview} pvpState={pvpState}/>} />
             <Route path="Map" element={<Map token={token} onLocationState={setLocationState} onPlayer={setPlayer} />} />
             <Route path="Profile" element={<Profile player={player} locationState={locationState}/>} />
