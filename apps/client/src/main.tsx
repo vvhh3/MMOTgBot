@@ -5,7 +5,8 @@ import "./styles.css"
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import type { CombatStateResponse, FriendsOverviewResponse, InventoryItemDto, LocationStateResponse, PlayerDto, PvpStateDto } from "@mmobot/shared";
 import Loading from './components/Loading'
-import { auth, getMe } from "./api";
+import { auth, getMe,getLocations } from "./api";
+import { getLocationImage } from "./utils/getLocationImage";
 
 import { getTelegramInitData } from "./telegram";
 import { Theme } from "@radix-ui/themes";
@@ -45,6 +46,42 @@ function App() {
   const [friendsOverview, setFriendsOverview] = useState<FriendsOverviewResponse | null>(null)
   const [pvpState,setPvpState] = useState<PvpStateDto | null>(null)
 
+  //Загрузилис ли все данные
+  const [ready,setReady] = useState(false)
+  const [loadingProgress,setLoadingProgress] = useState(0)
+
+
+  const preloadImage = (url: string): Promise<void> => {
+    return new Promise ((r) => {
+      const img = new Image()
+      img.onload = () => r()
+      img.onerror = () => r()
+      img.src = url
+    })
+  }
+
+  async function preloadLocationImages(token: string, onProgress: (p: number) => void): Promise<void> {
+  let urls: string[] = [];
+  try {
+    const { locations } = await getLocations(token);
+    for (const l of locations) {
+      urls.push(getLocationImage(l.homeImg));
+      urls.push(getLocationImage(l.fightImg));
+    }
+  } catch {
+    urls = []
+  }
+  if (urls.length === 0) {
+    onProgress(100)
+    return
+  }
+  let done = 0;
+  await Promise.all(urls.map(async (url) => {
+    await preloadImage(url);
+    done += 1;
+    onProgress((done / urls.length) * 100);
+  }));
+}
   useEffect(() => {
     const initData = getTelegramInitData();
     if (!initData) {
@@ -60,8 +97,10 @@ function App() {
         setPlayer(meData.player);
         setInventory(meData.inventory);
         connectSocket(authData.token);
+        await preloadLocationImages(authData.token, setLoadingProgress)
       })
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Не удалось войти"));
+      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Не удалось войти"))
+      .finally(() => setReady(true))
   }, []);
 
   useEffect(() => {
@@ -123,7 +162,9 @@ function App() {
     <>
       <Theme>
         <ScrollToTop />
-        <Routes>
+        {ready ? (
+
+          <Routes>
           <Route path="" element={<MainLayout player={player} error={error}/>}>
             <Route path="/" element={<Home token={token} player={player} locationState={locationState} friendsOverview={friendsOverview} pvpState={pvpState}/>} />
             <Route path="Map" element={<Map token={token} onLocationState={setLocationState} onPlayer={setPlayer} />} />
@@ -137,6 +178,9 @@ function App() {
           <Route path="/TakeAWalk" element={<TakeAWalk token={token} player={player} onPlayer={setPlayer} onInventory={setInventory} locationState={locationState} />} />
           <Route path="/Fight" element={<Fight token={token} player={player} locationState={locationState} pvpState={pvpState} />} />
         </Routes>
+        ) : (
+            <Loading progress={loadingProgress}/>
+        )}
       </Theme>
     </>
   );
