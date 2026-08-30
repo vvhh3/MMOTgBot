@@ -12,19 +12,7 @@ type FightProps = {
     pvpState: PvpStateDto | null
 }
 
-export default function Fight({ token, player, locationState, pvpState }: FightProps) {
-    const [location, setLocation] = useState<LocationDto>()
-
-    useEffect(() => {
-        if (locationState) {
-            setLocation(locationState.location)
-            return
-        }
-        if (!token || !player?.currentLocationId) return
-        getLocationState(token, player.currentLocationId)
-            .then((res) => { setLocation(res.location) })
-            .catch((error) => alert(error ?? "Ошибка"))
-    }, [token, locationState, player?.currentLocationId])
+export default function Fight({ token, player, pvpState }: FightProps) { // Сделать задний фон
 
     const doAction = async (action: "attack" | "flee") => {
         if (!token || !pvpState) return
@@ -50,7 +38,7 @@ export default function Fight({ token, player, locationState, pvpState }: FightP
     return (
         <div className="flex">
             <div className="flex w-full flex-col justify-end" style={{
-                backgroundImage: `url(${location ? getLocationImage(location.fightImg) : "none"})`,
+                backgroundImage: `url(${ getLocationImage("forest-fight")})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
