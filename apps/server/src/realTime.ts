@@ -57,8 +57,11 @@ export function initRealTime(httpServer: HttpServer): AppServer {
   io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
     cors: {
       origin(origin, callback) {
+        // Нормализуем завершающий слэш, чтобы опечатка в CLIENT_URL (https://host/)
+        // не ломала сравнение с origin браузера (https://host)
+        const norm = (s: string) => s.replace(/\/+$/, "")
         // Проверяем разрешён ли origin клиента
-        const allowed = !origin || config.devBypassAuth || origin === config.clientUrl || config.corsOrigins.includes(origin)
+        const allowed = !origin || config.devBypassAuth || norm(origin) === norm(config.clientUrl) || config.corsOrigins.includes(origin)
         P("SERVER", `cors-check origin=${origin ?? "(none)"} allowed=${allowed} clientUrl=${config.clientUrl} devBypassAuth=${config.devBypassAuth}`)
         // Если origin разрешён пропускаем подключение
         // Иначе возвращаем ошибку CORS
