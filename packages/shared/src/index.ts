@@ -113,6 +113,7 @@ export type LocationDto = {
   y: number;
   homeImg:string;
   fightImg:string;
+  actions: string[];
 }
 
 export type ActionDto = {
@@ -317,4 +318,8 @@ export type FriendsOverviewResponse = {
 
 export type FriendSearchResponse = {
   players: FriendDto[]
+}
+
+export type RegenToPlayer = {
+  playersId:number;
 }

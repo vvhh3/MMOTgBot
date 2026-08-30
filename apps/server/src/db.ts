@@ -35,11 +35,11 @@ export function initializeDatabase(): void {
   // Ниже — сид (начальные данные), который заносится в БД при первом запуске.
   // Список стартовых локаций: id, название, описание и координаты.
   const seedLocations: LocationDto[] = [
-    { id: "square", name: "Площадь", description: "Описание площади", x: 31, y: 40 ,homeImg:"square-home.svg",fightImg:"square-fight.svg"},
-    { id: "market", name: "Сити парк", description: "Описание сити парка", x: 42, y: 33 ,homeImg:"market-home.svg",fightImg:"market-fight.svg"},
-    { id: "park", name: "Парк Победы", description: "Описание парка победы", x: 40, y: 27,homeImg:"park-home.svg",fightImg:"park-fight.svg" },
-    { id: "forest", name: "Солдатсикй лес", description: "Описание солдатского леса", x: 64, y: 33,homeImg:"forest-home.svg",fightImg:"forest-fight.svg" },
-    { id: "railway", name: "Липяги", description: "Описание станции", x: 70, y: 38,homeImg:"railway-home.svg",fightImg:"railway-fight.svg" }
+    { id: "square", name: "Площадь", description: "Описание площади", x: 31, y: 40 ,homeImg:"square-home.svg",fightImg:"square-fight.svg",actions:["fight","walk","money"]},
+    { id: "market", name: "Сити парк", description: "Описание сити парка", x: 42, y: 33 ,homeImg:"market-home.svg",fightImg:"market-fight.svg",actions:["walk"]},
+    { id: "park", name: "Парк Победы", description: "Описание парка победы", x: 40, y: 27,homeImg:"park-home.svg",fightImg:"park-fight.svg",actions:["walk"]},
+    { id: "forest", name: "Солдатсикй лес", description: "Описание солдатского леса", x: 64, y: 33,homeImg:"forest-home.svg",fightImg:"forest-fight.svg",actions:["walk"] },
+    { id: "railway", name: "Липяги", description: "Описание станции", x: 70, y: 38,homeImg:"railway-home.svg",fightImg:"railway-fight.svg",actions:["walk"] }
   ]
 
   // Стартовые мобы. locationId должен ссылаться на существующую локацию из seedLocations,
@@ -73,7 +73,8 @@ export function initializeDatabase(): void {
         x: sql`excluded.x`,
         y: sql`excluded.y`,
         homeImg:sql`excluded.homeImg`,
-        fightImg:sql`excluded.fightImg`
+        fightImg:sql`excluded.fightImg`,
+        actions: sql`excluded.actions`,
       }
     })
     .run()
@@ -211,7 +212,8 @@ export function toLocationDto(row: LocationRow): LocationDto {
     x: row.x,
     y: row.y,
     homeImg:row.homeImg,
-    fightImg:row.fightImg
+    fightImg:row.fightImg,
+    actions:row.actions
   };
 }
 
