@@ -78,24 +78,28 @@ export default function Team({ token, player,liveOverview }: TeamProps) {
 
   return (
     <div className="flex flex-col h-full">
-      <div>
-        <p> Ваш индефикатор дружбы: {player?.friendId}</p>
-      </div>
-      <div className="flex justify-center items-center px-2.5 gap-1 pt-4">
-        <div className="relative w-full max-w-150">
-          <svg width="16" height="16" viewBox="0 0 24 24"  fill="none" xmlns="http://www.w3.org/2000/svg"
-            className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
-            <path d="M14.9536 14.9458L21 21M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          <input
-            placeholder="Введите код друга..."
-            className="w-full border-2 rounded-lg p-1 pr-8 border-black focus:outline-none duration-300 focus:border-[#E85D2F]"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}/>
+      <div className="flex justify-center items-end px-2.5 gap-1 pt-4 h-[70px] w-full">
+        <div className="flex flex-col w-[50%] max-w-[600px]">
+          <Text size="1">
+              Ваш индефикатор дружбы: {player?.friendId}
+          </Text>
+          <div className="relative w-full max-w-150">
+            <svg width="16" height="16" viewBox="0 0 24 24"  fill="none" xmlns="http://www.w3.org/2000/svg"
+              className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+              <path d="M14.9536 14.9458L21 21M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <input
+              placeholder="Введите код друга..."
+              className="w-full border-2 rounded-lg p-1 pr-8 border-black focus:outline-none duration-300 focus:border-[#E85D2F]"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}/>
+          </div>
         </div>
+    
         <button className="h-9 w-25 p-1 flex justify-center items-center text-white  bg-[#E85D2F] rounded-lg" onClick={doSearch} disabled={loading}>
           Найти
         </button>
+      
       </div>
 
       {error && <Text color="red" size="1" className="px-4 pt-2">{error}</Text>}
