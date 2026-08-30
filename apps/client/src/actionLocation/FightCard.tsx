@@ -11,7 +11,7 @@ export default function FightCard({setShowModalPvp,showModalPvp}:FightProps){
          <Card>
           <div onClick={() => setShowModalPvp(showModalPvp ? false : true)}>
             <div className="flex flex-col">
-              <div className="max-w-60 ">
+              <div>
                 <Text size="2" weight="bold">
                   <div className="flex-row flex gap-2">
                     Сражение

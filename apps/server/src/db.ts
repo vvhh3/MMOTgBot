@@ -40,11 +40,11 @@ export function initializeDatabase(): void {
   // Ниже — сид (начальные данные), который заносится в БД при первом запуске.
   // Список стартовых локаций: id, название, описание и координаты.
   const seedLocations: LocationDto[] = [
-    { id: "square", name: "Площадь", description: "Описание площади", x: 31, y: 40 ,homeImg:"square-home.svg",fightImg:"square-fight.svg",actions:["fight","walk","money"]},
-    { id: "market", name: "Сити парк", description: "Описание сити парка", x: 42, y: 33 ,homeImg:"market-home.svg",fightImg:"market-fight.svg",actions:["walk"]},
-    { id: "park", name: "Парк Победы", description: "Описание парка победы", x: 40, y: 27,homeImg:"park-home.svg",fightImg:"park-fight.svg",actions:["walk"]},
-    { id: "forest", name: "Солдатсикй лес", description: "Описание солдатского леса", x: 64, y: 33,homeImg:"forest-home.svg",fightImg:"forest-fight.svg",actions:["walk"] },
-    { id: "railway", name: "Липяги", description: "Описание станции", x: 70, y: 38,homeImg:"railway-home.svg",fightImg:"railway-fight.svg",actions:["walk"] }
+    { id: "square", name: "Площадь", description: "Описание площади", x: 31, y: 40 ,homeImg:"square-home.svg",fightImg:"square-fight.svg",actions:["fight","walk","money","exchange"]},
+    { id: "market", name: "Сити парк", description: "Описание сити парка", x: 42, y: 33 ,homeImg:"market-home.svg",fightImg:"market-fight.svg",actions:["fight","walk","money","exchange"]},
+    { id: "park", name: "Парк Победы", description: "Описание парка победы", x: 40, y: 27,homeImg:"park-home.svg",fightImg:"park-fight.svg",actions:["fight","walk","money","exchange"]},
+    { id: "forest", name: "Солдатсикй лес", description: "Описание солдатского леса", x: 64, y: 33,homeImg:"forest-home.svg",fightImg:"forest-fight.svg",actions:["fight","walk","money","exchange"]},
+    { id: "railway", name: "Липяги", description: "Описание станции", x: 70, y: 38,homeImg:"railway-home.svg",fightImg:"railway-fight.svg",actions:["fight","walk","money","exchange"]}
   ]
 
   // Стартовые мобы. locationId должен ссылаться на существующую локацию из seedLocations,
