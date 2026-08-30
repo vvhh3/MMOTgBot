@@ -149,9 +149,10 @@ export function toMobDto(row: MobRow): MobDto{
     respawnSeconds: row.respawnSeconds
   }
 }
-export function toFriendDto(p: { id: number; name: string; level: number }): FriendDto {
+export function toFriendDto(p: { id: number; friendId: number; name: string; level: number }): FriendDto {
     return { 
       id: p.id, 
+      friendId: p.friendId,
       name: p.name, 
       level: p.level,
        online: isPlayerOnline(p.id) 
@@ -169,7 +170,7 @@ export function buildFriendsOverview(playerId: number): FriendsOverviewResponse 
 
   const friendIds = accepted.map((r) => (r.fromId === playerId ? r.toId : r.fromId));
   const friendRows = friendIds.length
-    ? db.select({ id: players.id, name: players.name, level: players.level })
+    ? db.select({ id: players.id, friendId: players.friendId, name: players.name, level: players.level })
         .from(players).where(inArray(players.id, friendIds)).all()
     : [];
   const friends: FriendDto[] = friendRows.map((p) => toFriendDto(p));

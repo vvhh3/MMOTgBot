@@ -34,8 +34,8 @@ import type { FriendDto, FriendRequestDto, FriendsOverviewResponse } from "@mmob
 export const createAddFriend = (app: Express) => {
 
     // Собрать DTO друга/игрока со статусом онлайна
-    function toFriendDto(p: { id: number; name: string; level: number }): FriendDto {
-        return { id: p.id, name: p.name, level: p.level, online: isPlayerOnline(p.id) }
+    function toFriendDto(p: { id: number; friendId: number; name: string; level: number }): FriendDto {
+        return { id: p.id, friendId: p.friendId, name: p.name, level: p.level, online: isPlayerOnline(p.id) }
     }
 
     // Поиск игрока ТОЛЬКО по 5-значному коду друга (friendId).
@@ -54,7 +54,6 @@ export const createAddFriend = (app: Express) => {
         const players_dto: FriendDto[] = found
             .filter((p) => p.id !== player.id)
             .map((p) => toFriendDto(p))
-
         const response: { players: FriendDto[] } = { players: players_dto }
         res.json(response)
     })

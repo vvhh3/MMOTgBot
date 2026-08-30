@@ -267,6 +267,7 @@ export type ClaimQuestResponse = { player: PlayerDto; claimed: boolean }
 export type PvpStateDto = {
   id: number
   status: "pending" | "active" | "finished"
+  direction: "incoming" | "outgoing"
   myName: string
   partnerName: string
   myHp: number
@@ -294,6 +295,7 @@ export type PvpOverviewResponse = {
 // Один друг или найденный игрок: id, имя, уровень и статус онлайна.
 export type FriendDto = {
   id: number
+  friendId: number
   name: string
   level: number
   online: boolean

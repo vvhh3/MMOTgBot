@@ -129,6 +129,8 @@ function buildPvpState(pvp: PvpSessionRow, playerId: number): PvpStateDto | null
     return {
         id: pvp.id,
         status: pvp.status,
+        // player1 — тот, кто кинул вызов (outgoing); player2 — получатель (incoming)
+        direction: role === "player1" ? "outgoing" : "incoming",
         myName: im.name,
         partnerName: partner.name,
         myHp: role === "player1" ? pvp.player1Health : pvp.player2Health,

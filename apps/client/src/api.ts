@@ -237,3 +237,14 @@ export async function createPvp(token:string, toPlayerId: number) {
     const response = await api.post("/pvp", {toPlayerId}, {headers: authHeader(token)})
     return response.data
 }
+export async function acceptPvp (token:string,id:number) {
+    const response = await api.post(`/pvp/${id}/accept`, undefined, {headers: authHeader(token)})
+}
+export async function cancelPvp (token:string,id:number) {
+    const response = await api.delete(`/pvp/${id}`,{headers: authHeader(token)})
+}
+// Сделать ход в активной дуэли: attack | flee | use(зелье)
+export async function pvpAction(token: string, id: number, action: "attack" | "flee" | "use", itemType?: number) {
+    const response = await api.post(`/pvp/${id}/action`, { action, itemType }, { headers: authHeader(token) })
+    return response.data
+}

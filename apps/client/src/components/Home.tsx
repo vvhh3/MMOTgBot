@@ -18,6 +18,7 @@ import {
   LocationStateResponse,
   PlayerDto,
   FriendsOverviewResponse,
+  PvpStateDto,
 } from "@mmobot/shared";
 import { getLocationState, startCombat } from "../api";
 import { getLocationImage } from "../utils/getLocationImage";
@@ -29,6 +30,7 @@ type HomeProps = {
   player: PlayerDto | null;
   locationState: LocationStateResponse | null;
   friendsOverview: FriendsOverviewResponse | null;
+  pvpState: PvpStateDto | null
 };
 
 export default function Home({
@@ -36,6 +38,7 @@ export default function Home({
   player,
   locationState,
   friendsOverview,
+  pvpState
 }: HomeProps) {
   const [showModalTrade, setShowModalTrade] = useState(false);
   const [showModalPvp, setShowModalPvp] = useState(false);
@@ -154,7 +157,8 @@ export default function Home({
         title="Выберите друга для обмена"
         textOnButton="Обмен"
         type="trade"
-      />
+        player={player}
+        />
 
       <ModalSelectOfFriend
         isShow={showModalPvp}
@@ -163,6 +167,8 @@ export default function Home({
         title="Выберите своего противника"
         textOnButton="Вызвть на бой"
         type="figth"
+        pvpState={pvpState}
+        player={player}
       />
     </div>
   );
