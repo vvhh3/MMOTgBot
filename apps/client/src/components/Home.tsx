@@ -45,7 +45,7 @@ export default function Home({token,player,locationState}: HomeProps){
                         <p className='font-medium text-[#ffffff65]  '>{player?.name}</p>
                     </div>
                     <Box width="100%" maxWidth="120px" height="9px" >
-                        <Progress style={{background:"white"}} size="1" color='green' value={10}/>
+                        <Progress style={{background:"white"}} size="1" color='green' value={player?.health}/>
                     </Box>
                     <img className='h-37.5 min-w-35' src={playerM} />
                 </div>

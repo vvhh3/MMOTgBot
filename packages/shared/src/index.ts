@@ -317,3 +317,7 @@ export type FriendsOverviewResponse = {
 export type FriendSearchResponse = {
   players: FriendDto[]
 }
+
+export type RegenToPlayer = {
+  playersId:number;
+}
