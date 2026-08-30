@@ -1,4 +1,4 @@
-CREATE TABLE `friendships` (
+CREATE TABLE IF NOT EXISTS `friendships` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`from_id` integer NOT NULL,
 	`to_id` integer NOT NULL,
@@ -9,6 +9,4 @@ CREATE TABLE `friendships` (
 	FOREIGN KEY (`to_id`) REFERENCES `players`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `friendships_pair_unique` ON `friendships` (`from_id`,`to_id`);--> statement-breakpoint
-ALTER TABLE `players` ADD `friend_id` integer DEFAULT 0 NOT NULL;--> statement-breakpoint
-CREATE UNIQUE INDEX `players_friend_id_idx` ON `players` (`friend_id`);
+CREATE UNIQUE INDEX IF NOT EXISTS `friendships_pair_unique` ON `friendships` (`from_id`,`to_id`);

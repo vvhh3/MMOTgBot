@@ -32,6 +32,11 @@ export function initializeDatabase(): void {
   // drizzle следит за применёнными миграциями и выполняет только новые.
   migrate(db, { migrationsFolder: migrationsFolder() });
 
+  // Автофикс схемы: колонка locations.actions есть в коде и схеме, но не была
+  // добавлена ни одной миграцией. Идемпотентно создаём её, если ещё не существует,
+  // чтобы INSERT/SELECT не падали с "no column named actions".
+  ensureLocationsActions();
+
   // Ниже — сид (начальные данные), который заносится в БД при первом запуске.
   // Список стартовых локаций: id, название, описание и координаты.
   const seedLocations: LocationDto[] = [
@@ -99,6 +104,25 @@ export function initializeDatabase(): void {
 // Путь к папке с миграциями: рядом с этим файлом (apps/server/src) поднимаемся на уровень выше → apps/server/drizzle.
 function migrationsFolder(): string {
   return path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../drizzle");
+}
+
+// Проверяет, существует ли таблица в SQLite.
+function tableExists(name: string): boolean {
+  return !!sqlite.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name = ?").get(name);
+}
+
+// Проверяет, есть ли колонка в таблице (имя таблицы — внутренняя константа кода, не пользовательский ввод).
+function columnExists(table: string, column: string): boolean {
+  const cols = sqlite.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[];
+  return cols.some((c) => c.name === column);
+}
+
+// Идемпотентно добавляет колонку locations.actions, если её нет в физической таблице.
+// Позволяет поднимать сервер на базе, созданной из старых миграций, не теряя данные.
+function ensureLocationsActions(): void {
+  if (!tableExists("locations")) return;
+  if (columnExists("locations", "actions")) return;
+  sqlite.exec(`ALTER TABLE "locations" ADD COLUMN "actions" text NOT NULL DEFAULT '[]'`);
 }
 
 // Функции ниже превращают "сырые" строки из БД (Row-типы) в DTO — объекты, которые
