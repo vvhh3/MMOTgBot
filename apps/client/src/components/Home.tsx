@@ -119,7 +119,7 @@ export default function Home({
           <ActionCards showModalPvp={showModalPvp} setShowModalPvp={setShowModalPvp} setShowModalTrade={setShowModalTrade} showModalTrade={showModalTrade} token={token} locationState={locationState} player={player} location={location}/>
         </Grid>
         :
-        <Box className="w-[70%] p-[10px]">
+        <Box className="w-[70%] p-2.5">
           <Link to="/Map">
               <Card size="2" >
                   <Inset  side="top" pb="current" style={{ borderBottom: "solid 2px",paddingBottom:"0px" }} >
@@ -134,8 +134,6 @@ export default function Home({
                               backgroundColor: "var(--gray-5)",
                               objectPosition: "46% 60%",
                               transformOrigin: `${35}% ${45}%`,
-                             
-
                           }}
                       />
                   </Inset>

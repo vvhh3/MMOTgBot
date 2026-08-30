@@ -42,7 +42,7 @@ export default function ExchangeCard({showModalTrade,setShowModalTrade}:Exchange
                   </div>
                 </Text>
                 <Text as="div" color="gray" size="1">
-                  Можете обменяться/поторгаваться с другими игроками на локации
+                  Можете обменяться с другими игроками на локации
                 </Text>
               </div>
             </div>

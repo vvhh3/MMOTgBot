@@ -223,7 +223,14 @@ export async function createTrade(token: string, toPlayerId: number) {
   const response = await api.post("/trades", { toPlayerId }, { headers: authHeader(token) })
   return response.data
 }
-
+export async function acceptTrade(token:string,id:number) {
+    const response = await api.post(`/trades/${id}/accept`,undefined, {headers: authHeader(token)})
+    return response.data
+}
+export async function cancelTrade(token:string,id:number) {
+    const response = await api.delete(`/trades/${id}`, {headers: authHeader(token)})
+    return response.data
+}
 
 
 
@@ -238,10 +245,10 @@ export async function createPvp(token:string, toPlayerId: number) {
     return response.data
 }
 export async function acceptPvp (token:string,id:number) {
-    const response = await api.post(`/pvp/${id}/accept`, undefined, {headers: authHeader(token)})
+    await api.post(`/pvp/${id}/accept`, undefined, {headers: authHeader(token)})
 }
 export async function cancelPvp (token:string,id:number) {
-    const response = await api.delete(`/pvp/${id}`,{headers: authHeader(token)})
+  await api.delete(`/pvp/${id}`,{headers: authHeader(token)})
 }
 // Сделать ход в активной дуэли: attack | flee | use(зелье)
 export async function pvpAction(token: string, id: number, action: "attack" | "flee" | "use", itemType?: number) {
