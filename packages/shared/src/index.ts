@@ -293,6 +293,7 @@ export type PvpOverviewResponse = {
 // Один друг или найденный игрок: id, имя, уровень и статус онлайна.
 export type FriendDto = {
   id: number
+  friendId: number
   name: string
   level: number
   online: boolean

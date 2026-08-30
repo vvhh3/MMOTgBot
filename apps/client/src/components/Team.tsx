@@ -27,18 +27,6 @@ export default function Team({ token, player,liveOverview }: TeamProps) {
     reload()
   }, [token])
 
-  // Прокси/VPN блокирует Socket.IO, поэтому онлайн обновляем обычным
-  // REST-поллингом /friends (там у каждого друга есть поле online).
-  useEffect(() => {
-    if (!token) return
-    const id = setInterval(() => {
-      getFriends(token)
-        .then((data) => setOverview(data))
-        .catch(() => {})
-    }, 5000)
-    return () => clearInterval(id)
-  }, [token])
-
   useEffect(() => {
     if(liveOverview) setOverview(liveOverview)
   },[liveOverview])
@@ -126,7 +114,7 @@ export default function Team({ token, player,liveOverview }: TeamProps) {
                       <Badge color="orange">Lv.{p.level}</Badge>
                     </div>
                   </Flex>
-                  <button className="h-9 w-25 p-1 flex justify-center items-center text-white  bg-[#E85D2F] rounded-lg" onClick={() => addFriend(p.id)}>Добавить</button>
+                  <button className="h-9 w-25 p-1 flex justify-center items-center text-white  bg-[#E85D2F] rounded-lg" onClick={() => addFriend(p.friendId)}>Добавить</button>
                 </Flex>
               </Card>
             ))}

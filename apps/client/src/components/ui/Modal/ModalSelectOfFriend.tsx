@@ -45,19 +45,15 @@ export default function ModalSelectOfFriend({
           ),
         );
     } else if (type === "figth") {
-      // Прокси/VPN блокирует Socket.IO, поэтому список онлайн-игроков
-      // обновляем обычным REST-поллингом, пока модалка открыта.
-      const load = () =>
-        getOnlinePlayer(token)
-          .then((data) => setOnlinePlayers(Array.isArray(data.players) ? data.players : []))
-          .catch((e) =>
-            setError(
-              e instanceof Error ? e.message : "Не удалось загрузить игроков",
-            ),
-          );
-      load();
-      const id = setInterval(load, 5000);
-      return () => clearInterval(id);
+      // Онлайн-игроков запрашиваем один раз при открытии модалки
+      // (список — это моментальный срез, поэтому поллинг не нужен).
+      getOnlinePlayer(token)
+        .then((data) => setOnlinePlayers(Array.isArray(data.players) ? data.players : []))
+        .catch((e) =>
+          setError(
+            e instanceof Error ? e.message : "Не удалось загрузить игроков",
+          ),
+        );
     }
   }, [isShow, token, type]);
 
