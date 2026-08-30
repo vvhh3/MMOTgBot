@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Card, Text, Button } from "@radix-ui/themes";
-import { FriendDto, PlayerDto } from "@mmobot/shared";
+import { FriendDto, PlayerDto, PvpStateDto } from "@mmobot/shared";
 import {
+  acceptPvp,
+  cancelPvp,
   createPvp,
   createTrade,
   getFriends,
@@ -16,6 +18,8 @@ type ModalSelectOfFriendProps = {
   title: string;
   textOnButton: string;
   type: "figth" | "trade";
+  pvpState?: PvpStateDto| null
+  player: PlayerDto | null
 };
 
 export default function ModalSelectOfFriend({
@@ -25,6 +29,8 @@ export default function ModalSelectOfFriend({
   title,
   textOnButton,
   type,
+  pvpState,
+  player
 }: ModalSelectOfFriendProps) {
   const [friends, setFriends] = useState<FriendDto[]>([]);
   const [onlinePlayers, setOnlinePlayers] = useState<PlayerDto[]>([]);
@@ -48,7 +54,9 @@ export default function ModalSelectOfFriend({
       // Онлайн-игроков запрашиваем один раз при открытии модалки
       // (список — это моментальный срез, поэтому поллинг не нужен).
       getOnlinePlayer(token)
-        .then((data) => setOnlinePlayers(Array.isArray(data.players) ? data.players : []))
+        .then((data) =>
+          setOnlinePlayers(Array.isArray(data.players) ? data.players : []),
+        )
         .catch((e) =>
           setError(
             e instanceof Error ? e.message : "Не удалось загрузить игроков",
@@ -56,6 +64,13 @@ export default function ModalSelectOfFriend({
         );
     }
   }, [isShow, token, type]);
+
+  // Бой принят → обоих участников перекидывает на страницу боя
+  useEffect(() => {
+    if (type === "figth" && isShow && pvpState?.status === "active") {
+      navigate("/Fight");
+    }
+  }, [type, isShow, pvpState, navigate]);
 
   if (!isShow) return null;
 
@@ -80,14 +95,35 @@ export default function ModalSelectOfFriend({
     setError(null);
     try {
       await createPvp(token, playerId);
-      onClose();
-      navigate("/Fight");
+      // модалка не закрывается — ждём ответа соперника (pvpState)
     } catch (e) {
       setError(e instanceof Error ? e.message : "Не удалось вызвать соперника");
     } finally {
       setLoading(false);
     }
-  };
+  }
+  const handleAccept = async () => {
+    if (!token || !pvpState) return;
+    setLoading(true);
+    setError(null);
+    try {
+      await acceptPvp(token, pvpState.id);
+      // после accept сервер пришлёт pvpState active → эффект выше уведёт на /Fight
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Не удалось принять бой");
+    } finally {
+      setLoading(false);
+    }
+  }
+  const handleCancle = async (id:number) => {
+    if(!token) return
+
+    try{
+      cancelPvp( token,id)
+    }catch(e){
+      setError(e instanceof Error ? e.message : "Ошибка отмены")
+    }
+  }
   return (
     <div className="fixed inset-0 z-20 flex items-end justify-center bg-black/40">
       <div className="relative w-full max-h-[80%] overflow-y-auto rounded-t-2xl bg-white p-4">
@@ -138,35 +174,75 @@ export default function ModalSelectOfFriend({
               ))}
             </>
           ) : null}
+
           {type === "figth" ? (
             <>
-              {onlinePlayers.length === 0 && !error && (
-                <Text color="gray" size="1" className="block mt-3">
-                  Нету онлайн игроков
-                </Text>
-              )}
-              {onlinePlayers.map((player) => (
-                <Card
-                  key={player.id}
-                  className="flex flex-row items-center justify-between"
-                >
-                  <div className="flex flex-col">
-                    <Text size="2" weight="bold">
-                      {player.name}
-                    </Text>
-                    <Text size="1" color="gray">
-                      Lv {player.level}
-                    </Text>
-                  </div>
-                  <Button
-                    disabled={loading}
-                    onClick={() => handlePvp(player.id)}
-                    style={{ background: "#E8603C", border: "solid 2px black" }}
+              {pvpState?.status === "pending" && pvpState.direction === "outgoing" ? (
+                <>
+                  <p className="text-black text-lg">Ожидаем ответ соперника.....</p>
+                  <button
+                    onClick={() => handleCancle(pvpState.id)}
+                    className="w-full p-3 bg-red-500 text-2xl text-white"
                   >
-                    {textOnButton}
-                  </Button>
-                </Card>
-              ))}
+                    Отмена
+                  </button>
+                </>
+              ) : null}
+              {pvpState?.status === "pending" && pvpState.direction === "incoming" ? (
+                <>
+                  <p className="text-black text-lg">{pvpState.partnerName} вызывает вас на бой!</p>
+                  <div className="flex gap-2 w-full">
+                    <button
+                      onClick={handleAccept}
+                      disabled={loading}
+                      className="flex-1 p-3 bg-green-600 text-2xl text-white rounded-lg"
+                    >
+                      Принять
+                    </button>
+                    <button
+                      onClick={() => handleCancle(pvpState.id)}
+                      disabled={loading}
+                      className="flex-1 p-3 bg-red-500 text-2xl text-white rounded-lg"
+                    >
+                      Отклонить
+                    </button>
+                  </div>
+                </>
+              ) : null}
+              {!pvpState || pvpState.status !== "pending" ? (
+                <>
+                  {onlinePlayers.length === 0 && !error && (
+                    <Text color="gray" size="1" className="block mt-3">
+                      Нету онлайн игроков
+                    </Text>
+                  )}
+                  {onlinePlayers.map((player) => (
+                    <Card
+                      key={player.id}
+                      className="flex flex-row items-center justify-between"
+                    >
+                      <div className="flex flex-col">
+                        <Text size="2" weight="bold">
+                          {player.name}
+                        </Text>
+                        <Text size="1" color="gray">
+                          Lv {player.level}
+                        </Text>
+                      </div>
+                      <Button
+                        disabled={loading}
+                        onClick={() => handlePvp(player.id)}
+                        style={{
+                          background: "#E8603C",
+                          border: "solid 2px black",
+                        }}
+                      >
+                        {textOnButton}
+                      </Button>
+                    </Card>
+                  ))}
+                </>
+              ) : null}
             </>
           ) : null}
         </div>

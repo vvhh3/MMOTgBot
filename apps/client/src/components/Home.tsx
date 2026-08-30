@@ -18,6 +18,7 @@ import {
   LocationStateResponse,
   PlayerDto,
   FriendsOverviewResponse,
+  PvpStateDto,
 } from "@mmobot/shared";
 import { getLocationState, startCombat } from "../api";
 import { getLocationImage } from "../utils/getLocationImage";
@@ -27,6 +28,7 @@ type HomeProps = {
   player: PlayerDto | null;
   locationState: LocationStateResponse | null;
   friendsOverview: FriendsOverviewResponse | null;
+  pvpState: PvpStateDto | null
 };
 
 export default function Home({
@@ -34,6 +36,7 @@ export default function Home({
   player,
   locationState,
   friendsOverview,
+  pvpState
 }: HomeProps) {
   const [showModalTrade, setShowModalTrade] = useState(false);
   const [showModalPvp, setShowModalPvp] = useState(false);
@@ -171,9 +174,11 @@ export default function Home({
                     </svg>
                   </div>
                 </Text>
-                <Text as="div" color="gray" size="1">
-                  Сражение с игроками на локации
-                </Text>
+                <div className="w-full text-left">
+                  <p className="text-xs text-zinc-500">
+                    Сражение с игроками на локации
+                  </p>
+                </div>
               </div>
             </div>
           </button>
@@ -276,9 +281,9 @@ export default function Home({
                   </svg>
                 </div>
               </Text>
-              <Text as="div" color="gray" size="1">
-                Пройтись по локации
-              </Text>
+              <div className="w-full text-left">
+                <p className="text-xs text-zinc-500">Пройтись по локации</p>
+              </div>
             </div>
           </div>
         </Card>
@@ -355,9 +360,11 @@ export default function Home({
                   </svg>{" "}
                 </div>
               </Text>
-              <Text as="div" color="gray" size="1">
-                Можете нырнуть в фонтан и достать со дна монеты раз в 24 часа
-              </Text>
+              <div className="w-full text-left">
+                <p className="text-xs text-zinc-500">
+                  Можете нырнуть в фонтан и достать со дна монеты раз в 24 часа
+                </p>
+              </div>
             </div>
           </div>
         </Card>
@@ -365,8 +372,8 @@ export default function Home({
           <button
             onClick={() => setShowModalTrade(showModalTrade ? false : true)}
           >
-            <div className="flex flex-row justify-between">
-              <div className="max-w-60">
+            <div>
+              <div>
                 <Text as="div" size="2" weight="bold">
                   <div className="flex-row flex gap-2">
                     Обмен
@@ -396,9 +403,11 @@ export default function Home({
                     </svg>
                   </div>
                 </Text>
-                <Text as="div" color="gray" size="1">
-                  Можете обменяться/поторгаваться с другими игроками на локации
-                </Text>
+                <div className="w-full text-left">
+                  <p className="text-xs text-zinc-500">
+                    Можете обменяться с другими игроками
+                  </p>
+                </div>
               </div>
             </div>
           </button>
@@ -412,7 +421,8 @@ export default function Home({
         title="Выберите друга для обмена"
         textOnButton="Обмен"
         type="trade"
-      />
+        player={player}
+        />
 
       <ModalSelectOfFriend
         isShow={showModalPvp}
@@ -421,6 +431,8 @@ export default function Home({
         title="Выберите своего противника"
         textOnButton="Вызвть на бой"
         type="figth"
+        pvpState={pvpState}
+        player={player}
       />
     </div>
   );

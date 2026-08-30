@@ -266,6 +266,7 @@ export type ClaimQuestResponse = { player: PlayerDto; claimed: boolean }
 export type PvpStateDto = {
   id: number
   status: "pending" | "active" | "finished"
+  direction: "incoming" | "outgoing"
   myName: string
   partnerName: string
   myHp: number

@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client"
 import "@radix-ui/themes/styles.css"
 import "./styles.css"
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
-import type { CombatStateResponse, FriendsOverviewResponse, InventoryItemDto, LocationStateResponse, PlayerDto } from "@mmobot/shared";
+import type { CombatStateResponse, FriendsOverviewResponse, InventoryItemDto, LocationStateResponse, PlayerDto, PvpStateDto } from "@mmobot/shared";
 import Loading from './components/Loading'
 import { auth, getMe } from "./api";
 
@@ -43,6 +43,7 @@ function App() {
   const [combat, setCombat] = useState<CombatStateResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [friendsOverview, setFriendsOverview] = useState<FriendsOverviewResponse | null>(null)
+  const [pvpState,setPvpState] = useState<PvpStateDto | null>(null)
 
   useEffect(() => {
     const initData = getTelegramInitData();
@@ -97,7 +98,7 @@ function App() {
     const onInventory = (nextInventory: InventoryItemDto[]) => setInventory(nextInventory);
     const onCombatState = (combatState: CombatStateResponse) => setCombat(combatState);
     const onFriendsUpdate = (friendState: FriendsOverviewResponse) => setFriendsOverview(friendState)
-
+    const onPvpState = (pvpStateValue: PvpStateDto | null) => setPvpState(pvpStateValue)
     
     socket.on("connect_error", onConnectError);
     socket.on("locationState", onLocationState);
@@ -105,6 +106,8 @@ function App() {
     socket.on("inventory", onInventory);
     socket.on("combatState", onCombatState)
     socket.on("friendsUpdate",onFriendsUpdate)
+    socket.on("pvpState", onPvpState)
+
     return () => {
       socket.off("connect_error", onConnectError)
       socket.off("locationState", onLocationState)
@@ -112,6 +115,7 @@ function App() {
       socket.off("inventory", onInventory)
       socket.off("combatState", onCombatState)
       socket.off("friendsUpdate",onFriendsUpdate)
+      socket.off("pvpState",onPvpState)
     }
   }, [player])
 
@@ -121,7 +125,7 @@ function App() {
         <ScrollToTop />
         <Routes>
           <Route path="" element={<MainLayout player={player} error={error}/>}>
-            <Route path="/" element={<Home token={token} player={player} locationState={locationState} friendsOverview={friendsOverview} />} />
+            <Route path="/" element={<Home token={token} player={player} locationState={locationState} friendsOverview={friendsOverview} pvpState={pvpState}/>} />
             <Route path="Map" element={<Map token={token} onLocationState={setLocationState} onPlayer={setPlayer} />} />
             <Route path="Profile" element={<Profile player={player} />} />
             <Route path="Tasks" element={<Tasks token={token} onPlayer={setPlayer} />} />
@@ -131,7 +135,7 @@ function App() {
             <Route path="AdminPanel" element={<Admin token={token} />} />
           </Route>
           <Route path="/TakeAWalk" element={<TakeAWalk token={token} player={player} onPlayer={setPlayer} onInventory={setInventory} locationState={locationState} />} />
-          <Route path="/Fight" element={<Fight token={token} player={player} locationState={locationState} />} />
+          <Route path="/Fight" element={<Fight token={token} player={player} locationState={locationState} pvpState={pvpState} />} />
         </Routes>
       </Theme>
     </>
