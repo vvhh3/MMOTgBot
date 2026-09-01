@@ -33,12 +33,13 @@ import type {AuthedRequest } from "./auth.js";
 import { db } from "./db.js";
 import { inventoryItems, players, trades } from "./db/schema.js";
 import type { TradeRow } from "./db/schema.js";
-import { nowGameTime } from "./time.js";
+import { nowGameTime, nowGameTimeMs } from "./time.js";
 import { emitToPlayer } from "./realTime.js";
 import { TradeItem, TradesOverviewResponse, TradeStateDto } from "@mmobot/shared";
 import type { Request,Response,Express } from "express";
-import { eq, sql, and,or} from "drizzle-orm";
+import { eq, sql, and,or, gte} from "drizzle-orm";
 import { notify } from "./notification.js";
+import { TRADE_STALE_MINUTES } from "./maintenance.js";
 
 // ===================== ХЕЛПЕРЫ =====================
 
@@ -159,10 +160,15 @@ function depositItems(
 // Нужен в accept: само принимаемое приглашение формально "активный трейд"
 // его получателя, и без исключения оно бы заблокировало собственное принятие.
 function hasActiveTrade(playerId: number, excludeTradeId?: number): boolean {
+  // Приглашение старше TRADE_STALE_MINUTES считается протухшим и НЕ блокирует
+  // новые обмены. Иначе висящая запись (собеседник закрыл бота, не ответив)
+  // навсегда блокировала бы игрока с ошибкой "уже участвует в обмене".
+  const cutoff = new Date(nowGameTimeMs() - TRADE_STALE_MINUTES * 60 * 1000).toISOString();
   const rows = db.select().from(trades)
     .where(and(
       or(eq(trades.fromPlayerId, playerId), eq(trades.toPlayerId, playerId)),
-      or(eq(trades.status, "pending"), eq(trades.status, "open"))
+      or(eq(trades.status, "pending"), eq(trades.status, "open")),
+      gte(trades.createdAt, cutoff)
     ))
     .all();
   return rows.some((t) => t.id !== excludeTradeId);
