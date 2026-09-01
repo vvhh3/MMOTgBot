@@ -78,7 +78,7 @@ export default function Team({ token, player,liveOverview }: TeamProps) {
   return (
     <div className="flex flex-col h-full">
       <div className="flex justify-center items-end px-2.5 gap-1 pt-4 h-17.5 w-full">
-        <div className="flex flex-col w-[50%] max-w-[600px]">
+        <div className="flex flex-col w-[50%] max-w-[600px] min-w-[270px]">
           <Text size="1">
               Ваш id дружбы: {player?.friendId}
           </Text>

@@ -122,7 +122,7 @@ export default function MainLayout({ player, token, error,onError, pvpState, tra
             <div className="relative w-full min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
                 {/* Выпадающая панель уведомлений */}
                     {showIsModal && (
-                        <div ref={notifRef} className="fixed top-15 left-2 right-2 z-30 rounded-2xl border bg-white p-3 m-3 shadow-2xl">
+                        <div ref={notifRef} className="absolute top-0 left-2 right-2 z-[100] mt-2 rounded-2xl border bg-white p-3 shadow-2xl">
                             <p className="font-bold mb-2">Уведомления</p>
 
                             {pvpIncoiming && (
