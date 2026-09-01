@@ -2,7 +2,7 @@
 
 import { InventoryItemDto, ItemDto, PlayerDto } from "@mmobot/shared"
 import { useEffect, useState } from "react"
-import { getCatalog } from "../api"
+import { getCatalog, spendStatPoint } from "../api"
 import { Tabs, Text, Box, Card, Progress, Badge, Grid } from "@radix-ui/themes"
 import playerM from "../avatarPlayer/playerM.svg"
 
@@ -10,9 +10,10 @@ type InventoryProps = {
     token: string | null
     player: PlayerDto | null
     inventory: InventoryItemDto[] | null
+    onPlayer: (player: PlayerDto) => void
 }
 
-export default function Inventory({ token, player, inventory }: InventoryProps) {
+export default function Inventory({ token, player, inventory,onPlayer }: InventoryProps) {
 
     const [error, setError] = useState<string | null>(null)
 
@@ -27,6 +28,15 @@ export default function Inventory({ token, player, inventory }: InventoryProps) 
         .catch(e => setError(e instanceof Error ? e.message : "ОШибка"))
     }, [token])
 
+    const updateStats = async (stat: "maxHealth" | "strength" | "defense") => {
+        if(!token) return
+        try{
+            const {player} = await spendStatPoint(token,stat)
+            onPlayer(player)
+        }catch(e){
+
+        }
+    }
 
     const list = (inventory ?? []).map(inv => ({
         item: inventoryItems.find(i => i.id === inv.itemType),
@@ -74,15 +84,15 @@ export default function Inventory({ token, player, inventory }: InventoryProps) 
                             <div className="flex flex-row w-35 mr-1.5">
                                 <img src={playerM} className="h-25" />
                                 <div className="flex flex-col gap-1 w-5 justify-evenly">
-                                    <div className="h-5 w-5 border flex justify-center items-center">+</div>
-                                    <div className="h-5 w-5 border flex justify-center items-center">+</div>
-                                    <div className="h-5 w-5 border flex justify-center items-center">+</div>
+                                    <div className="h-5 w-5 border flex justify-center items-center" ><button onClick={() => updateStats("maxHealth")}> +</button></div>
+                                    <div className="h-5 w-5 border flex justify-center items-center"><button onClick={() => updateStats("strength")}> +</button></div>
+                                    <div className="h-5 w-5 border flex justify-center items-center"><button onClick={() => updateStats("defense")}> +</button></div>
                                 </div>
                             </div>
                             <div className="flex-1 min-w-0 flex flex-col">
                                 <div className="flex justify-end w-full">
                                     {error}
-                                    <Badge color="orange">Lv {player?.level}</Badge>
+                                    <Badge color="orange">очков: {player?.statPoints}</Badge>
                                 </div>
                                 <div className="flex flex-col">
                                     <div className="flex flex-row ">

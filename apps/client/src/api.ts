@@ -243,6 +243,12 @@ export async function submitReady(token:string,id: number) { // подтверд
 }
 
 
+// Потратить очко характеристики
+export async function spendStatPoint(token: string, stat: "maxHealth" | "strength" | "defense"): Promise<{ player: PlayerDto }> {
+  const response = await api.post<{ player: PlayerDto }>("/me/stats", { stat }, { headers: authHeader(token) })
+  return response.data
+}
+
 // PVP между игроков 
 // получить онлайн игроков
 export async function getOnlinePlayer(token:string): Promise<{players: PlayerDto[]}> {
