@@ -27,16 +27,21 @@ export function getTelegramInitData(): string {
 }
 
 function buildFakeInitData(): string {
+  // Поддержка ?devUser=<id>&devName=<имя> — в dev-режиме можно открыть
+  // несколько вкладок браузера под разными игроками (для тестов обмена и PvP).
+  const params = new URLSearchParams(window.location.search);
+  const id = Number(params.get("devUser")) || 999001;
+  const name = params.get("devName") || "Дизайнер Тестовый";
   const user = {
-    id: 999001,
-    first_name: "Дизайнер",
-    last_name: "Тестовый",
-    username: "designer_dev"
+    id,
+    first_name: name.split(" ")[0] || "Дизайнер",
+    last_name: name.split(" ").slice(1).join(" ") || "Тестовый",
+    username: `designer_dev_${id}`
   };
-  const params = new URLSearchParams({
+  const initParams = new URLSearchParams({
     user: JSON.stringify(user),
     auth_date: String(Math.floor(Date.now() / 1000))
   });
-  params.set("hash", "dev-mode-fake-hash");
-  return params.toString();
+  initParams.set("hash", "dev-mode-fake-hash");
+  return initParams.toString();
 }
