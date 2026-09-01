@@ -44,11 +44,7 @@ export default function ModalSelectOfFriend({
     if (type === "trade") {
       getFriends(token)
         .then((data) => setFriends(data.friends))
-        .catch((e) =>
-          setError(
-            e instanceof Error ? e.message : "Не удалось загрузить друзей",
-          ),
-        );
+        .catch((e) =>setError(e instanceof Error ? e.message : "Не удалось загрузить друзей",));
     } else if (type === "figth") {
       // Онлайн-игроков запрашиваем один раз при открытии модалки
       // (список — это моментальный срез, поэтому поллинг не нужен)

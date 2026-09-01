@@ -14,8 +14,6 @@ type InventoryProps = {
 
 export default function Inventory({ token, player, inventory }: InventoryProps) {
 
-    console.log(inventory)
-
     const [error, setError] = useState<string | null>(null)
 
     const [inventoryItems, setInventoryItems] = useState<ItemDto[]>([])
@@ -24,7 +22,6 @@ export default function Inventory({ token, player, inventory }: InventoryProps) 
         if (!token) return
         getCatalog(token)
         .then(r => {
-            console.log(r)
             setInventoryItems(r.items)
         })
         .catch(e => setError(e instanceof Error ? e.message : "ОШибка"))

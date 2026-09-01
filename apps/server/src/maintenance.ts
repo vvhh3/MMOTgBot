@@ -28,7 +28,7 @@ export function cleanupOldEvents(): void {
 // Предметы при этом НЕ возвращаем: при таком флоу они ещё не списаны —
 // списание происходит только в момент исполнения обмена (POST /trades/:id/ready).
 export function cleanupStaleTrades(): void {
-  const cutoff = new Date(Date.now() - TRADE_STALE_MINUTES * 60 * 1000).toISOString();
+  const cutoff = new Date(nowGameTimeMs() - TRADE_STALE_MINUTES * 60 * 1000).toISOString();
   const result = db.update(trades)
     .set({ status: "cancelled" })
     .where(and(

@@ -113,10 +113,6 @@ export async function getCombatState(token:string) {
 }
 
 
-// для инвенторя
-export async function getInventory(token:string) {
-  
-}
 //Api для crud Мобов
 export async function createMob(token: string, mob: MobDto): Promise<MobResponse> {
   const response = await api.post<MobResponse>(`/mobs`, mob, { headers: authHeader(token) })
@@ -237,7 +233,14 @@ export async function cancelTrade(token:string,id:number) {
     const response = await api.delete(`/trades/${id}`, {headers: authHeader(token)})
     return response.data
 }
-
+export async function submitOffer(token:string,id: number,items: { itemType: number; quantity: number }[]) {
+    const response = await api.put(`/trades/${id}/offer` , {items: items}, {headers: authHeader(token)})
+    return response.data
+}
+export async function submitReady(token:string,id: number) { // подтвердить перевод
+    const response = await api.post(`/trades/${id}/ready` ,undefined, {headers: authHeader(token)})
+    return response.data
+}
 
 
 // PVP между игроков 

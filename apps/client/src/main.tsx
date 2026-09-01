@@ -212,7 +212,7 @@ function App() {
             <Route path="Tasks" element={<Tasks token={token} onPlayer={setPlayer} />} />
             <Route path="Team" element={<Team token={token} player={player} liveOverview={friendsOverview}/>} />
             <Route path="Inventory" element={<Inventory token={token} player={player} inventory={inventory} />} />
-            <Route path="Exchange" element={<Exchange player={player}/>} />
+            <Route path="Exchange" element={<Exchange token={token} player={player} tradeState={tradeState} inventory={inventory}/>} />
             <Route path="AdminPanel" element={<Admin token={token} />} />
           </Route>
           <Route path="/TakeAWalk" element={<TakeAWalk token={token} player={player} onPlayer={setPlayer} onInventory={setInventory} locationState={locationState} />} />
