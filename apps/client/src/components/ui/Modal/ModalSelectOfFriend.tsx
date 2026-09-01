@@ -3,6 +3,7 @@ import { Card, Text, } from "@radix-ui/themes";
 import { FriendDto, PlayerDto, PvpStateDto, TradeStateDto } from "@mmobot/shared";
 import {
   cancelPvp,
+  cancelTrade,
   createPvp,
   createTrade,
   getFriends,
@@ -112,6 +113,17 @@ export default function ModalSelectOfFriend({
       setError(e instanceof Error ? e.message : "Ошибка отмены");
     }
   };
+
+  const handleCancelTrade = async (id: number) => {
+    if (!token) return;
+
+    try {
+      await cancelTrade(token, id);
+      onClose();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Ошибка отмены обмена");
+    }
+  };
   return (
     <div className="fixed inset-0 z-20 flex items-end justify-center bg-black/40">
       <div className="relative w-full max-h-[80%] overflow-y-auto rounded-t-2xl bg-white p-4">
@@ -132,33 +144,51 @@ export default function ModalSelectOfFriend({
         <div className="flex flex-col gap-2 mt-3">
           {type === "trade" ? (
             <>
-              {friends.length === 0 && !error && (
-                <Text color="gray" size="1" className="block mt-3">
-                  У вас пока нет друзей
-                </Text>
-              )}
-              {friends.map((f) => (
-                <Card
-                  key={f.id}
-                  className="flex flex-row items-center justify-between"
-                >
-                  <div className="flex flex-col">
-                    <Text size="2" weight="bold">
-                      {f.name}
-                    </Text>
-                    <Text size="1" color="gray">
-                      Lv {f.level} {f.online ? "• в сети" : ""}
-                    </Text>
-                  </div>
+              {tradeState?.status === "pending" &&
+              tradeState.direction === "outcoming" ? (
+                <>
+                  <p className="text-black text-lg">
+                    Ожидаем ответ игрока.....
+                  </p>
                   <button
-                    disabled={loading}
-                    onClick={() => handleTrade(f.id)}
-                    className="bg-[#E8603C] border-2 border-black rounded-2xl"
+                    onClick={() => handleCancelTrade(tradeState.id)}
+                    className="w-full p-3 bg-red-500 text-2xl text-white rounded-2xl"
                   >
-                    {textOnButton}
+                    Отмена
                   </button>
-                </Card>
-              ))}
+                </>
+              ) : null}
+              {!tradeState || tradeState.status !== "pending" ? (
+                <>
+                  {friends.length === 0 && !error && (
+                    <Text color="gray" size="1" className="block mt-3">
+                      У вас пока нет друзей
+                    </Text>
+                  )}
+                  {friends.map((f) => (
+                    <Card
+                      key={f.id}
+                      className="flex flex-row items-center justify-between"
+                    >
+                      <div className="flex flex-col">
+                        <Text size="2" weight="bold">
+                          {f.name}
+                        </Text>
+                        <Text size="1" color="gray">
+                          Lv {f.level} {f.online ? "• в сети" : ""}
+                        </Text>
+                      </div>
+                      <button
+                        disabled={loading}
+                        onClick={() => handleTrade(f.id)}
+                        className="bg-[#E8603C] border-2 text-white p-2 border-black rounded-lg"
+                      >
+                        {textOnButton}
+                      </button>
+                    </Card>
+                  ))}
+                </>
+              ) : null}
             </>
           ) : null}
 
