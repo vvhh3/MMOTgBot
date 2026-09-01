@@ -15,7 +15,6 @@ export default function Team({ token, player,liveOverview }: TeamProps) {
   const [results, setResults] = useState<FriendDto[]>([])
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-
   const reload = () => {
     if (!token) return
     getFriends(token)
@@ -79,9 +78,9 @@ export default function Team({ token, player,liveOverview }: TeamProps) {
   return (
     <div className="flex flex-col h-full">
       <div className="flex justify-center items-end px-2.5 gap-1 pt-4 h-17.5 w-full">
-        <div className="flex flex-col w-[50%] max-w-150]">
+        <div className="flex flex-col w-[50%] max-w-[600px]">
           <Text size="1">
-              Ваш индефикатор дружбы: {player?.friendId}
+              Ваш id дружбы: {player?.friendId}
           </Text>
           <div className="relative w-full max-w-150">
             <svg width="16" height="16" viewBox="0 0 24 24"  fill="none" xmlns="http://www.w3.org/2000/svg"
@@ -126,7 +125,7 @@ export default function Team({ token, player,liveOverview }: TeamProps) {
         </div>
       )}
 
-      <div className="px-4 pt-4 flex justify-center">
+      <div className="px-4  flex justify-center">
         {incoming.length > 0 && (
           <>
             <Text size="2" weight="bold">Входящие заявки</Text>
@@ -172,17 +171,17 @@ export default function Team({ token, player,liveOverview }: TeamProps) {
         )}
         <div className="w-[80%] max-w-200">
         <Grid columns="1" gap="2" className="mt-2">
-          {overview.friends.length === 0 && (
-            <div className="w-[60%] max-w-160 flex justify-center flex-col">
-              <Text size="2" weight="bold" className="block mt-4">Друзья ({overview.friends.length})</Text>
-              <Text size="1" color="gray">Пока нет друзей. Найдите игрока по коду выше</Text>
-            </div>
-          )}
           {/* Поправить тут проверку онлайн */}
-          <div className="flex flex-col gap-1 justify-center  ">
-            <div className="flex justify-center items-center flex-col gap-1">
-              {overview.friends.map((f) => (
-                <Card key={f.id} className="w-[80%] max-w-200">
+          <div className="flex flex-col gap-1 justify-center w-full  ">
+            <Text size="2" weight="bold" className="block mt-4">Друзья ({overview.friends.length})</Text>
+            {overview.friends .length === 0 && (
+              <div className="w-[60%] max-w-160 flex justify-center flex-col">
+                <Text size="1" color="gray">Пока нет друзей. Найдите игрока по коду выше</Text>
+              </div>
+            )}
+            <div className="flex justify-center items-center flex-col gap-1 ">
+              {overview.friends .map((f) => (
+                <Card key={f.id} className="w-full max-w-200 min-w-[370px]">
                   <Flex justify="between" align="center">
                     <Flex gap="3" align="center">
                       <div className="relative inline-block">

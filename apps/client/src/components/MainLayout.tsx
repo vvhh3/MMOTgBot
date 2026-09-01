@@ -108,9 +108,21 @@ export default function MainLayout({ player, token, error,onError, pvpState, tra
                         )}
                     </button>
 
-                    {/* Выпадающая панель уведомлений */}
+                    <Link to="/Profile">
+                        <div className="flex flex-row items-center gap-2">
+                            <div className="w-10 text-[#E8603C] ">
+                                <p className="text-[13px]">Lv {player?.level}</p>
+                            </div>
+                            <Avatar radius="full" fallback={`${player ? player.name[0] : "А"}`} color="green" size="4" ></Avatar>
+                        </div>
+                    </Link>
+                </div>
+            </div>
+            
+            <div className="relative w-full min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+                {/* Выпадающая панель уведомлений */}
                     {showIsModal && (
-                        <div ref={notifRef} className="absolute top-15 left-2 right-2 z-30 rounded-2xl border bg-white p-3 m-3 shadow-2xl">
+                        <div ref={notifRef} className="fixed top-15 left-2 right-2 z-30 rounded-2xl border bg-white p-3 m-3 shadow-2xl">
                             <p className="font-bold mb-2">Уведомления</p>
 
                             {pvpIncoiming && (
@@ -142,19 +154,6 @@ export default function MainLayout({ player, token, error,onError, pvpState, tra
                             )}
                         </div>
                     )}
-
-                    <Link to="/Profile">
-                        <div className="flex flex-row items-center gap-2">
-                            <div className="w-10 text-[#E8603C] ">
-                                <p className="text-[13px]">Lv {player?.level}</p>
-                            </div>
-                            <Avatar radius="full" fallback={`${player ? player.name[0] : "А"}`} color="green" size="4" ></Avatar>
-                        </div>
-                    </Link>
-                </div>
-            </div>
-
-            <div className="relative w-full min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
                 <Outlet></Outlet>
             </div>
 
