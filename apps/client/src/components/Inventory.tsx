@@ -61,9 +61,10 @@ export default function Inventory({ token, player, inventory,onPlayer }: Invento
                                 className="border-[#898888] border h-17 w-17 p-0.5 flex flex-col justify-between overflow-hidden">
                                 {entry?.item && (
                                     <>
-                                        <Text size="1" title={entry.item.description} className="truncate">
-                                            {entry.item.name}
-                                        </Text>
+                                        {entry.item.icon ? 
+                                        <div className="w-8 h-8" dangerouslySetInnerHTML={{__html: entry.item.icon}}></div>
+                                        : <p className="truncate text-lg">{entry.item.name}  </p>
+                                        }
                                         <Text size="1" align="right">x{entry.quantity}</Text>
                                     </>
                                 )}

@@ -75,7 +75,8 @@ export const items = sqliteTable("items", {
   damage: integer("damage").notNull().default(0),
   defense: integer("defense").notNull().default(0),
   healAmount: integer("heal_amount").notNull().default(0), // зачем это поле? Это поле для показа сколько захилит предмет
-  price: integer("price").notNull().default(0)
+  price: integer("price").notNull().default(0),
+  icon: text("icon").notNull().default("")
 })
 
 // Сессии боя: у игрока в каждый момент может быть максимум один активный бой с мобом.

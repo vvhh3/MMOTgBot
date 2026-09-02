@@ -86,6 +86,7 @@ export type ItemDto = {
   defense: number
   healAmount: number
   price: number
+  icon: string
 }
 
 export type ItemsResponse = {

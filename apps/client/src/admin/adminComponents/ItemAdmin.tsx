@@ -25,7 +25,8 @@ const emptyItem: ItemDto = {
     damage: 0,
     defense: 0,
     healAmount: 0,
-    price: 0
+    price: 0,
+    icon: ''
 }
 
 type NumberFieldProps = {
@@ -174,6 +175,15 @@ export const ItemAdmin = ({ token }: ItemAdminProps) => {
 
                         <NumberField label="price" min={0} value={draft.price}
                             onChange={(v) => setDraft({ ...draft, price: v })} />
+                        <label>
+                            <p className="text-zinc-500">Свг иконка</p>
+                            <TextField.Root
+                                value={draft.icon}
+                                onChange={(e) => setDraft({ ...draft, icon: e.target.value })} />
+                        </label>
+                        {draft.icon && (
+                            <div className="w-8 h-8 mt-1" dangerouslySetInnerHTML={{__html: draft.icon}}></div>
+                        )}
                     </Grid>
 
                     <Flex gap="3" justify="end">
