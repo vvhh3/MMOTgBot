@@ -45,6 +45,7 @@ export const createItemRoutes = (app: Express) => {
             defense: state.defense,
             healAmount: state.healAmount,
             price: state.price,
+            icon: state.icon ?? "",
         }).returning().get()
 
         const response: ItemResponse = { item: toItemDto(create) }
@@ -68,6 +69,7 @@ export const createItemRoutes = (app: Express) => {
             defense: state.defense ?? item.defense,
             healAmount: state.healAmount ?? item.healAmount,
             price: state.price ?? item.price,
+            icon: state.icon ?? item.icon,
         }).where(eq(items.id, item.id))
             .returning()
             .get()
