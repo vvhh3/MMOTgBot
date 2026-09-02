@@ -46,7 +46,8 @@ function App() {
   const [friendsOverview, setFriendsOverview] = useState<FriendsOverviewResponse | null>(null)
   const [pvpState,setPvpState] = useState<PvpStateDto | null>(null)
   const [tradeState,setTradeState]  = useState<TradeStateDto | null>(null)
-
+  const [showIsModal,setIsShowModal] = useState(false)
+  const [windowSkillPoints,setWindowSkillPoints]= useState(false)
   //Загрузилис ли все данные
   const [ready,setReady] = useState(false)
   const [loadingProgress,setLoadingProgress] = useState(0)
@@ -205,10 +206,10 @@ function App() {
         {ready ? (
 
           <Routes>
-          <Route path="" element={<MainLayout player={player} token={token} error={error} onError={setError} pvpState={pvpState} tradeState={tradeState}/>}>
+          <Route path="" element={<MainLayout setWindowSkillPoints={setWindowSkillPoints} windowSkillPoins={windowSkillPoints} showIsModal={showIsModal} setIsShowModal={setIsShowModal} player={player} token={token} error={error} onError={setError} pvpState={pvpState} tradeState={tradeState}/>}>
             <Route path="/" element={<Home token={token} player={player} locationState={locationState} friendsOverview={friendsOverview} pvpState={pvpState} tradeState={tradeState}/>} />
             <Route path="Map" element={<Map token={token} onLocationState={setLocationState} onPlayer={setPlayer} />} />
-            <Route path="Profile" element={<Profile player={player} locationState={locationState}/>} />
+            <Route path="Profile" element={<Profile setWindowSkillPoints={setWindowSkillPoints} player={player} locationState={locationState}/>} />
             <Route path="Tasks" element={<Tasks token={token} onPlayer={setPlayer} />} />
             <Route path="Team" element={<Team token={token} player={player} liveOverview={friendsOverview}/>} />
             <Route path="Inventory" element={<Inventory token={token} player={player} inventory={inventory} onPlayer={setPlayer}/>} />
