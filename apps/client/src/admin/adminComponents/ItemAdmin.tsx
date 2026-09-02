@@ -176,14 +176,19 @@ export const ItemAdmin = ({ token }: ItemAdminProps) => {
                         <NumberField label="price" min={0} value={draft.price}
                             onChange={(v) => setDraft({ ...draft, price: v })} />
                         <label>
-                            <p className="text-zinc-500">Свг иконка</p>
-                            <TextField.Root
+                            <Text as="div" size="1" weight="medium" mb="1" color="gray">
+                                SVG иконка
+                            </Text>
+                            <textarea
+                                placeholder="Вставьте SVG код..."
                                 value={draft.icon}
-                                onChange={(e) => setDraft({ ...draft, icon: e.target.value })} />
+                                onChange={(e) => setDraft({ ...draft, icon: e.target.value })}
+                                style={{ width: "100%", minHeight: "80px", fontFamily: "monospace", fontSize: "12px", padding: "8px", border: "1px solid #ddd", borderRadius: "4px" }}
+                            />
+                            {draft.icon && (
+                                <div className="w-10 h-10 mt-1" dangerouslySetInnerHTML={{__html: draft.icon}}></div>
+                            )}
                         </label>
-                        {draft.icon && (
-                            <div className="w-8 h-8 mt-1" dangerouslySetInnerHTML={{__html: draft.icon}}></div>
-                        )}
                     </Grid>
 
                     <Flex gap="3" justify="end">
@@ -211,13 +216,14 @@ export const ItemAdmin = ({ token }: ItemAdminProps) => {
                             <Table.ColumnHeaderCell justify="center">Защита</Table.ColumnHeaderCell>
                             <Table.ColumnHeaderCell justify="center">Лечение</Table.ColumnHeaderCell>
                             <Table.ColumnHeaderCell justify="center">Цена</Table.ColumnHeaderCell>
+                            <Table.ColumnHeaderCell justify="center">Иконка</Table.ColumnHeaderCell>
                             <Table.ColumnHeaderCell justify="end"></Table.ColumnHeaderCell>
                         </Table.Row>
                     </Table.Header>
                     <Table.Body>
                         {items.length === 0 && (
                             <Table.Row>
-                                <Table.Cell colSpan={9}>
+                                <Table.Cell colSpan={10}>
                                     <Text color="gray">предметов пока нет</Text>
                                 </Table.Cell>
                             </Table.Row>
@@ -232,6 +238,13 @@ export const ItemAdmin = ({ token }: ItemAdminProps) => {
                                 <Table.Cell justify="center">{item.defense}</Table.Cell>
                                 <Table.Cell>{item.healAmount}</Table.Cell>
                                 <Table.Cell>{item.price}</Table.Cell>
+                                <Table.Cell justify="center">
+                                    {item.icon ? (
+                                        <div className="w-8 h-8 mx-auto" dangerouslySetInnerHTML={{__html: item.icon}}></div>
+                                    ) : (
+                                        <Text color="gray">—</Text>
+                                    )}
+                                </Table.Cell>
                                 <Table.Cell justify="end">
                                     <Flex gap="2" justify="end">
                                         <Button size="1" variant="soft" onClick={() => {
