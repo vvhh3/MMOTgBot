@@ -5,8 +5,8 @@ import Profile from "./Profile";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { StrictMode, useEffect, useState, useRef } from "react"
 import { PlayerDto, PvpStateDto, TradeStateDto } from "@mmobot/shared";
-import { acceptPvp, acceptTrade, cancelPvp, cancelTrade } from "../api";
-
+import { NotificationWindow,NotificationButton } from "./ui/Notification/Notification.tsx";
+import SkillPoints from "./ui/SkillPoints/SkillPoints.tsx";
 type LayoutProps = {
     player: PlayerDto | null
     token: string | null
@@ -14,67 +14,16 @@ type LayoutProps = {
     onError: (error: string) => void
     pvpState: PvpStateDto | null
     tradeState: TradeStateDto | null
+    showIsModal:boolean
+    setIsShowModal: React.Dispatch<React.SetStateAction<boolean>>;
+    windowSkillPoins:boolean
+    setWindowSkillPoints: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export default function MainLayout({ player, token, error,onError, pvpState, tradeState }: LayoutProps) {
-
-    const [showIsModal,setIsShowModal] = useState(false)
+export default function MainLayout({ player, token, error,onError, pvpState, tradeState,showIsModal,setIsShowModal,setWindowSkillPoints,windowSkillPoins }: LayoutProps) {
     const notifRef = useRef<HTMLDivElement | null>(null) // ссылка на панель уведомлений
-    const navigate = useNavigate()
-
-    // Закрываем панель уведомлений при клике вне её
-    useEffect(() => {
-        if (!showIsModal) return
-        const handleClickOutside = (event: MouseEvent) => {
-            if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
-                setIsShowModal(false)
-            }
-        }
-        document.addEventListener("mousedown", handleClickOutside)
-        return () => document.removeEventListener("mousedown", handleClickOutside)
-    }, [showIsModal])
-
     const pvpIncoiming = pvpState?.status === "pending" && pvpState.direction === "incoming"
     const tradeIncoiming = tradeState?.status === "pending" && tradeState.direction === "incoming"
-
-    // Принять/отклонить бой
-    const handlePvpAccept = async () => {
-        if (!token || !pvpState) return
-        try { 
-            await acceptPvp(token, pvpState.id)
-            navigate("/Fight")
-        } catch (e) { 
-            onError(e instanceof Error ? e.message : "Ошибка принятия боя")
-        }
-    }
-    const handlePvpDecline = async () => {
-        if (!token || !pvpState) return
-        try { 
-            await cancelPvp(token, pvpState.id) 
-        } catch (e) { 
-           onError(e instanceof Error ? e.message : "Ошибка отклонения боя")
-        }
-    }
-
-    // Принять/отклонить трейд
-    const handleTradeAccept = async () => {
-        if (!token || !tradeState) return
-        try { 
-            await acceptTrade(token, tradeState.id); 
-            navigate("/Exchange") 
-        } catch (e) {
-            onError(e instanceof Error ? e.message : "Ошибка принятия обмена")
-        }
-    }
-    const handleTradeDecline = async () => {
-        if (!token || !tradeState) return
-        try { 
-            await cancelTrade(token, tradeState.id) 
-        } catch (e) { 
-            onError(e instanceof Error ? e.message : "Ошибка отклонения обмена") 
-        }
-    }
-
     useEffect(() => {
         const tg = window.Telegram?.WebApp;
 
@@ -93,21 +42,13 @@ export default function MainLayout({ player, token, error,onError, pvpState, tra
                     <header className="font-bold pl-3 w-fit">MMONSK</header>
                 </Link>
                 <p className="text-red-500 w-full">{error}</p>
-                <div className="flex flex-row items-center gap-4">
-
-                    {/* Кнопка уведомлений (свг-иконка тут) */}
-                    <button onClick={() => setIsShowModal(v => !v)} className="relative">
-                        <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="#8A7A60" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                        </svg>
-                        {(pvpIncoiming || tradeIncoiming)  && (
-                            <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] text-white">
-                                <div className=" bg-red-500 rounded-full"></div>
-                            </span>
-                        )}
-                    </button>
-
+                <div className="flex flex-row items-center gap-2">
+                   
+                    <NotificationButton setIsShowModal={setIsShowModal} showIsModal={showIsModal} tradeIncoiming={tradeIncoiming} pvpIncoiming={pvpIncoiming} notifRef={notifRef} />
+                    <div className='flex flex-row justify-center items-center'>
+                        <p className="text-[14px]">{player?.points}</p>
+                        <svg className="h-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <circle cx="12" cy="12" r="10" stroke="#ff7b00" stroke-width="2"></circle> <path d="M15 9.94728C14.5 9.3 13.8 8.5 12 8.5C10.2 8.5 9 9.51393 9 9.94728C9 10.3806 9.06786 10.9277 10 11.5C10.7522 11.9618 12.6684 12.0439 13.5 12.5C14.679 13.1467 14.8497 13.8202 14.8497 14.0522C14.8497 14.6837 13.4175 15.4852 12 15.5C10.536 15.5153 9.5 14.7 9 14.0522" stroke="#ff7b00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M12 7V17" stroke="#ff7b00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+                    </div>
                     <Link to="/Profile">
                         <div className="flex flex-row items-center gap-2">
                             <div className="w-10 text-[#E8603C] ">
@@ -121,39 +62,8 @@ export default function MainLayout({ player, token, error,onError, pvpState, tra
             
             <div className="relative w-full min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
                 {/* Выпадающая панель уведомлений */}
-                    {showIsModal && (
-                        <div ref={notifRef} className="absolute top-0 left-2 right-2 z-[100] mt-2 rounded-2xl border bg-white p-3 shadow-2xl">
-                            <p className="font-bold mb-2">Уведомления</p>
-
-                            {pvpIncoiming && (
-                                <div className="flex flex-col gap-2 border-b pb-2">
-                                    <div className="flex w-full">
-                                        <svg  height="20px" width="20px" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" version="1.1" fill="none" stroke="#E85D2F" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" > <g id="SVGRepo_bgCarrier" stroke-width="0"></g> <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" ></g> <g id="SVGRepo_iconCarrier">{" "}<path d="m2.75 9.25 1.5 2.5 2 1.5m-4.5 0 1 1m1.5-2.5-1.5 1.5m3-1 8.5-8.5v-2h-2l-8.5 8.5"></path>{" "} <path d="m10.25 12.25-2.25-2.25m2-2 2.25 2.25m1-1-1.5 2.5-2 1.5m4.5 0-1 1m-1.5-2.5 1.5 1.5m-7.25-5.25-4.25-4.25v-2h2l4.25 4.25"></path>{" "}</g></svg>
-                                        <p className="text-sm">{pvpState.partnerName} вызывает вас на бой!</p>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <button onClick={handlePvpAccept} className="flex-1 p-2 bg-green-600 text-white rounded-lg">Принять</button>
-                                        <button onClick={handlePvpDecline} className="flex-1 p-2 bg-red-500 text-white rounded-lg">Отклонить</button>
-                                    </div>
-                                </div>
-                            )}
-
-                            {tradeIncoiming && (
-                                <div className="flex flex-col gap-2 border-b pb-2">
-                                     <svg height="20px" width="20px"  viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" > <g id="SVGRepo_bgCarrier" stroke-width="0"></g>  <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" ></g> <g id="SVGRepo_iconCarrier"> {" "} <path d="M19.9381 13C19.979 12.6724 20 12.3387 20 12C20 7.58172 16.4183 4 12 4C9.49942 4 7.26681 5.14727 5.7998 6.94416M4.06189 11C4.02104 11.3276 4 11.6613 4 12C4 16.4183 7.58172 20 12 20C14.3894 20 16.5341 18.9525 18 17.2916M15 17H18V17.2916M5.7998 4V6.94416M5.7998 6.94416V6.99993L8.7998 7M18 20V17.2916" stroke="#E85D2F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ></path>{" "} </g> </svg>
-                                    <p className="text-sm">{tradeState.partnerName} предлагает вам обмен</p>
-                                    <div className="flex gap-2">
-                                        <button onClick={handleTradeAccept} className="flex-1 p-2 bg-green-600 text-white rounded-lg">Принять</button>
-                                        <button onClick={handleTradeDecline} className="flex-1 p-2 bg-red-500 text-white rounded-lg">Отклонить</button>
-                                    </div>
-                                </div>
-                            )}
-
-                            {!pvpIncoiming && !tradeIncoiming && (
-                                <p className="text-sm text-gray-400">Уведомлений нет</p>
-                            )}
-                        </div>
-                    )}
+                <NotificationWindow token={token} pvpState={pvpState} tradeState={tradeState}  showIsModal={showIsModal} tradeIncoiming={tradeIncoiming} pvpIncoiming={pvpIncoiming} notifRef={notifRef}  onError={onError}/>
+                <SkillPoints showIsModal={windowSkillPoins} />
                 <Outlet></Outlet>
             </div>
 
