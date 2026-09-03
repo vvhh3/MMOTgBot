@@ -206,7 +206,7 @@ function App() {
         {ready ? (
 
           <Routes>
-          <Route path="" element={<MainLayout setWindowSkillPoints={setWindowSkillPoints} windowSkillPoins={windowSkillPoints} showIsModal={showIsModal} setIsShowModal={setIsShowModal} player={player} token={token} error={error} onError={setError} pvpState={pvpState} tradeState={tradeState}/>}>
+          <Route path="" element={<MainLayout setWindowSkillPoints={setWindowSkillPoints} windowSkillPoins={windowSkillPoints} showIsModal={showIsModal} setIsShowModal={setIsShowModal} player={player} token={token} error={error} onError={setError} onPlayer={setPlayer} pvpState={pvpState} tradeState={tradeState}/>}>
             <Route path="/" element={<Home token={token} player={player} locationState={locationState} friendsOverview={friendsOverview} pvpState={pvpState} tradeState={tradeState}/>} />
             <Route path="Map" element={<Map token={token} onLocationState={setLocationState} onPlayer={setPlayer} />} />
             <Route path="Profile" element={<Profile setWindowSkillPoints={setWindowSkillPoints} player={player} locationState={locationState}/>} />

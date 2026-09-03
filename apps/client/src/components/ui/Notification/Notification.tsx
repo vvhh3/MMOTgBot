@@ -24,13 +24,13 @@ export  function NotificationButton({notifRef,showIsModal,setIsShowModal,tradeIn
     // Закрываем панель уведомлений при клике вне её
     useEffect(() => {
         if (!showIsModal) return
-        const handleClickOutside = (event: MouseEvent) => {
+        const handleClickOutside = (event: Event) => {
             if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
                 setIsShowModal(false)
             }
         }
-        document.addEventListener("mousedown", handleClickOutside)
-        return () => document.removeEventListener("mousedown", handleClickOutside)
+        document.addEventListener("pointerdown", handleClickOutside)
+        return () => document.removeEventListener("pointerdown", handleClickOutside)
     }, [showIsModal])
 
     return(
@@ -92,7 +92,7 @@ export function NotificationWindow({token,pvpState,tradeState,onError,notifRef,s
     return(
         <>
             {showIsModal && (
-                <div ref={notifRef} className="absolute top-0 left-2 right-2 z-[100] mt-2 rounded-2xl border bg-white p-3 shadow-2xl">
+                <div ref={notifRef} className="absolute top-0 left-2 right-2 z-100 mt-2 rounded-2xl border bg-white p-3 shadow-2xl">
                     <p className="font-bold mb-2">Уведомления</p>
 
                     {pvpIncoiming && (

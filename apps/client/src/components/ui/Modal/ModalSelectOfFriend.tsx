@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Card, Text, } from "@radix-ui/themes";
 import { FriendDto, PlayerDto, PvpStateDto, TradeStateDto } from "@mmobot/shared";
 import {
@@ -40,6 +40,21 @@ export default function ModalSelectOfFriend({
 
   const navigate = useNavigate();
 
+  const screenRef = useRef<HTMLDivElement|null>(null)
+
+  useEffect(() => {
+    if(!isShow) return
+
+    const closeModal = (e: Event ) => {
+      if(screenRef.current && !screenRef.current.contains(e.target as Node)) {
+        onClose()
+      }
+    }
+      document.addEventListener("pointerdown",closeModal)
+      return () => document.removeEventListener("pointerdown",closeModal)
+
+  },[isShow])
+  
   useEffect(() => {
     if (!isShow || !token) return;
     if (type === "trade") {
@@ -126,7 +141,8 @@ export default function ModalSelectOfFriend({
   };
   return (
     <div className="fixed inset-0 z-20 flex items-end justify-center bg-black/40">
-      <div className="relative w-full max-h-[80%] overflow-y-auto rounded-t-2xl bg-white p-4">
+      <div ref={screenRef} 
+      className="relative w-full max-h-[80%] overflow-y-auto rounded-t-2xl bg-white p-4">
         <button
           onClick={onClose}
           className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full border-2 border-black text-lg leading-none"

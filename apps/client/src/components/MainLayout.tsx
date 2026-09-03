@@ -6,12 +6,14 @@ import { Link, Outlet, useNavigate } from "react-router-dom";
 import { StrictMode, useEffect, useState, useRef } from "react"
 import { PlayerDto, PvpStateDto, TradeStateDto } from "@mmobot/shared";
 import { NotificationWindow,NotificationButton } from "./ui/Notification/Notification.tsx";
-import SkillPoints from "./ui/SkillPoints/SkillPoints.tsx";
+import SkillPoints from "./ui/Modal/SkillPoints.tsx";
+
 type LayoutProps = {
     player: PlayerDto | null
     token: string | null
     error: string | null
     onError: (error: string) => void
+    onPlayer: (player: PlayerDto) => void
     pvpState: PvpStateDto | null
     tradeState: TradeStateDto | null
     showIsModal:boolean
@@ -20,7 +22,7 @@ type LayoutProps = {
     setWindowSkillPoints: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export default function MainLayout({ player, token, error,onError, pvpState, tradeState,showIsModal,setIsShowModal,setWindowSkillPoints,windowSkillPoins }: LayoutProps) {
+export default function MainLayout({ player, token, error,onError, onPlayer, pvpState, tradeState,showIsModal,setIsShowModal,setWindowSkillPoints,windowSkillPoins }: LayoutProps) {
     const notifRef = useRef<HTMLDivElement | null>(null) // ссылка на панель уведомлений
     const pvpIncoiming = pvpState?.status === "pending" && pvpState.direction === "incoming"
     const tradeIncoiming = tradeState?.status === "pending" && tradeState.direction === "incoming"
@@ -63,7 +65,7 @@ export default function MainLayout({ player, token, error,onError, pvpState, tra
             <div className="relative w-full min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
                 {/* Выпадающая панель уведомлений */}
                 <NotificationWindow token={token} pvpState={pvpState} tradeState={tradeState}  showIsModal={showIsModal} tradeIncoiming={tradeIncoiming} pvpIncoiming={pvpIncoiming} notifRef={notifRef}  onError={onError}/>
-                <SkillPoints showIsModal={windowSkillPoins} />
+                <SkillPoints showIsModal={windowSkillPoins} onShowModal={setWindowSkillPoints} player={player} token={token} onPlayer={onPlayer} />
                 <Outlet></Outlet>
             </div>
 
