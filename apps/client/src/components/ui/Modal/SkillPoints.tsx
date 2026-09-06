@@ -66,7 +66,7 @@ export default function SkillPoints({ showIsModal, onShowModal, player, token, o
     try {
       const { player: updated } = await spendStatPoint(token, stat)
       onPlayer(updated)
-    } catch { /* ignore */ }
+    } catch {  }
   }
 
   const available = player?.statPoints ?? 0

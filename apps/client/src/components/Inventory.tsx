@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import { getCatalog, spendStatPoint } from "../api"
 import { Tabs, Text, Box, Card, Progress, Badge, Grid } from "@radix-ui/themes"
 import playerM from "../avatarPlayer/playerM.svg"
+import ModalItem from "./ui/Modal/ModalItem"
 
 type InventoryProps = {
     token: string | null
@@ -18,6 +19,7 @@ export default function Inventory({ token, player, inventory,onPlayer }: Invento
     const [error, setError] = useState<string | null>(null)
 
     const [inventoryItems, setInventoryItems] = useState<ItemDto[]>([])
+    const [selectedItem,setSelectedItem] = useState<ItemDto | null>(null)
 
     useEffect(() => {
         if (!token) return
@@ -56,7 +58,8 @@ export default function Inventory({ token, player, inventory,onPlayer }: Invento
                         const entry = visibleItems[index]
 
                         return (
-                            <div
+                            <button
+                                onClick={() => entry?.item && setSelectedItem(entry.item)}
                                 key={index}
                                 className="border-[#898888] border h-17 w-17 p-0.5 flex flex-col justify-between overflow-hidden">
                                 {entry?.item && (
@@ -68,7 +71,7 @@ export default function Inventory({ token, player, inventory,onPlayer }: Invento
                                         <Text size="1" align="right">x{entry.quantity}</Text>
                                     </>
                                 )}
-                            </div>
+                            </button>
                         )
                     })}
                 </Grid>
@@ -185,6 +188,7 @@ export default function Inventory({ token, player, inventory,onPlayer }: Invento
                     </Tabs.Content>
                 </Box>
             </Tabs.Root>
+            <ModalItem item={selectedItem} token={token} onItem={setSelectedItem}/>
         </div>
     )
 }

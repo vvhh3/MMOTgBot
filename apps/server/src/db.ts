@@ -60,9 +60,9 @@ export function initializeDatabase(): void {
   const seedItems: typeof items.$inferInsert[] = [
     { id: 1, name: "Ржавый нож", description: "Простой нож", type: "weapon", damage: 3, defense: 0, healAmount: 0, price: 10,icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 29L13 19M13 19L29 3L13 19Z"/> </svg>'},
     { id: 2, name: "Кожаная броня", description: "Лёгкая защитная броня", type: "armor", damage: 0, defense: 2, healAmount: 0, price: 15, icon: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 2L6 8v8c0 6 4 10 10 12 6-2 10-6 10-12V8L16 2z'/><path d='M16 12v8'/><path d='M12 16h8'/></svg>"},
-    { id: 3, name: "Малая аптечка", description: "Восстанавливает здоровье", type: "potion", damage: 0, defense: 0, healAmount: 10, price: 12, icon: ""},
-    { id: 4, name: "Металлолом", description: "Полезный материал", type: "material", damage: 0, defense: 0, healAmount: 0, price: 5, icon: "" },
-    { id: 5, name: "Старая винтовка", description: "Рабочее оружие", type: "weapon", damage: 8, defense: 0, healAmount: 0, price: 30, icon: "" }
+    { id: 3, name: "Малая аптечка", description: "Восстанавливает здоровье", type: "potion", damage: 0, defense: 0, healAmount: 10, price: 12, icon: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 5v22M5 16h22'/><rect x='4' y='4' width='24' height='24' rx='4'/></svg>"},
+    { id: 4, name: "Металлолом", description: "Полезный материал", type: "material", damage: 0, defense: 0, healAmount: 0, price: 5, icon: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 27l4-4 5-6 8-9M9 23l-3-3M18 27c4-7 8-14 9-22l-6 1c-1 4-3 8-5 11'/></svg>" },
+    { id: 5, name: "Старая винтовка", description: "Рабочее оружие", type: "weapon", damage: 8, defense: 0, healAmount: 0, price: 30, icon: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 24h26M3 24l2-6h24l0 6M7 24v4M12 24v4M17 24v4M22 24v4M14 18h6'/></svg>" }
   ]
 
   // Вставляем сид. Для локаций onConflictDoUpdate: при изменении координат/названия
@@ -84,7 +84,22 @@ export function initializeDatabase(): void {
     })
     .run()
   db.insert(mobs).values(seedMobs).onConflictDoNothing().run()
-  db.insert(items).values(seedItems).onConflictDoNothing().run()
+  db.insert(items)
+    .values(seedItems)
+    .onConflictDoUpdate({
+      target: items.id,
+      set: {
+        name: sql`excluded.name`,
+        description: sql`excluded.description`,
+        type: sql`excluded.type`,
+        damage: sql`excluded.damage`,
+        defense: sql`excluded.defense`,
+        healAmount: sql`excluded.heal_amount`,
+        price: sql`excluded.price`,
+        icon: sql`excluded.icon`,
+      }
+    })
+    .run()
 
   // Стартовые квесты (каталог). Добавляются только если таблица пуста,
   // чтобы не дублироваться при каждом запуске.
