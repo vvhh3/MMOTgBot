@@ -12,14 +12,15 @@ type InventoryProps = {
     player: PlayerDto | null
     inventory: InventoryItemDto[] | null
     onPlayer: (player: PlayerDto) => void
+    onInventory: (value: InventoryItemDto[]) => void
 }
 
-export default function Inventory({ token, player, inventory,onPlayer }: InventoryProps) {
+export default function Inventory({ token, player, inventory,onPlayer,onInventory }: InventoryProps) {
 
     const [error, setError] = useState<string | null>(null)
 
     const [inventoryItems, setInventoryItems] = useState<ItemDto[]>([])
-    const [selectedItem,setSelectedItem] = useState<ItemDto | null>(null)
+    const [selectedItem,setSelectedItem] = useState<{ item: ItemDto; equiped: boolean } | null>(null)
 
     useEffect(() => {
         if (!token) return
@@ -59,9 +60,9 @@ export default function Inventory({ token, player, inventory,onPlayer }: Invento
 
                         return (
                             <button
-                                onClick={() => entry?.item && setSelectedItem(entry.item)}
+                                onClick={() => entry?.item && setSelectedItem({ item: entry.item, equiped: entry.equiped })}
                                 key={index}
-                                className="border-[#898888] border h-17 w-17 p-0.5 flex flex-col justify-between overflow-hidden">
+                                className={`border h-17 w-17 p-0.5 flex flex-col justify-between overflow-hidden ${entry?.equiped ? "border-[#E85D2F] border-2 bg-orange-50" : "border-[#898888]"}`}>
                                 {entry?.item && (
                                     <>
                                         {entry.item.icon ? 
@@ -88,9 +89,9 @@ export default function Inventory({ token, player, inventory,onPlayer }: Invento
                             <div className="flex flex-row w-35 mr-1.5">
                                 <img src={playerM} className="h-25" />
                                 <div className="flex flex-col gap-1 w-5 justify-evenly">
-                                    <div className="h-5 w-5 border flex justify-center items-center" ><button onClick={() => updateStats("maxHealth")}> +</button></div>
-                                    <div className="h-5 w-5 border flex justify-center items-center"><button onClick={() => updateStats("strength")}> +</button></div>
-                                    <div className="h-5 w-5 border flex justify-center items-center"><button onClick={() => updateStats("defense")}> +</button></div>
+                                    <div className="h-5 w-5 border flex justify-center items-center"><button> +</button></div>
+                                    <div className="h-5 w-5 border flex justify-center items-center"><button> +</button></div>
+                                    <div className="h-5 w-5 border flex justify-center items-center"><button> +</button></div>
                                 </div>
                             </div>
                             <div className="flex-1 min-w-0 flex flex-col">
@@ -188,7 +189,7 @@ export default function Inventory({ token, player, inventory,onPlayer }: Invento
                     </Tabs.Content>
                 </Box>
             </Tabs.Root>
-            <ModalItem item={selectedItem} token={token} onItem={setSelectedItem}/>
+            <ModalItem item={selectedItem?.item ?? null} equiped={selectedItem?.equiped ?? false} token={token} onItem={setSelectedItem} onPlayer={onPlayer} onInventory={onInventory}/>
         </div>
     )
 }

@@ -212,7 +212,7 @@ function App() {
             <Route path="Profile" element={<Profile setWindowSkillPoints={setWindowSkillPoints} player={player} locationState={locationState}/>} />
             <Route path="Tasks" element={<Tasks token={token} onPlayer={setPlayer} />} />
             <Route path="Team" element={<Team token={token} player={player} liveOverview={friendsOverview}/>} />
-            <Route path="Inventory" element={<Inventory token={token} player={player} inventory={inventory} onPlayer={setPlayer}/>} />
+            <Route path="Inventory" element={<Inventory token={token} player={player} inventory={inventory} onPlayer={setPlayer} onInventory={setInventory}/>} />
             <Route path="Exchange" element={<Exchange token={token} player={player} tradeState={tradeState} inventory={inventory}/>} />
             <Route path="AdminPanel" element={<Admin token={token} />} />
           </Route>

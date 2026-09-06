@@ -1,7 +1,7 @@
 
 import { AuthedRequest } from "./auth.js"
 import type { Express, Request, Response } from "express"
-import { db, toInventoryItemDto, toItemDto, toPlayerDto } from "./db.js"
+import { db, toInventoryItemDto, toItemDto, toPlayerDtoEquipped } from "./db.js"
 import { inventoryItems, items, players } from "./db/schema.js"
 import { eq, and,asc } from "drizzle-orm"
 import { ItemsResponse } from "@mmobot/shared"
@@ -81,7 +81,8 @@ export const InventoryRoutes = (app: Express) => {
             .run()
 
         const update = db.select().from(inventoryItems).where(eq(inventoryItems.playerId, player.id)).all()
-        res.json({ inventory: update.map(toInventoryItemDto) })
+        const updatedPlayer = db.select().from(players).where(eq(players.id, player.id)).get()!
+        res.json({ player: toPlayerDtoEquipped(updatedPlayer), inventory: update.map(toInventoryItemDto) })
     })
 
 
@@ -136,7 +137,7 @@ export const InventoryRoutes = (app: Express) => {
 
         const updatedPlayer = db.select().from(players).where(eq(players.id, player.id)).get()!
         const updatedInventory = db.select().from(inventoryItems).where(eq(inventoryItems.playerId, player.id)).all()
-        res.json({ player: toPlayerDto(updatedPlayer), inventory: updatedInventory.map(toInventoryItemDto) })
+        res.json({ player: toPlayerDtoEquipped(updatedPlayer), inventory: updatedInventory.map(toInventoryItemDto) })
     })
 
     //Снять предмет
@@ -166,6 +167,7 @@ export const InventoryRoutes = (app: Express) => {
             .run()
 
         const update = db.select().from(inventoryItems).where(eq(inventoryItems.playerId, player.id)).all()
-        res.json({ inventory: update.map(toInventoryItemDto) })
+        const updatedPlayer = db.select().from(players).where(eq(players.id, player.id)).get()!
+        res.json({ player: toPlayerDtoEquipped(updatedPlayer), inventory: update.map(toInventoryItemDto) })
     })
 }

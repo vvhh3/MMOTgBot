@@ -107,9 +107,9 @@ export async function combatAction(token: string, action: CombatActionRequest["a
   return response.data
 }
 
-export async function getCombatState(token:string) {
-    const response = await api.get<CombatStateResponse>("/combat/state",{headers: authHeader(token)})
-    return response.data
+export async function getCombatState(token: string) {
+  const response = await api.get<CombatStateResponse>("/combat/state", { headers: authHeader(token) })
+  return response.data
 }
 
 
@@ -148,8 +148,8 @@ export async function getItems(token: string): Promise<ItemsResponse> {
   const responce = await api.get<ItemsResponse>("/items", { headers: authHeader(token) })
   return responce.data
 }
-export async function getItem(token: string,id: number): Promise<ItemResponse> {
-  const responce = await api.get<ItemResponse>(`/items/${id}`,{ headers: authHeader(token) })
+export async function getItem(token: string, id: number): Promise<ItemResponse> {
+  const responce = await api.get<ItemResponse>(`/items/${id}`, { headers: authHeader(token) })
   return responce.data
 }
 
@@ -222,24 +222,24 @@ export async function createTrade(token: string, toPlayerId: number) {
   return response.data
 }
 export async function getTradesOverview(token: string): Promise<TradesOverviewResponse> {
-    const response = await api.get<TradesOverviewResponse>("/trades", { headers: authHeader(token) })
-    return response.data
+  const response = await api.get<TradesOverviewResponse>("/trades", { headers: authHeader(token) })
+  return response.data
 }
-export async function acceptTrade(token:string,id:number) {
-    const response = await api.post(`/trades/${id}/accept`,undefined, {headers: authHeader(token)})
-    return response.data
+export async function acceptTrade(token: string, id: number) {
+  const response = await api.post(`/trades/${id}/accept`, undefined, { headers: authHeader(token) })
+  return response.data
 }
-export async function cancelTrade(token:string,id:number) {
-    const response = await api.delete(`/trades/${id}`, {headers: authHeader(token)})
-    return response.data
+export async function cancelTrade(token: string, id: number) {
+  const response = await api.delete(`/trades/${id}`, { headers: authHeader(token) })
+  return response.data
 }
-export async function submitOffer(token:string,id: number,items: { itemType: number; quantity: number }[]) {
-    const response = await api.put(`/trades/${id}/offer` , {items: items}, {headers: authHeader(token)})
-    return response.data
+export async function submitOffer(token: string, id: number, items: { itemType: number; quantity: number }[]) {
+  const response = await api.put(`/trades/${id}/offer`, { items: items }, { headers: authHeader(token) })
+  return response.data
 }
-export async function submitReady(token:string,id: number) { // подтвердить перевод
-    const response = await api.post(`/trades/${id}/ready` ,undefined, {headers: authHeader(token)})
-    return response.data
+export async function submitReady(token: string, id: number) { // подтвердить перевод
+  const response = await api.post(`/trades/${id}/ready`, undefined, { headers: authHeader(token) })
+  return response.data
 }
 
 
@@ -251,26 +251,47 @@ export async function spendStatPoint(token: string, stat: "maxHealth" | "strengt
 
 // PVP между игроков 
 // получить онлайн игроков
-export async function getOnlinePlayer(token:string): Promise<{players: PlayerDto[]}> {
-    const response = await api.get("/players/online", {headers: authHeader(token)})
-    return response.data
+export async function getOnlinePlayer(token: string): Promise<{ players: PlayerDto[] }> {
+  const response = await api.get("/players/online", { headers: authHeader(token) })
+  return response.data
 }
-export async function createPvp(token:string, toPlayerId: number) {
-    const response = await api.post("/pvp", {toPlayerId}, {headers: authHeader(token)})
-    return response.data
+export async function createPvp(token: string, toPlayerId: number) {
+  const response = await api.post("/pvp", { toPlayerId }, { headers: authHeader(token) })
+  return response.data
 }
 export async function getPvpOverview(token: string): Promise<PvpOverviewResponse> {
-    const response = await api.get<PvpOverviewResponse>("/pvp", { headers: authHeader(token) })
-    return response.data
+  const response = await api.get<PvpOverviewResponse>("/pvp", { headers: authHeader(token) })
+  return response.data
 }
-export async function acceptPvp (token:string,id:number) {
-    await api.post(`/pvp/${id}/accept`, undefined, {headers: authHeader(token)})
+export async function acceptPvp(token: string, id: number) {
+  await api.post(`/pvp/${id}/accept`, undefined, { headers: authHeader(token) })
 }
-export async function cancelPvp (token:string,id:number) {
-  await api.delete(`/pvp/${id}`,{headers: authHeader(token)})
+export async function cancelPvp(token: string, id: number) {
+  await api.delete(`/pvp/${id}`, { headers: authHeader(token) })
 }
+
 // Сделать ход в активной дуэли: attack | flee | use(зелье)
 export async function pvpAction(token: string, id: number, action: "attack" | "flee" | "use", itemType?: number) {
-    const response = await api.post(`/pvp/${id}/action`, { action, itemType }, { headers: authHeader(token) })
-    return response.data
+  const response = await api.post(`/pvp/${id}/action`, { action, itemType }, { headers: authHeader(token) })
+  return response.data
+}
+
+
+
+//Использование предметов в инвенторе
+//Зелья
+export async function inventoryUsePotion(token: string,idItem:number): Promise<MeResponse> {
+  const res = await api.post("/inventory/use", { itemType: idItem }, { headers: authHeader(token) })
+  return res.data
+}
+//экипировка броня/оружие
+export async function inventoryEquipedItem(token: string,idItem:number): Promise<MeResponse> {
+  const res = await api.post("/inventory/equip", { itemType: idItem }, { headers: authHeader(token) })
+  return res.data
+}
+
+//снять броня/оружие
+export async function inventoryUnEquipedItem(token: string,idItem:number): Promise<MeResponse> {
+  const res = await api.post("/inventory/unequip", { itemType: idItem }, { headers: authHeader(token) })
+  return res.data
 }
