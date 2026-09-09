@@ -106,21 +106,21 @@ export default function ModalItem({
         )}
 
         {(item.damage > 0 || item.defense > 0 || item.healAmount > 0) && (
-          <div className="my-4 grid grid-cols-3 gap-2">
+          <div className="flex justify-center gap-2 ">
             {item.damage > 0 && (
-              <div className="flex flex-col items-center rounded-lg border border-[#E85D2F]/30 bg-orange-50 py-2">
+              <div className="flex flex-col items-center rounded-lg border border-[#E85D2F]/30 bg-orange-50 py-2 w-full">
                 <p className="text-xs text-gray-500">ATK</p>
                 <p className="text-base font-bold text-[#E85D2F]">+{item.damage}</p>
               </div>
             )}
             {item.defense > 0 && (
-              <div className="flex flex-col items-center rounded-lg border border-[#60a5fa]/30 bg-blue-50 py-2">
+              <div className="flex flex-col items-center rounded-lg border border-[#60a5fa]/30 bg-blue-50 py-2 w-full">
                 <p className="text-xs text-gray-500">DEF</p>
                 <p className="text-base font-bold text-[#60a5fa]">+{item.defense}</p>
               </div>
             )}
             {item.healAmount > 0 && (
-              <div className="flex flex-col items-center rounded-lg border border-green-500/30 bg-green-50 py-2">
+              <div className="flex flex-col items-center rounded-lg border border-green-500/30 bg-green-50 py-2 w-full">
                 <p className="text-xs text-gray-500">HP</p>
                 <p className="text-base font-bold text-green-500">+{item.healAmount}</p>
               </div>
