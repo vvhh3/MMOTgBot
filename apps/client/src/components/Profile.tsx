@@ -41,28 +41,28 @@ export default function Profile({ player,locationState,setWindowSkillPoints }: P
                         </Text>
                     </Card>
                 </button>
-                <button onClick={()=>setWindowSkillPoints(true)}>
                     <Card variant="classic">
-                        <Text as="div" size="2" weight="bold">
-                            Уровень {player?.level}
-                        </Text>
-                        <Box maxWidth="300px">
-                            <Progress
-                                color='orange'
-                                value={(player?.xp ?? 0) - (player?.xpLevelStart ?? 0)}
-                                max={player?.xpNextLevel != null ? player.xpNextLevel - player.xpLevelStart : 1}
-                            />
-                        </Box>
-                        <Text as="div" color="gray" size="2">
-                            {player?.xpNextLevel != null
-                                ? `${player.xp}/${player.xpNextLevel} (ещё ${player.xpNextLevel - player.xp})`
-                                : `${player?.xp} — максимальный уровень`}
-                        </Text>
-                        <Text as="div" color="gray" size="1">
-                            Нажми чтоб узнать больше
-                        </Text>
+                        <div onClick={()=>setWindowSkillPoints(true)}>
+                            <Text as="div" size="2" weight="bold">
+                                Уровень {player?.level}
+                            </Text>
+                            <Box maxWidth="300px">
+                                <Progress
+                                    color='orange'
+                                    value={(player?.xp ?? 0) - (player?.xpLevelStart ?? 0)}
+                                    max={player?.xpNextLevel != null ? player.xpNextLevel - player.xpLevelStart : 1}
+                                />
+                            </Box>
+                            <Text as="div" color="gray" size="2">
+                                {player?.xpNextLevel != null
+                                    ? `${player.xp}/${player.xpNextLevel} (ещё ${player.xpNextLevel - player.xp})`
+                                    : `${player?.xp} — максимальный уровень`}
+                            </Text>
+                            <Text as="div" color="gray" size="1">
+                                Нажми чтоб узнать больше
+                            </Text>
+                        </div>
                     </Card>
-                </button>
                 <Box >
                     <Link to="/Map">
                         <Card size="2">
@@ -109,15 +109,10 @@ export default function Profile({ player,locationState,setWindowSkillPoints }: P
                         <Grid rows="1" columns="2">
                             <div className='flex items-end'>
                                 <p>{player?.points}</p>
-                                <svg className="h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <circle cx="12" cy="12" r="10" stroke="#ff7b00" stroke-width="2"></circle> <path d="M15 9.94728C14.5 9.3 13.8 8.5 12 8.5C10.2 8.5 9 9.51393 9 9.94728C9 10.3806 9.06786 10.9277 10 11.5C10.7522 11.9618 12.6684 12.0439 13.5 12.5C14.679 13.1467 14.8497 13.8202 14.8497 14.0522C14.8497 14.6837 13.4175 15.4852 12 15.5C10.536 15.5153 9.5 14.7 9 14.0522" stroke="#ff7b00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M12 7V17" stroke="#ff7b00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path> </g></svg>
+                                <svg className="h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"><circle cx="12" cy="12" r="10" stroke="#ff7b00" strokeWidth="2"></circle><path d="M15 9.94728C14.5 9.3 13.8 8.5 12 8.5C10.2 8.5 9 9.51393 9 9.94728C9 10.3806 9.06786 10.9277 10 11.5C10.7522 11.9618 12.6684 12.0439 13.5 12.5C14.679 13.1467 14.8497 13.8202 14.8497 14.0522C14.8497 14.6837 13.4175 15.4852 12 15.5C10.536 15.5153 9.5 14.7 9 14.0522" stroke="#ff7b00" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path><path d="M12 7V17" stroke="#ff7b00" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path></g></svg>                            
                             </div>
                             <div className='flex items-end flex-col'>
-                                <svg style={{
-                                    height: 70,
-                                    backgroundSize: "cover",
-                                    backgroundPosition: "center",
-                                    backgroundRepeat: "no-repeat"
-                                }} fill="#000000" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg" id="memory-bag-personal"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M17 15H9V17H7V15H5V19H17V15M17 9H16V8H15V7H7V8H6V9H5V13H17V9M13 11H9V10H10V9H12V10H13V11M3 8H4V6H6V5H7V2H8V1H14V2H15V5H16V6H18V8H19V20H18V21H4V20H3V8M9 3V5H13V3H9Z"></path></g></svg>
+                                <svg style={{height: 70, backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat"}} fill="#000000" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg" id="memory-bag-personal"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M17 15H9V17H7V15H5V19H17V15M17 9H16V8H15V7H7V8H6V9H5V13H17V9M13 11H9V10H10V9H12V10H13V11M3 8H4V6H6V5H7V2H8V1H14V2H15V5H16V6H18V8H19V20H18V21H4V20H3V8M9 3V5H13V3H9Z"></path></g></svg>
                             </div>
                         </Grid>
                     </Card>
