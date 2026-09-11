@@ -1,6 +1,6 @@
 import { PlayerDto } from "@mmobot/shared"
-import { Card, Text } from "@radix-ui/themes"
-import { useEffect, useRef } from "react"
+import { Button, Card, Text } from "@radix-ui/themes"
+import { useEffect, useRef, useState } from "react"
 import { spendStatPoint } from "../../../api"
 
 type SkillPointsProps = {
@@ -49,7 +49,17 @@ type StatKey = keyof typeof STAT_CONFIG
 
 export default function SkillPoints({ showIsModal, onShowModal, player, token, onPlayer }: SkillPointsProps) {
   const cardRef = useRef<HTMLDivElement | null>(null)
-
+  const [available, setAvailable] = useState<number>(player?.statPoints ?? 0)
+  const [points,setPoints] = useState({
+    maxHealth: 0,
+    strength: 0,
+    defense: 0,
+  })
+  const pointsSkill = {
+    maxHealth: 5,
+    strength: 2,
+    defense: 1
+  }
   useEffect(() => {
     if (!showIsModal) return
     const handleClickOutside = (e: PointerEvent) => {
@@ -58,19 +68,51 @@ export default function SkillPoints({ showIsModal, onShowModal, player, token, o
       }
     }
     document.addEventListener("pointerdown", handleClickOutside)
+    setPoints({ 
+      maxHealth: 0,
+      strength: 0,
+      defense: 0,
+    })
+    setAvailable(player?.statPoints ?? 0)
     return () => document.removeEventListener("pointerdown", handleClickOutside)
   }, [showIsModal])
 
-  const handleSpend = async (stat: StatKey) => {
+  const handleSpend = async () => {
     if (!token || (player?.statPoints ?? 0) <= 0) return
     try {
-      const { player: updated } = await spendStatPoint(token, stat)
+      const { player: updated } = await spendStatPoint(token, points)
       onPlayer(updated)
+      setPoints({ 
+      maxHealth: 0,
+      strength: 0,
+      defense: 0,
+      })
+      setAvailable(player?.statPoints ?? 0)
     } catch {  }
   }
+  const changesPoint = (key: keyof typeof points,changes:boolean) => {
+    const total = points.maxHealth + points.strength + points.defense
 
-  const available = player?.statPoints ?? 0
+    if(changes ==false){
+      if (points[key] == 0) return
+        setPoints(prev => ({
+          ...prev,
+          [key]: prev[key] - 1,
+        }))
+        setAvailable(available+1)
+    }
+    if(changes == true){
+      if (total >= available) return
+          setPoints(prev => ({
+          ...prev,
+          [key]: prev[key] + 1,
+        }))
+        setAvailable(available-1)
 
+      }
+   
+    
+  }
   return (
     <>
       {showIsModal && (
@@ -78,7 +120,7 @@ export default function SkillPoints({ showIsModal, onShowModal, player, token, o
           <div className="absolute inset-0 bg-black/30" />
           <Card ref={cardRef} className="relative w-full max-w-sm">
             <button
-              onClick={() => onShowModal(false)}
+              onClick={() => {onShowModal(false)}}
               className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#E8603C] text-lg leading-none text-[#E8603C] transition-transform hover:scale-110 active:scale-95"
             >
               ×
@@ -115,10 +157,25 @@ export default function SkillPoints({ showIsModal, onShowModal, player, token, o
                         <Text size="1" color="gray">{cfg.sub}</Text>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Text size="4" weight="bold">{value}</Text>
+                    <div className="flex items-center gap-1 w-[120px] flex-row justify-between items-center">
                       <button
-                        onClick={() => handleSpend(key)}
+                        onClick={() =>
+                          changesPoint(key,false)
+                        }
+                        disabled={points[key] <1}
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border-2 text-lg font-bold leading-none transition-all active:scale-90 disabled:cursor-not-allowed disabled:opacity-30"
+                        style={{
+                          borderColor: cfg.color,
+                          color: cfg.color,
+                        }}
+                      >
+                        -
+                      </button>
+                      <Text size="4" weight="bold">{(value ?? 0) + (points[key] * pointsSkill[key])} </Text>
+                      <button
+                        onClick={() =>
+                          changesPoint(key,true)
+                        }
                         disabled={available <= 0}
                         className="flex h-8 w-8 items-center justify-center rounded-lg border-2 text-lg font-bold leading-none transition-all active:scale-90 disabled:cursor-not-allowed disabled:opacity-30"
                         style={{
@@ -132,6 +189,9 @@ export default function SkillPoints({ showIsModal, onShowModal, player, token, o
                   </div>
                 )
               })}
+              <div className="flex flex-row justify-end">
+                <Button onClick={()=>handleSpend()}  style={{background:"#E8603C", borderRadius:"16px"}} >Подтвердить</Button>
+              </div>
             </div>
           </Card>
         </div>

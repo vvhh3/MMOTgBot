@@ -90,7 +90,7 @@ export default function Home({
                 style={{ background: "white" }}
                 size="1"
                 color="green"
-                value={player?.health}
+                value={player && ((player?.health * 100)/player?.maxHp)}
               />
             </Box>
             <img className="h-37.5 min-w-35" src={playerM} />

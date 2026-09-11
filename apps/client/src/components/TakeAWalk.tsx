@@ -87,7 +87,9 @@ export default function TakeAWalk({ token, player,onPlayer,onInventory,locationS
                                 </div>
                             </Card>
                         </div>
-                        <img className="h-45" style={{ transform: 'scaleX(-1)' }} src={playerM} />
+                        <div className="flex justify-center items-center">
+                            <img className="h-45 w-[180px]" style={{ transform: 'scaleX(-1)' }} src={playerM} />
+                        </div>
                     </div>
                     <div>
                         <div>

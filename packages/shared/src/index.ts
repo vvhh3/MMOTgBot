@@ -16,10 +16,10 @@ export type PlayerDto = { // описание игрока
 };
 
 // какую характеристику поднять за одно очко (POST /me/stats)
-export type StatType = "maxHealth" | "strength" | "defense"
+export type StatType = 'maxHealth' | 'strength' | 'defense'
 
 export type SpendStatPointRequest = {
-  stat: StatType
+  [key in StatType]: number
 }
 
 export type MobDto = { // описание мобов

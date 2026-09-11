@@ -81,7 +81,9 @@ export default function Fight({ token, player, pvpState,locationState}: FightPro
                                 </div>
                             </Card>
                         </div>
-                        <img className="h-45 " src={player2} />
+                        <div className="flex justify-center items-center">
+                            <img className="h-45 w-[180px]" style={{ transform: 'scaleX(-1)' }} src={player2} />
+                        </div>
                     </div>
                 </div>
 

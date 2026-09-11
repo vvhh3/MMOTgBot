@@ -173,39 +173,35 @@ export function createApp(): express.Express {
   app.post("/me/stats", requireAuth, (req, res) => {
     const player = (req as AuthedRequest).player;
     const body = req.body as SpendStatPointRequest;
-
-    // 1. Валидная характеристика?
-    const gain = STAT_GAIN[body?.stat];
-    if (!gain) {
-      res.status(400).json({ error: "stat должен быть maxHealth, strength или defense" });
-      return;
-    }
-
-    // 2. Есть что тратить? (перечитываем из БД — req.player мог устареть)
+    // 1. Есть что тратить? (перечитываем из БД — req.player мог устареть)
     const fresh = db.select().from(players).where(eq(players.id, player.id)).get()!;
     if (fresh.statPoints < 1) {
       res.status(409).json({ error: "Нет свободных очков характеристик" });
       return;
     }
 
-    // 3. Тратим очко и поднимаем стат. health тоже поднимаем при maxHealth,
+    // 2. Тратим очко и поднимаем стат. health тоже поднимаем при maxHealth,
     //    но не выше нового максимума.
-    if (body.stat === "maxHealth") {
-      db.update(players)
-        .set({
-          statPoints: fresh.statPoints - 1,
-          maxHealth: fresh.maxHealth + gain,
-          health: Math.min(fresh.maxHealth + gain, fresh.health + gain)
-        })
-        .where(eq(players.id, player.id)).run();
-    } else {
-      db.update(players)
-        .set({
-          statPoints: fresh.statPoints - 1,
-          ...(body.stat === "strength" ? { strength: fresh.strength + gain } : { defense: fresh.defense + gain })
-        })
-        .where(eq(players.id, player.id)).run();
+    for (const [stat, points] of Object.entries(body)){
+      const gain = STAT_GAIN[stat as keyof typeof STAT_GAIN] * points
+      if (stat === "maxHealth") {
+        db.update(players)
+          .set({
+            statPoints: fresh.statPoints - 1,
+            maxHealth: fresh.maxHealth + gain,
+            health: Math.min(fresh.maxHealth + gain, fresh.health + gain)
+          })
+          .where(eq(players.id, player.id)).run();
+      } else {
+        db.update(players)
+          .set({
+            statPoints: fresh.statPoints - 1,
+            ...(stat === "strength" ? { strength: fresh.strength + gain } : { defense: fresh.defense + gain })
+          })
+          .where(eq(players.id, player.id)).run();
+      }
     }
+
 
     const updated = db.select().from(players).where(eq(players.id, player.id)).get()!;
     emitToPlayer(player.id, "player", toPlayerDto(updated));
