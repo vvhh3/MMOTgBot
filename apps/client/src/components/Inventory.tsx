@@ -103,7 +103,7 @@ export default function Inventory({ token, player, inventory,onPlayer,onInventor
                                     <div className="flex flex-row ">
                                         <Text weight="bold" size="3">HP</Text>
                                         <div className="flex-1 min-w-0 ml-2 flex items-center">
-                                            <Progress value={player?.health} color="green"></Progress>
+                                            <Progress value={player && ((player?.health * 100)/player?.maxHp)} color="green"></Progress>
                                         </div>
                                     </div>
                                     <div className="flex justify-end">
