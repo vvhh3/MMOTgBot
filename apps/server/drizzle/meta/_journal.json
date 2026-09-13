@@ -127,6 +127,13 @@
       "when": 1788360382691,
       "tag": "0017_tense_jamie_braddock",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "6",
+      "when": 1789291393530,
+      "tag": "0018_early_omega_red",
+      "breakpoints": true
     }
   ]
 }

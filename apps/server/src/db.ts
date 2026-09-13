@@ -161,7 +161,8 @@ export function toPlayerDto(row: PlayerRow): PlayerDto {
     maxHp: row.maxHealth,
     strength: row.strength,
     defense: row.defense,
-    statPoints: row.statPoints // нераспределённые очки — клиент по ним показывает кнопку прокачки
+    statPoints: row.statPoints, // нераспределённые очки — клиент по ним показывает кнопку прокачки
+    idTheLastAction:row.idTheLastAction
   }
 }
 

@@ -2,10 +2,10 @@ import { StrictMode, useEffect, useState } from "react"
 import { createRoot } from "react-dom/client"
 import "@radix-ui/themes/styles.css"
 import "./styles.css"
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link, useNavigate } from "react-router-dom";
 import type { CombatStateResponse, FriendsOverviewResponse, InventoryItemDto, LocationStateResponse, PlayerDto, PvpStateDto, TradeStateDto } from "@mmobot/shared";
 import Loading from './components/Loading'
-import { auth, getMe,getLocations, getPvpOverview, getTradesOverview } from "./api";
+import { auth, getMe,getLocations, getPvpOverview, getTradesOverview, infoPvp } from "./api";
 import { getLocationImage } from "./utils/getLocationImage";
 
 import { getTelegramInitData } from "./telegram";
@@ -51,7 +51,7 @@ function App() {
   //Загрузилис ли все данные
   const [ready,setReady] = useState(false)
   const [loadingProgress,setLoadingProgress] = useState(0)
-
+  const navigate = useNavigate()
 
   const preloadImage = (url: string): Promise<void> => {
     return new Promise ((r) => {
@@ -102,7 +102,6 @@ function App() {
         ]);
         setPlayer(meData.player);
         setInventory(meData.inventory);
-
         const incomingPvp = pvpOverview?.invites.find((i) => i.direction === "incoming");
         if (incomingPvp) {
           setPvpState({
@@ -140,7 +139,6 @@ function App() {
       .catch((err: unknown) => setError(err instanceof Error ? err.message : "Не удалось войти"))
       .finally(() => setReady(true))
   }, []);
-
   useEffect(() => {
     if (!player) return;
     const socket = getSocket();
@@ -170,6 +168,31 @@ function App() {
       setError(err.message);
       console.log("error",err)
     };
+    if (player.idTheLastAction == null) return
+    if (player.idTheLastAction.type == "Fight"){
+      const loadPvp = async () => {
+        if(!token) return
+        if (player.idTheLastAction == null) return
+        const session = await infoPvp(token,player.id)
+        setPvpState({
+          id: session.info.id,
+          status: session.info.status,
+          direction: session.info.direction,
+          myName: session.info.myName,
+          partnerName: session.info.partnerName,
+          myHp: session.info.myHp,
+          myMaxHp: session.info.myMaxHp,
+          partnerHp: session.info.partnerHp,
+          partnerMaxHp: session.info.partnerMaxHp,
+          myTurn: session.info.myTurn,
+          finished: session.info.finished,
+          isWon: session.info.isWon,
+        })
+        navigate("/Fight",{replace:true})
+      }
+      loadPvp()
+    }
+
     const onLocationState = (nextState: LocationStateResponse) => setLocationState(nextState);
     const onPlayer = (nextPlayer: PlayerDto) => setPlayer(nextPlayer);
     const onInventory = (nextInventory: InventoryItemDto[]) => setInventory(nextInventory);
@@ -198,7 +221,6 @@ function App() {
       socket.off("tradeUpdate",onTradeState)
     }
   }, [player])
-
   return (
     <>
       <Theme>

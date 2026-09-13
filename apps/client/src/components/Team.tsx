@@ -125,9 +125,9 @@ export default function Team({ token, player,liveOverview }: TeamProps) {
         </div>
       )}
 
-      <div className="px-4  flex justify-center">
+      <div className="px-4  flex justify-center flex flex-col items-center">
         {incoming.length > 0 && (
-          <>
+          <div className="w-[80%] max-w-200">
             <Text size="2" weight="bold">Входящие заявки</Text>
             <Grid columns="1" gap="2" className="mt-2">
               {incoming.map((r) => (
@@ -148,11 +148,11 @@ export default function Team({ token, player,liveOverview }: TeamProps) {
                 </Card>
               ))}
             </Grid>
-          </>
+          </div>
         )}
 
         {outgoing.length > 0 && (
-          <>
+          <div className="w-[80%] max-w-200">
             <Text size="2" weight="bold" className="block mt-4">Исходящие заявки</Text>
             <Grid columns="1" gap="2" className="mt-2">
               {outgoing.map((r) => (
@@ -167,7 +167,7 @@ export default function Team({ token, player,liveOverview }: TeamProps) {
                 </Card>
               ))}
             </Grid>
-          </>
+          </div>
         )}
         <div className="w-[80%] max-w-200">
         <Grid columns="1" gap="2" className="mt-2">
