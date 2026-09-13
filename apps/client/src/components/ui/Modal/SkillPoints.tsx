@@ -102,7 +102,7 @@ export default function SkillPoints({ showIsModal, onShowModal, player, token, o
         setAvailable(available+1)
     }
     if(changes == true){
-      if (total >= available) return
+      if ( available == 0) return
           setPoints(prev => ({
           ...prev,
           [key]: prev[key] + 1,

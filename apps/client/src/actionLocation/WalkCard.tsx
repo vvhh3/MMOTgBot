@@ -40,7 +40,7 @@ export default function WalkCard({token,player,locationState}:WalkProps){
     return(
         <Card>
           <div className="flex flex-row  justify-between">
-            <div className="max-w-60" onClick={functionStartCombat}>
+            <div className="max-w-60" onClick={()=>functionStartCombat()}>
               <Text as="div" size="2" weight="bold">
                 <div className="flex-row flex gap-2">
                   Пройтись
