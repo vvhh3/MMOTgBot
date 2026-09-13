@@ -236,6 +236,7 @@ export type TradeItem = {
   quantity: number
 }
 type typeLastAction = "Fight" | "TakeAWalk" | "Trade"
+
 export type LastAction = {
   id:number
   type:typeLastAction
