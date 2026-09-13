@@ -168,31 +168,6 @@ function App() {
       setError(err.message);
       console.log("error",err)
     };
-    if (player.idTheLastAction == null) return
-    if (player.idTheLastAction.type == "Fight"){
-      const loadPvp = async () => {
-        if(!token) return
-        if (player.idTheLastAction == null) return
-        const session = await infoPvp(token,player.id)
-        setPvpState({
-          id: session.info.id,
-          status: session.info.status,
-          direction: session.info.direction,
-          myName: session.info.myName,
-          partnerName: session.info.partnerName,
-          myHp: session.info.myHp,
-          myMaxHp: session.info.myMaxHp,
-          partnerHp: session.info.partnerHp,
-          partnerMaxHp: session.info.partnerMaxHp,
-          myTurn: session.info.myTurn,
-          finished: session.info.finished,
-          isWon: session.info.isWon,
-        })
-        navigate("/Fight",{replace:true})
-      }
-      loadPvp()
-    }
-
     const onLocationState = (nextState: LocationStateResponse) => setLocationState(nextState);
     const onPlayer = (nextPlayer: PlayerDto) => setPlayer(nextPlayer);
     const onInventory = (nextInventory: InventoryItemDto[]) => setInventory(nextInventory);
@@ -221,6 +196,34 @@ function App() {
       socket.off("tradeUpdate",onTradeState)
     }
   }, [player])
+  useEffect(()=>{
+    if(!player) return
+    if (player.idTheLastAction == null) return
+    if (player.idTheLastAction.type == "Fight"){
+      const loadPvp = async () => {
+        if(!token) return
+        if (player.idTheLastAction == null) return
+        const session = await infoPvp(token,player.id)
+        setPvpState({
+          id: session.info.id,
+          status: session.info.status,
+          direction: session.info.direction,
+          myName: session.info.myName,
+          partnerName: session.info.partnerName,
+          myHp: session.info.myHp,
+          myMaxHp: session.info.myMaxHp,
+          partnerHp: session.info.partnerHp,
+          partnerMaxHp: session.info.partnerMaxHp,
+          myTurn: session.info.myTurn,
+          finished: session.info.finished,
+          isWon: session.info.isWon,
+        })
+        navigate("/Fight",{replace:true})
+      }
+      loadPvp()
+    }
+
+  })
   return (
     <>
       <Theme>
