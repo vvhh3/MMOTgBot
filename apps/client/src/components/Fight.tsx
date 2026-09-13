@@ -4,6 +4,7 @@ import { LocationDto, LocationStateResponse, PlayerDto, PvpStateDto } from "@mmo
 import { getLocationState, pvpAction } from "../api";
 import { useState, useEffect } from "react";
 import { getLocationImage } from "../utils/getLocationImage";
+import { replace, useNavigate } from "react-router-dom";
 
 type FightProps = {
     token: string | null
@@ -14,6 +15,7 @@ type FightProps = {
 
 export default function Fight({ token, player, pvpState,locationState}: FightProps) { // Сделать задний фон
     const [location,setLocation] = useState<LocationDto>();
+    const navigate= useNavigate()
     useEffect(()=>{
         if(locationState){
             setLocation(locationState?.location)
@@ -22,15 +24,23 @@ export default function Fight({ token, player, pvpState,locationState}: FightPro
     },[])
     const doAction = async (action: "attack" | "flee") => {
         if (!token || !pvpState) return
-        try {
-            await pvpAction(token, pvpState.id, action)
-        } catch (e) {
-            alert(e instanceof Error ? e.message : "Ошибка действия")
+        if(pvpState.finished){
+            navigate("/",{replace:true})
+        }
+        else{
+            try {
+             await pvpAction(token, pvpState.id, action)
+            } catch (e) {
+             alert(e instanceof Error ? e.message : "Ошибка действия")
+            }
         }
     }
 
     // Нет активного PvP — нечего показывать на этой странице
     if (!pvpState) {
+        useEffect(()=>{
+            navigate("/",{replace:true})
+        },[pvpState])
         return (
             <div className="flex items-center justify-center h-screen">
                 <Text size="3">Нет активного боя</Text>
@@ -44,7 +54,7 @@ export default function Fight({ token, player, pvpState,locationState}: FightPro
     return (
         <div className="flex">
             <div className="flex w-full flex-col justify-end" style={{
-                backgroundImage:`url(${location ? getLocationImage(location.fightImg): "none"})`,
+                backgroundImage:`url(${getLocationImage('fonNetralitet.svg')})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
@@ -65,7 +75,9 @@ export default function Fight({ token, player, pvpState,locationState}: FightPro
                                 </div>
                             </Card>
                         </div>
-                        <img className="h-45" style={{ transform: 'scaleX(-1)' }} src={player2} />
+                         <div className="flex justify-center items-center">
+                            <img className="h-45 w-[180px]" style={{ transform: 'scaleX(-1)' }} src={player2} />
+                        </div>
                     </div>
                     <div>
                         <div>
@@ -118,8 +130,8 @@ export default function Fight({ token, player, pvpState,locationState}: FightPro
                                 </div>
                             </Card>
                             <Card>
-                                <button className="w-full h-full flex justify-center items-center" disabled={finished} onClick={() => doAction("flee")}>
-                                    <Text size="3">Сбежать</Text>
+                                <button className="w-full h-full flex justify-center items-center"  onClick={() => doAction("flee")}>
+                                    {pvpState.finished ?<Text size="3">Выйти</Text> : <Text size="3">Сбежать</Text> }
                                 </button>
                             </Card>
                         </Grid>

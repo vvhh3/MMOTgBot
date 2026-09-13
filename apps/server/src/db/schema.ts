@@ -1,7 +1,7 @@
 import { index, integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 import { nowGameTime } from "../time.js";
 // TradeItem — тип одного пункта выкладки в трейде (из общего пакета)
-import type { TradeItem } from "@mmobot/shared";
+import type { LastAction, TradeItem } from "@mmobot/shared";
 
 // Локации игрового мира: уникальный id (текстовый ключ) + название, описание и координаты x/y на карте.
 export const locations = sqliteTable("locations", {
@@ -37,7 +37,8 @@ export const players = sqliteTable("players",
     currentLocationId: text("current_location_id").references(() => locations.id),
     createdAt: text("created_at").notNull(),
     lastSeenAt: text("last_seen_at").notNull(), // что это за поле? Время последнеё активности игрока
-    lastRegenTime: text("last_regen_time").notNull().$defaultFn(() => nowGameTime())
+    lastRegenTime: text("last_regen_time").notNull().$defaultFn(() => nowGameTime()),
+    idTheLastAction: text("id_the_last_action", {mode: "json",}).$type<LastAction>()
   },
   // Индекс ускоряет поиск игроков по текущей локации (напр. "кто сейчас на площади").
   (table) => [
@@ -214,7 +215,7 @@ export const pvpSessions = sqliteTable("pvp_sessions", {
   turn: text("turn", {enum: ["player1", "player2"]}).notNull().default("player1"),
   winnerId: integer("winner_id"),
   creadetAt: text("creadet_at").notNull(),
-  lastActionAt: text("last_action_at").notNull()
+  lastActionAt: text("last_action_at")
 }, (table) => [
   index("pvp_player1_idx").on(table.player1Id),
   index("pvp_player2_idx").on(table.player2Id),

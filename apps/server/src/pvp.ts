@@ -216,7 +216,7 @@ export const createPvpRoutes = (app: Express) => {
             player2Health: target.health,
             turn: "player1",
             creadetAt: nowGameTime(),       // опечатка осталась из схемы ("creadetAt"), пишем как есть
-            lastActionAt: nowGameTime()
+            lastActionAt: null
         }).run();
 
         const session = db.select().from(pvpSessions).where(eq(pvpSessions.id, Number(result.lastInsertRowid))).get()!
@@ -248,9 +248,11 @@ export const createPvpRoutes = (app: Express) => {
             lastActionAt: nowGameTime()
         };
         db.update(pvpSessions)
-            .set({ status: "active", player1Health: p1.health, player2Health: player.health, turn: "player1", lastActionAt: updated.lastActionAt })
+            .set({ status: "active", player1Health: p1.health, player2Health: player.health, turn: "player1", lastActionAt: updated.lastActionAt,})
             .where(eq(pvpSessions.id, session.id)).run();
         notifyBoth(updated);
+        db.update(players).set({idTheLastAction:{id:session.id,type:'Fight'}}).where(eq(players.id,p1.id)).run()
+        db.update(players).set({idTheLastAction:{id:session.id,type:'Fight'}}).where(eq(players.id,player.id)).run()
         res.json({ ok: true });
     });
 
@@ -369,7 +371,7 @@ export const createPvpRoutes = (app: Express) => {
         if (!finished) {
             // ход переходит к противнику
             db.update(pvpSessions)
-                .set({ ...patch, turn: opponentRole, lastActionAt: now })
+                .set({ ...patch, turn: opponentRole, lastActionAt: now,})
                 .where(eq(pvpSessions.id, session.id)).run();
             combatSessionsLogs.set(session.id, log);
             notifyBoth({ ...session, ...patch, turn: opponentRole });
@@ -379,9 +381,11 @@ export const createPvpRoutes = (app: Express) => {
         // === ДУЭЛЬ ЗАВЕРШЕНА ===
         // winnerId: id победителя | null (ничья — оба сбежали/отменили)
         db.update(pvpSessions)
-            .set({ ...patch, status: "finished", winnerId, lastActionAt: now })
+            .set({ ...patch, status: "finished", winnerId, lastActionAt: now})
             .where(eq(pvpSessions.id, session.id)).run();
 
+        db.update(players).set({idTheLastAction:null}).where(eq(players.id,me.id)).run()
+        db.update(players).set({idTheLastAction:null}).where(eq(players.id,opp.id)).run()
         // проигравший = тот из сторон БД, кто НЕ победитель (при ничьей его нет)
         const loserId = winnerId === null ? null : (winnerId === session.player1Id ? session.player2Id : session.player1Id);
 
@@ -402,4 +406,69 @@ export const createPvpRoutes = (app: Express) => {
         // лог больше не нужен — освобождаем память
         combatSessionsLogs.delete(session.id);
     })
+    app.post("/pvp/info", (req: Request, res: Response) => {
+        const id = Number(req.body.id);
+        const player1 = db.select().from(players).where(eq(players.id,id)).get()
+        if(player1?.idTheLastAction !=null){
+            const infoPvp = db.select().from(pvpSessions).where(eq(pvpSessions.id,player1?.idTheLastAction.id)).get();
+            if(!infoPvp) return
+            if(!infoPvp?.lastActionAt && Date.now() >= new Date(infoPvp.creadetAt).getTime() + 2 * 60 * 1000){
+                db.update(pvpSessions).set({ ...infoPvp, status: "finished", winnerId:null, lastActionAt:null }).where(eq(pvpSessions.id, infoPvp.id)).run();
+                db.update(players).set({idTheLastAction:null}).where(eq(players.id,infoPvp.player1Id)).run()
+                db.update(players).set({idTheLastAction:null}).where(eq(players.id,infoPvp.player2Id)).run()
+            }
+            else if (infoPvp.lastActionAt && Date.now() >= new Date(infoPvp.lastActionAt).getTime() + 2 * 60 * 1000){
+                const loserId = infoPvp.turn == "player1" ? infoPvp.player1Id : infoPvp.player2Id
+                const winnerId = infoPvp.turn != "player1" ? infoPvp.player1Id : infoPvp.player2Id
+                addXpForPlayer(winnerId, 10);
+                db.update(players).set({ points: sql`${players.points} + 10` }).where(eq(players.id, winnerId)).run();
+                db.update(players).set({ health: 0 }).where(eq(players.id, loserId)).run();
+                db.update(players).set({idTheLastAction:null}).where(eq(players.id,infoPvp.player1Id)).run()
+                db.update(players).set({idTheLastAction:null}).where(eq(players.id,infoPvp.player2Id)).run()
+
+            }
+            else{
+                if(player1.id == infoPvp?.player1Id){
+                    const player2 = db.select().from(players).where(eq(players.id,infoPvp.player2Id)).get()
+                    const info={
+                        id: infoPvp.id,
+                        status: infoPvp.status,
+                        direction: "incoming",
+                        myName: player1.name,
+                        partnerName: player2?.name,
+                        myHp: infoPvp.player1Health,
+                        myMaxHp: player1.maxHealth,
+                        partnerHp: infoPvp.player2Health,
+                        partnerMaxHp: player2?.maxHealth,
+                        myTurn: infoPvp.turn == "player1" ? true : false,
+                        finished: false,
+                        isWon: null,
+                    }
+                    res.json({info})
+                }
+                else if (player1.id == infoPvp?.player2Id){
+                    const player2 = db.select().from(players).where(eq(players.id,infoPvp.player1Id)).get()
+                    const info={
+                        id: infoPvp.id,
+                        status: infoPvp.status,
+                        direction: "incoming",
+                        myName: player1.name,
+                        partnerName: player2?.name,
+                        myHp: infoPvp.player1Health,
+                        myMaxHp: player1.maxHealth,
+                        partnerHp: infoPvp.player2Health,
+                        partnerMaxHp: player2?.maxHealth,
+                        myTurn: infoPvp.turn == "player2" ? true : false,
+                        finished: false,
+                        isWon: null,
+                    }
+                    res.json({info})
+                }
+            }
+            
+          
+        }
+        
+    })
 }
+

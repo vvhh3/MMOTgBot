@@ -269,6 +269,10 @@ export async function acceptPvp(token: string, id: number) {
 export async function cancelPvp(token: string, id: number) {
   await api.delete(`/pvp/${id}`, { headers: authHeader(token) })
 }
+export async function infoPvp(token: string,id: number) {
+  const response = await api.post(`/pvp/info`,{id}, { headers: authHeader(token) })
+  return response.data
+}
 
 // Сделать ход в активной дуэли: attack | flee | use(зелье)
 export async function pvpAction(token: string, id: number, action: "attack" | "flee" | "use", itemType?: number) {

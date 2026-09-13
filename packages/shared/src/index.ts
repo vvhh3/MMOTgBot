@@ -13,6 +13,7 @@ export type PlayerDto = { // описание игрока
   strength: number
   defense: number
   statPoints: number // нераспределённые очки характеристик (тратятся на прокачку статов)
+  idTheLastAction:LastAction | null
 };
 
 // какую характеристику поднять за одно очко (POST /me/stats)
@@ -233,6 +234,11 @@ export type PlayerQuestDto = {
 export type TradeItem = {
   itemType: number
   quantity: number
+}
+type typeLastAction = "Fight" | "TakeAWalk" | "Trade"
+export type LastAction = {
+  id:number
+  type:typeLastAction
 }
 
 // Что видит игрок в окне трейда: свою выкладку и выкладку партнёра
