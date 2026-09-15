@@ -48,6 +48,7 @@ function App() {
   const [tradeState,setTradeState]  = useState<TradeStateDto | null>(null)
   const [showIsModal,setIsShowModal] = useState(false)
   const [windowSkillPoints,setWindowSkillPoints]= useState(false)
+  const [state,setState] = useState<CombatStateResponse>()
   //Загрузилис ли все данные
   const [ready,setReady] = useState(false)
   const [loadingProgress,setLoadingProgress] = useState(0)
@@ -222,6 +223,24 @@ function App() {
       }
       loadPvp()
     }
+    else if(player.idTheLastAction.type == "TakeAWalk"){
+      if(!token) return
+      const loadTakeAWalk = async () => {
+        const session = await infoPvp(token,player.id)
+        setState({
+          mob: session.info.mob,
+          playerHp: session.info.playerHp,
+          playerMaxHp: session.info.playerMaxHp,
+          mobHp: session.info.mobHp,
+          mobMaxHp: session.info.mobMaxHp,
+          status: session.info.status,
+          log: session.info.log
+        })
+        navigate("/TakeAWalk",{replace:true})
+       
+      }
+      loadTakeAWalk()
+    }
 
   })
   return (
@@ -232,7 +251,7 @@ function App() {
 
           <Routes>
           <Route path="" element={<MainLayout setWindowSkillPoints={setWindowSkillPoints} windowSkillPoins={windowSkillPoints} showIsModal={showIsModal} setIsShowModal={setIsShowModal} player={player} token={token} error={error} onError={setError} onPlayer={setPlayer} pvpState={pvpState} tradeState={tradeState}/>}>
-            <Route path="/" element={<Home token={token} player={player} locationState={locationState} friendsOverview={friendsOverview} pvpState={pvpState} tradeState={tradeState}/>} />
+            <Route path="/" element={<Home onError={setError} onState={setState} token={token} player={player} locationState={locationState} friendsOverview={friendsOverview} pvpState={pvpState} tradeState={tradeState}/>} />
             <Route path="Map" element={<Map token={token} onLocationState={setLocationState} onPlayer={setPlayer} />} />
             <Route path="Profile" element={<Profile setWindowSkillPoints={setWindowSkillPoints} player={player} locationState={locationState}/>} />
             <Route path="Tasks" element={<Tasks token={token} onPlayer={setPlayer} />} />
@@ -241,7 +260,7 @@ function App() {
             <Route path="Exchange" element={<Exchange token={token} player={player} tradeState={tradeState} inventory={inventory}/>} />
             <Route path="AdminPanel" element={<Admin token={token} />} />
           </Route>
-          <Route path="/TakeAWalk" element={<TakeAWalk token={token} player={player} onPlayer={setPlayer} onInventory={setInventory} locationState={locationState} />} />
+          <Route path="/TakeAWalk" element={<TakeAWalk token={token} player={player} onPlayer={setPlayer} onInventory={setInventory} locationState={locationState} onError={setError} error={error} onState={setState} state={state} />} />
           <Route path="/Fight" element={<Fight token={token} player={player} locationState={locationState} pvpState={pvpState} />} />
         </Routes>
         ) : (

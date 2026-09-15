@@ -20,12 +20,14 @@ import {
   FriendsOverviewResponse,
   PvpStateDto,
   TradeStateDto,
+  CombatStateResponse
 } from "@mmobot/shared";
 import { getLocationState, startCombat } from "../api";
 import { getLocationImage } from "../utils/getLocationImage";
 import ModalSelectOfFriend from "./ui/Modal/ModalSelectOfFriend";
 import ActionCards from "./ui/ActionCards.tsx";
 import map from '../components/ui/Maps/mapMat.png'
+
 type HomeProps = {
   token: string | null;
   player: PlayerDto | null;
@@ -33,6 +35,8 @@ type HomeProps = {
   friendsOverview: FriendsOverviewResponse | null;
   pvpState: PvpStateDto | null
   tradeState: TradeStateDto | null
+  onError:(value:string)=>void
+  onState:(state: CombatStateResponse) => void
 };
 
 export default function Home({
@@ -41,7 +45,9 @@ export default function Home({
   locationState,
   friendsOverview,
   pvpState,
-  tradeState
+  tradeState,
+  onError,
+  onState
 }: HomeProps) {
   const [showModalTrade, setShowModalTrade] = useState(false);
   const [showModalPvp, setShowModalPvp] = useState(false);
@@ -119,7 +125,7 @@ export default function Home({
           gap="2"
           style={{ padding: "20px" }}
         >
-          <ActionCards showModalPvp={showModalPvp} setShowModalPvp={setShowModalPvp} setShowModalTrade={setShowModalTrade} showModalTrade={showModalTrade} token={token} locationState={locationState} player={player} location={location}/>
+          <ActionCards onError={onError} onState={onState} showModalPvp={showModalPvp} setShowModalPvp={setShowModalPvp} setShowModalTrade={setShowModalTrade} showModalTrade={showModalTrade} token={token} locationState={locationState} player={player} location={location}/>
         </Grid>
         :
         <Box className="w-[70%] p-2.5">
@@ -166,7 +172,7 @@ export default function Home({
         token={token}
         onClose={() => setShowModalPvp(false)}
         title="Выберите своего противника"
-        textOnButton="Вызвть на бой"
+        textOnButton="Вызвать на бой"
         type="figth"
         pvpState={pvpState}
       />

@@ -1,15 +1,23 @@
 import { Card,Text } from "@radix-ui/themes"
 import { Link } from "react-router-dom"
-import { getLocationState, startCombat } from "../api";
-import { LocationDto, LocationStateResponse, PlayerDto } from "@mmobot/shared";
+import { getLocationState, startCombat,getCombatState} from "../api";
+import { LocationDto, LocationStateResponse, PlayerDto,CombatStateResponse} from "@mmobot/shared";
 import { useNavigate } from "react-router-dom";
 type WalkProps = {
-    token: string| null
-    player: PlayerDto| null
-    locationState: LocationStateResponse|null
+  token: string| null
+  player: PlayerDto| null
+  locationState: LocationStateResponse|null
+  onError:(value:string)=>void
+  onState:(state: CombatStateResponse) => void
 }
-export default function WalkCard({token,player,locationState}:WalkProps){
+export default function WalkCard({token,player,locationState,onError,onState}:WalkProps){
   const navigate = useNavigate()
+   const getState = () => {
+          if(!token) return
+          getCombatState(token)
+          .then((res) => onState(res))
+          .catch(e => (navigate("/",{replace:true}),onError(e instanceof Error ? e.message :"Ошибка"))) 
+      }
   const functionStartCombat = async () => {
     if (player?.currentLocationId === null) {
       alert("Для начала выберите локацию");
@@ -32,6 +40,7 @@ export default function WalkCard({token,player,locationState}:WalkProps){
       }
 
       await startCombat(token, rand.id);
+      await getState();
       navigate("/TakeAWalk");
     } catch (e) {
       alert(e instanceof Error ? e.message : "Ошибка");

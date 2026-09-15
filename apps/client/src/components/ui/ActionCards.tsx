@@ -2,7 +2,7 @@ import ExchangeCard from "../../actionLocation/ExchangeCard";
 import WalkCard from "../../actionLocation/WalkCard";
 import MoneyCard from "../../actionLocation/MoneyCard";
 import FightCard from "../../actionLocation/FightCard";
-import { LocationDto, LocationStateResponse, PlayerDto } from "@mmobot/shared";
+import { LocationDto, LocationStateResponse, PlayerDto ,CombatStateResponse} from "@mmobot/shared";
 const cards = {
   exchange: ExchangeCard,
   fight: FightCard,
@@ -18,8 +18,10 @@ type CardProps = {
   showModalTrade: boolean
   setShowModalPvp: (value: boolean) => void
   showModalPvp: boolean
+  onError:(value:string)=>void
+  onState:(state: CombatStateResponse) => void
 }
-export default function ActionCards({token,player,location,locationState,showModalPvp,setShowModalPvp,showModalTrade,setShowModalTrade}: CardProps){
+export default function ActionCards({token,player,location,locationState,showModalPvp,setShowModalPvp,showModalTrade,setShowModalTrade,onError,onState}: CardProps){
   return(
     <>
       {location?.actions.map((action) => {
@@ -29,7 +31,7 @@ export default function ActionCards({token,player,location,locationState,showMod
           return null;
         }
 
-        return <CardComponent showModalPvp={showModalPvp} setShowModalPvp={setShowModalPvp} setShowModalTrade={setShowModalTrade} showModalTrade={showModalTrade} key={action} token={token} locationState={locationState} player={player}/>;
+        return <CardComponent onError={onError} onState={onState} showModalPvp={showModalPvp} setShowModalPvp={setShowModalPvp} setShowModalTrade={setShowModalTrade} showModalTrade={showModalTrade} key={action} token={token} locationState={locationState} player={player}/>;
       })}
     </>
   )

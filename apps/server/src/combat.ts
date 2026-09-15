@@ -55,7 +55,6 @@ export function startCombat(player: PlayerRow, mob: MobRow): CombatStateResponse
         startedAt: now,
         lastActionAt: now
     }).run();
-
     const log: CombatLogEntry[] = [{ text: `Вы начали бой с ${mob.name}`, at: now }];
     combatSessionsLogs.set(Number(result.lastInsertRowid), log);
 
@@ -88,20 +87,24 @@ export function moveCombatAction(
             log.push({ text: `${mob.name} нанёс вам ${dmgToPlayer} урона`, at: now });
             if (playerHp <= 0) {
                 status = "defeat";
+                db.update(players).set({idTheLastAction:null}).where(eq(players.id,player.id)).run()
             }
         } else {
             status = "victory";
+            db.update(players).set({idTheLastAction:null}).where(eq(players.id,player.id)).run()
         }
     } else if (action === "flee") {
         if (Math.random() < 0.5) {
             status = "fled";
             log.push({ text: "Вы убежали с поля боя", at: now });
+            db.update(players).set({idTheLastAction:null}).where(eq(players.id,player.id)).run()
         } else {
             const dmgToPlayer = Math.max(1, mob.strength - statPlayer.defense);
             playerHp = Math.max(0, playerHp - dmgToPlayer);
             log.push({ text: `Побег не удался, ${mob.name} наносит ${dmgToPlayer} урона`, at: now });
             if (playerHp <= 0) {
                 status = "defeat";
+                db.update(players).set({idTheLastAction:null}).where(eq(players.id,player.id)).run()
             }
         }
     }

@@ -458,7 +458,9 @@ export function createApp(): express.Express {
 
     // 6. Начинаем бой
     const state = startCombat(player, mob)
-
+    const idSessionCombat =db.select().from(combatSessions).where(eq(combatSessions.playerId,player.id)).get()
+    if(!idSessionCombat) return;
+    db.update(players).set({idTheLastAction:{id:idSessionCombat.id,type:"TakeAWalk"}}).where(eq(players.id,player.id)).run()
     emitToPlayer(player.id, "combatState", state)
 
     res.json(state)

@@ -5,7 +5,7 @@ import { Button, Card, Progress, Text, Grid, Flex } from "@radix-ui/themes"
 import { Link, useNavigate } from "react-router-dom"
 import { CombatStateResponse, InventoryItemDto, PlayerDto,LocationDto,LocationStateResponse } from "@mmobot/shared"
 import { useEffect, useState } from "react"
-import { combatAction, getCombatState,getLocationState} from "../api"
+import { combatAction,getLocationState} from "../api"
 import { getLocationImage } from "../utils/getLocationImage"
 
 type TakeAWalkProps = {
@@ -14,21 +14,18 @@ type TakeAWalkProps = {
     onPlayer: (state: PlayerDto) => void
     onInventory: (state: InventoryItemDto[]) => void
     locationState: LocationStateResponse|null
+    onError:(value:string)=>void
+    onState:(state: CombatStateResponse) => void
+    state:CombatStateResponse | undefined
+    error:string | null
 }
 
-export default function TakeAWalk({ token, player,onPlayer,onInventory,locationState }: TakeAWalkProps) {
+export default function TakeAWalk({ token, player,onPlayer,onInventory,locationState,onState,state,onError,error}: TakeAWalkProps) {
     const [location,setLocation] = useState<LocationDto>()
-    const [error, setError] = useState<string | null>(null)
-    const [state,setState] = useState<CombatStateResponse>()
 
     const navigate = useNavigate()
 
-    const getState = () => {
-        if(!token) return
-        getCombatState(token)
-        .then((res) => setState(res))
-        .catch(e => setError(e instanceof Error ? e.message :"Ошибка")) 
-    }
+   
 
     useEffect(() => {
         if(locationState){
@@ -43,27 +40,23 @@ export default function TakeAWalk({ token, player,onPlayer,onInventory,locationS
 
     },[token,locationState,player?.currentLocationId])
 
-    useEffect(() => {
-        getState()
-    },[token])
-
     const actionCombat = async (action: "attack" | "flee") => {
         try {
             if (!token) return
             const res = await combatAction(token, action)
-            setState(res.state)
+            onState(res.state)
             onPlayer(res.player)
             onInventory(res.inventory)
             if (res.state.status === "fled")navigate("/")
         } catch (e) {
-            setError(e instanceof Error ? e.message : 'Ошибка запроса, попробуйте попозже')
+            onError(e instanceof Error ? e.message : 'Ошибка запроса, попробуйте попозже')
         }
     }
 
     return (
         <div className="flex ">
             <div className="flex w-full flex-col justify-end" style={{
-                backgroundImage:`url(${location ? getLocationImage(location.fightImg): "none"})`,
+                backgroundImage:`url(${location ? getLocationImage(location.fightImg): getLocationImage('fonNetralitet.svg')})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',

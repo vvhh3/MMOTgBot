@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Card, Text, } from "@radix-ui/themes";
+import { Card, Text,Button,Badge } from "@radix-ui/themes";
 import { FriendDto, PlayerDto, PvpStateDto, TradeStateDto } from "@mmobot/shared";
 import {
   cancelPvp,
@@ -186,21 +186,25 @@ export default function ModalSelectOfFriend({
                       key={f.id}
                       className="flex flex-row items-center justify-between"
                     >
-                      <div className="flex flex-col">
+                      <div className="flex flex-row gap-1">
                         <Text size="2" weight="bold">
                           {f.name}
                         </Text>
-                        <Text size="1" color="gray">
-                          Lv {f.level} {f.online ? "• в сети" : ""}
-                        </Text>
+                       <Badge size="1" color="orange" style={{maxWidth:"50px"}}>
+                          Lv 
+                        </Badge>
+                        <Badge size="1" color="green" style={{maxWidth:"60px"}}>
+                          {f.online ? "в сети" : ""}
+                        </Badge>
                       </div>
-                      <button
-                        disabled={loading}
-                        onClick={() => handleTrade(f.id)}
-                        className="bg-[#E8603C] border-2 text-white p-2 border-black rounded-lg"
-                      >
-                        {textOnButton}
-                      </button>
+                     <div className="pt-1">
+                        <Button
+                          disabled={loading}
+                          onClick={() => handlePvp(f.id)}
+                          style={{background:"#E8603C", borderRadius:"16px"}}>
+                          {textOnButton}
+                        </Button>
+                      </div>
                     </Card>
                   ))}
                 </>
@@ -235,20 +239,22 @@ export default function ModalSelectOfFriend({
                     <Card
                       key={player.id}
                       className="flex flex-row items-center justify-between">
-                      <div className="flex flex-col">
+                      <div className="flex flex-row gap-1 ml-1">
                         <Text size="2" weight="bold">
                           {player.name}
                         </Text>
-                        <Text size="1" color="gray">
+                        <Badge size="1" color="orange" style={{maxWidth:"50px"}}>
                           Lv {player.level}
-                        </Text>
+                        </Badge>
                       </div>
-                      <button
-                        disabled={loading}
-                        onClick={() => handlePvp(player.id)}
-                        className="bg-[#E8603C] border-2 border-black rounded-2xl">
-                        {textOnButton}
-                      </button>
+                      <div className="pt-1">
+                        <Button
+                          disabled={loading}
+                          onClick={() => handlePvp(player.id)}
+                          style={{background:"#E8603C", borderRadius:"16px"}}>
+                          {textOnButton}
+                        </Button>
+                      </div>
                     </Card>
                   ))}
                 </>
