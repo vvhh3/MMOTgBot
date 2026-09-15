@@ -24,9 +24,6 @@ export default function TakeAWalk({ token, player,onPlayer,onInventory,locationS
     const [location,setLocation] = useState<LocationDto>()
 
     const navigate = useNavigate()
-
-   
-
     useEffect(() => {
         if(locationState){
             setLocation(locationState.location)
