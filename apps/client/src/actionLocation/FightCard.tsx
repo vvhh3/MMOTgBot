@@ -8,7 +8,7 @@ type FightProps = {
 }
 export default function FightCard({setShowModalPvp,showModalPvp}:FightProps){
     return(
-         <Card>
+        <Card>
           <div onClick={() => setShowModalPvp(showModalPvp ? false : true)}>
             <div className="flex flex-col">
                 <Text size="2" weight="bold">
@@ -22,20 +22,22 @@ export default function FightCard({setShowModalPvp,showModalPvp}:FightProps){
                       version="1.1"
                       fill="none"
                       stroke="#E85D2F"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="1.5"
                     >
-                      <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                      <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
+
                       <g
                         id="SVGRepo_tracerCarrier"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
                       ></g>
+
                       <g id="SVGRepo_iconCarrier">
-                        {" "}
-                        <path d="m2.75 9.25 1.5 2.5 2 1.5m-4.5 0 1 1m1.5-2.5-1.5 1.5m3-1 8.5-8.5v-2h-2l-8.5 8.5"></path>{" "}
-                        <path d="m10.25 12.25-2.25-2.25m2-2 2.25 2.25m1-1-1.5 2.5-2 1.5m4.5 0-1 1m-1.5-2.5 1.5 1.5m-7.25-5.25-4.25-4.25v-2h2l4.25 4.25"></path>{" "}
+                        <path d="m2.75 9.25 1.5 2.5 2 1.5m-4.5 0 1 1m1.5-2.5-1.5 1.5m3-1 8.5-8.5v-2h-2l-8.5 8.5"></path>
+
+                        <path d="m10.25 12.25-2.25-2.25m2-2 2.25 2.25m1-1-1.5 2.5-2 1.5m4.5 0-1 1m-1.5-2.5 1.5 1.5m-7.25-5.25-4.25-4.25v-2h2l4.25 4.25"></path>
                       </g>
                     </svg>
                   </div>

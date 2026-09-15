@@ -31,7 +31,7 @@ export default function Fight({ token, player, pvpState,locationState}: FightPro
             try {
              await pvpAction(token, pvpState.id, action)
             } catch (e) {
-             alert(e instanceof Error ? e.message : "Ошибка действия")
+                alert(e instanceof Error ? e.message : "Ошибка действия")
             }
         }
     }
