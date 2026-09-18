@@ -1,6 +1,7 @@
 const API_URL = import.meta.env.VITE_API_BASE_URL=="http://localhost:4000" ? "http://localhost:4000": `https://${import.meta.env.VITE_API_BASE_URL}`
 
 export function getLocationImage(fileName: string) {
-  console.log(`${API_URL}/location-images/${fileName}`)
+   console.log(`${import.meta.env.VITE_API_BASE_URL}`)
+  console.log(`${import.meta.env.CLIENT_URL}`)
   return `${API_URL}/location-images/${fileName}`
 }
