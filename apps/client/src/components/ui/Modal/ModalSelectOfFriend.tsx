@@ -200,7 +200,7 @@ export default function ModalSelectOfFriend({
                      <div className="pt-1">
                         <Button
                           disabled={loading}
-                          onClick={() => handlePvp(f.id)}
+                          onClick={() => handleTrade(f.id)}
                           style={{background:"#E8603C", borderRadius:"16px"}}>
                           {textOnButton}
                         </Button>

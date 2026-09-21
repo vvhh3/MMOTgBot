@@ -5,7 +5,7 @@ import "./styles.css"
 import { BrowserRouter, Routes, Route, Link, useNavigate } from "react-router-dom";
 import type { CombatStateResponse, FriendsOverviewResponse, InventoryItemDto, LocationStateResponse, PlayerDto, PvpStateDto, TradeStateDto } from "@mmobot/shared";
 import Loading from './components/Loading'
-import { auth, getMe,getLocations, getPvpOverview, getTradesOverview, infoPvp } from "./api";
+import { auth, getMe,getLocations, getPvpOverview, getTradesOverview, theLastAction } from "./api";
 import { getLocationImage } from "./utils/getLocationImage";
 
 import { getTelegramInitData } from "./telegram";
@@ -205,7 +205,7 @@ function App() {
       const loadPvp = async () => {
         if(!token) return
         if (player.idTheLastAction == null) return
-        const session = await infoPvp(token,player.id)
+        const session = await theLastAction(token,player.id)
         setPvpState({
           id: session.info.id,
           status: session.info.status,
@@ -227,7 +227,7 @@ function App() {
     else if(player.idTheLastAction.type == "TakeAWalk"){
       if(!token) return
       const loadTakeAWalk = async () => {
-        const session = await infoPvp(token,player.id)
+        const session = await theLastAction(token,player.id)
         setState({
           mob: session.info.mob,
           playerHp: session.info.playerHp,
@@ -242,8 +242,28 @@ function App() {
       }
       loadTakeAWalk()
     }
+    else if (player.idTheLastAction.type == "Trade"){
+      if(!token) return
+      const loadTakeAWalk = async () => {
+        const session = await theLastAction(token,player.id)
+        setTradeState({
+          id: session.info.id,
+          status: session.info.status,
+          myOffer: session.info.myOffer,
+          partnerOffer: session.info.partnerOffer,
+          iAmReady: session.info.iAmReady,
+          partnerIsReady: session.info.partnerIsReady,
+          partnerName: session.info.partnerName,
+          direction: session.info.direction
+        })
+        console.log(tradeState)
+        navigate("/Exchange",{replace:true})
+       
+      }
+      loadTakeAWalk()
+    }
 
-  })
+  },[player])
   return (
     <>
       <Theme>

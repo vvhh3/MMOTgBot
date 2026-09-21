@@ -269,6 +269,8 @@ export const createTradeRoutes = (app: Express) => {
     }
 
     db.update(trades).set({ status: "open" }).where(eq(trades.id, trade.id)).run();
+    db.update(players).set({idTheLastAction: {id:trade.id,type:"Trade"}}).where(eq(players.id,trade.fromPlayerId)).run();
+    db.update(players).set({idTheLastAction: {id:trade.id,type:"Trade"}}).where(eq(players.id,trade.toPlayerId)).run();
     notifyBoth({ ...trade, status: "open" });
     res.json({ ok: true });
   });
@@ -292,6 +294,8 @@ export const createTradeRoutes = (app: Express) => {
     // declined если отказался получатель приглашения, иначе cancelled
     const newStatus = trade.status === "pending" && trade.toPlayerId === player.id ? "declined" : "cancelled";
     db.update(trades).set({ status: newStatus }).where(eq(trades.id, trade.id)).run();
+    db.update(players).set({idTheLastAction: null}).where(eq(players.id,trade.fromPlayerId)).run();
+    db.update(players).set({idTheLastAction:null}).where(eq(players.id,trade.toPlayerId)).run();
     notifyBoth({ ...trade, status: newStatus });
     res.json({ ok: true });
   });
@@ -344,6 +348,8 @@ export const createTradeRoutes = (app: Express) => {
     }
     if (trade.status !== "open") {
       res.status(409).json({ error: "Обмен уже завершён" });
+      db.update(players).set({idTheLastAction: null}).where(eq(players.id,trade.fromPlayerId)).run();
+      db.update(players).set({idTheLastAction:null}).where(eq(players.id,trade.toPlayerId)).run();
       return;
     }
 
@@ -369,6 +375,8 @@ export const createTradeRoutes = (app: Express) => {
 
           tx.update(trades).set({ status: "accepted" }).where(eq(trades.id, trade.id)).run();
         });
+        db.update(players).set({idTheLastAction: null}).where(eq(players.id,trade.fromPlayerId)).run();
+        db.update(players).set({idTheLastAction:null}).where(eq(players.id,trade.toPlayerId)).run();
 
         updated = { ...updated, status: "accepted" };
         notifyBoth(updated);

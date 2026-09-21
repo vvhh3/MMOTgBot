@@ -130,7 +130,7 @@ export default function Exchange({
                 <Text color="red" size="2" weight="bold">
                   Вы отдаёте:
                 </Text>
-                <div className="flex flex-wrap gap-2 justify-center">
+                <div className="flex flex-wrap gap-2 justify-center flex-col justify-center items-center">
                   {myOffer.length === 0 && (
                     <Text size="1" color="gray">
                       Нажмите + чтобы добавить

@@ -269,8 +269,8 @@ export async function acceptPvp(token: string, id: number) {
 export async function cancelPvp(token: string, id: number) {
   await api.delete(`/pvp/${id}`, { headers: authHeader(token) })
 }
-export async function infoPvp(token: string,id: number) {
-  const response = await api.post(`/pvp/info`,{id}, { headers: authHeader(token) })
+export async function theLastAction(token: string,id: number) {
+  const response = await api.post(`/theLastAction`,{id}, { headers: authHeader(token) })
   return response.data
 }
 

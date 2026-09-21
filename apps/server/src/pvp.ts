@@ -32,7 +32,7 @@
 
 import type { Express, Request, Response } from "express"
 import type { AuthedRequest } from "./auth.js"
-import { inventoryItems, items, players, pvpSessions,combatSessions, mobs } from "./db/schema.js";
+import { inventoryItems, items, players, pvpSessions,combatSessions, mobs, trades } from "./db/schema.js";
 import type { PvpSessionRow } from "./db/schema.js";
 import { emitToPlayer } from "./realTime.js";
 import { CombatLogEntry, PvpStateDto, PvpOverviewResponse } from "@mmobot/shared";
@@ -42,6 +42,7 @@ import { notify } from "./notification.js";
 import { getPlayerStats } from "./combat.js";
 import { addXpForPlayer } from "./level.js";
 import { nowGameTime, nowGameTimeMs } from "./time.js";
+import { session } from "grammy";
 
 // дуэль считается заброшенной, если никто не ходил дольше этого времени (10 минут)
 export const STALE_PVP_MS = 10 * 60 * 1000;
@@ -485,6 +486,40 @@ export const createPvpRoutes = (app: Express) => {
                         log: { text: `Ваш ход ${player1.name}`, at: now }
                     }
                     res.json({info})
+                }
+            }
+            else if(player1.idTheLastAction.type=="Trade"){
+                const session = db.select().from(trades).where(eq(trades.id,player1.idTheLastAction.id)).get()
+                if(!session) return
+                const player2Id = player1.id == session.toPlayerId ? session.fromPlayerId : session.toPlayerId;
+                const player2 = db.select().from(players).where(eq(players.id,player2Id)).get()
+                if(session?.status == "open"){
+                    if(player1.id == session.fromPlayerId){
+                        const info = {
+                            id: session.id,
+                            status: session.status,
+                            myOffer: session.fromOffer,
+                            partnerOffer: session.toOffer,
+                            iAmReady: session.fromReady,
+                            partnerIsReady: session.toReady,
+                            partnerName:player2?.name,
+                            direction:"incoming"
+                        }
+                        res.json({info})
+                    }
+                    else if(player1.id == session.toPlayerId){
+                        const info = {
+                            id: session.id,
+                            status: session.status,
+                            myOffer: session.toOffer,
+                            partnerOffer: session.fromOffer,
+                            iAmReady: session.toReady,
+                            partnerIsReady: session.fromReady,
+                            partnerName:player2?.name,
+                            direction:"incoming"
+                        }
+                        res.json({info})
+                    }
                 }
             }
         }
