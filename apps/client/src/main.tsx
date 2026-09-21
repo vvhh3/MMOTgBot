@@ -185,8 +185,6 @@ function App() {
     socket.on("friendsUpdate",onFriendsUpdate)
     socket.on("pvpState", onPvpState)
     socket.on("tradeUpdate",onTradeState)
-      console.log(`${import.meta.env.VITE_API_BASE_URL}`)
-  console.log(`${import.meta.env.CLIENT_URL}`)
 
     return () => {
       socket.off("connect_error", onConnectError)
