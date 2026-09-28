@@ -30,7 +30,8 @@ import {
   type TradesOverviewResponse
 } from "@mmobot/shared";
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "fallback no";
+console.log("apiBaseUrl: ",apiBaseUrl)
 
 const api = axios.create({
   baseURL: apiBaseUrl,
@@ -297,5 +298,14 @@ export async function inventoryEquipedItem(token: string,idItem:number): Promise
 //снять броня/оружие
 export async function inventoryUnEquipedItem(token: string,idItem:number): Promise<MeResponse> {
   const res = await api.post("/inventory/unequip", { itemType: idItem }, { headers: authHeader(token) })
+  return res.data
+}
+
+export async function dailyActivities(token: string, playerId: number, locationName: string) {
+  const res = await api.post(
+    "/dailyActivities/money",
+    { id: playerId, location: locationName },
+    { headers: authHeader(token) }
+  )
   return res.data
 }
