@@ -9,6 +9,10 @@ COPY tsconfig.base.json ./
 COPY apps ./apps
 COPY packages ./packages
 RUN npm ci --include=dev
+
+ARG VITE_API_BASE_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+
 RUN npm run build:prod
 
 FROM base AS runtime
