@@ -8,7 +8,7 @@ import {
 import { Button, Card, Text } from "@radix-ui/themes";
 import { useEffect, useState } from "react";
 import { getCatalog, submitOffer, submitReady, cancelTrade } from "../api";
-import CenterModalSelectOfItem from "./ui/Modal/CenterModal/CenterModalSkillPoints";
+import CenterModalSelectOfItem from "./ui/Modal/CenterModal/CenterModalSelectOfItem";
 import { useNavigate } from "react-router-dom"
 
 type ExhangeType = {
@@ -275,8 +275,8 @@ export default function Exchange({
 
       <CenterModalSelectOfItem
         token={token}
-        isShow={showModal}
-        onShow={setShowModal}
+        showIsModal={showModal}
+        setShowModal={setShowModal}
         inventoryItem={list}
         onSelect={handleSelectItem}
       />
