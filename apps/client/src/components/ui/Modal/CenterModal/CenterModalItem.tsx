@@ -1,0 +1,142 @@
+import { InventoryItemDto, ItemDto, PlayerDto } from "@mmobot/shared";
+import { useState } from "react";
+import {
+  inventoryEquipedItem,
+  inventoryUnEquipedItem,
+  inventoryUsePotion,
+} from "../../../../api";
+import CenterModal from "./CenterModal";
+
+type CenterModalItemProps = {
+  token: string | null;
+  item: ItemDto | null;
+  equiped: boolean;
+  onItem: (value: { item: ItemDto; equiped: boolean } | null) => void;
+  onPlayer: (value: PlayerDto) => void;
+  onInventory: (value: InventoryItemDto[]) => void;
+};
+
+const TYPE_LABEL = {
+  weapon: "Оружие",
+  armor: "Броня",
+  potion: "Зелье",
+  material: "Материал",
+  other: "Прочее",
+};
+
+export default function CenterModalItem({
+  token,
+  item,
+  equiped,
+  onItem,
+  onPlayer,
+  onInventory,
+}: CenterModalItemProps) {
+  const [error, setError] = useState<string | null>(null);
+
+  if (item === null) return null;
+
+  const close = () => {
+    onItem(null);
+    setError(null);
+  };
+
+  const handleUse = async () => {
+    if (!token) return;
+    try {
+      let res;
+      if (item.type === "potion") {
+        res = await inventoryUsePotion(token, item.id);
+      } else if (item.type === "armor" || item.type === "weapon") {
+        res = equiped
+          ? await inventoryUnEquipedItem(token, item.id)
+          : await inventoryEquipedItem(token, item.id);
+      }
+      if (!res) return;
+      onPlayer(res.player);
+      onInventory(res.inventory);
+      onItem(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Ошибка использования предмета");
+    }
+  };
+
+  return (
+    <CenterModal onClose={close}>
+      <div className="flex flex-col items-center pt-2">
+        <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border border-[#E85D2F]/30 bg-orange-50 [&_svg]:h-12 [&_svg]:w-12 [&_svg]:max-h-full [&_svg]:max-w-full">
+          {item.icon ? (
+            <div dangerouslySetInnerHTML={{ __html: item.icon }} />
+          ) : (
+            <span className="text-3xl text-gray-400">{item.name.slice(0, 1)}</span>
+          )}
+        </div>
+
+        <p className="mt-3 text-center text-lg font-bold">{item.name}</p>
+        <p className="mt-0.5 text-xs text-gray-500">{TYPE_LABEL[item.type]}</p>
+        {equiped && (
+          <span className="mt-1 rounded-full border border-[#E85D2F] bg-orange-50 px-2 py-0.5 text-xs font-bold text-[#E85D2F]">
+            Надето
+          </span>
+        )}
+        <p className="mt-2 text-center text-sm text-gray-500">{item.description}</p>
+      </div>
+
+      {error && (
+        <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-center text-sm text-red-500">
+          {error}
+        </p>
+      )}
+
+      {(item.damage > 0 || item.defense > 0 || item.healAmount > 0) && (
+        <div className="flex justify-center gap-2">
+          {item.damage > 0 && (
+            <div className="flex flex-col items-center rounded-lg border border-[#E85D2F]/30 bg-orange-50 py-2 w-full">
+              <p className="text-xs text-gray-500">ATK</p>
+              <p className="text-base font-bold text-[#E85D2F]">+{item.damage}</p>
+            </div>
+          )}
+          {item.defense > 0 && (
+            <div className="flex flex-col items-center rounded-lg border border-[#60a5fa]/30 bg-blue-50 py-2 w-full">
+              <p className="text-xs text-gray-500">DEF</p>
+              <p className="text-base font-bold text-[#60a5fa]">+{item.defense}</p>
+            </div>
+          )}
+          {item.healAmount > 0 && (
+            <div className="flex flex-col items-center rounded-lg border border-green-500/30 bg-green-50 py-2 w-full">
+              <p className="text-xs text-gray-500">HP</p>
+              <p className="text-base font-bold text-green-500">+{item.healAmount}</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {item.type === "potion" && (
+        <div className="flex justify-center">
+          <button
+            className="p-3 bg-green-500 rounded-2xl m-4 text-white"
+            onClick={handleUse}
+          >
+            Использовать
+          </button>
+        </div>
+      )}
+
+      {(item.type === "armor" || item.type === "weapon") && (
+        <div className="flex justify-center">
+          <button
+            className="p-3 rounded-2xl m-4 text-white"
+            style={{ backgroundColor: equiped ? "#E85D2F" : "#22c55e" }}
+            onClick={handleUse}
+          >
+            {equiped ? "Снять" : "Надеть"}
+          </button>
+        </div>
+      )}
+
+      {item.price > 0 && (
+        <p className="text-center text-xs text-gray-500">Цена: {item.price}</p>
+      )}
+    </CenterModal>
+  );
+}

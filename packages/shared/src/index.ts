@@ -14,6 +14,8 @@ export type PlayerDto = { // описание игрока
   defense: number
   statPoints: number // нераспределённые очки характеристик (тратятся на прокачку статов)
   idTheLastAction:LastAction | null
+  money:number | 0,
+  cooldowns:Cooldowns,
 };
 
 // какую характеристику поднять за одно очко (POST /me/stats)
@@ -40,7 +42,9 @@ export type MobDto = { // описание мобов
 export type MobsResponse = {
   mobs: MobDto[]
 }
-
+export type Cooldowns = {
+  [key: string]: string;
+};
 export type MobResponse = {
   mob: MobDto
 }

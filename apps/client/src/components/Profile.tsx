@@ -4,13 +4,15 @@ import { Flex, Card, Text, Button, Box, Progress, Inset, Strong, Grid } from "@r
 import { Link } from 'react-router-dom'
 import { PlayerDto,LocationStateResponse,LocationDto} from '@mmobot/shared';
 import { useEffect, useState } from 'react';
+import { TypeModal } from './ui/Modal/Modal';
 
 type ProfileProps = {
     player: PlayerDto | null
     locationState:LocationStateResponse|null
-    setWindowSkillPoints: React.Dispatch<React.SetStateAction<boolean>>;
+    setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
+    setTypeShowIsModal:(value: TypeModal | null) => void
 }
-export default function Profile({ player,locationState,setWindowSkillPoints }: ProfileProps) {
+export default function Profile({ player,locationState,setShowModal,setTypeShowIsModal }: ProfileProps) {
     const [location, setLocation] = useState<LocationDto>();
     useEffect(() => {
         if (locationState) {
@@ -42,7 +44,7 @@ export default function Profile({ player,locationState,setWindowSkillPoints }: P
                     </Card>
                 </button>
                     <Card variant="classic">
-                        <div onClick={()=>setWindowSkillPoints(true)}>
+                        <div onClick={()=>{setShowModal(true),setTypeShowIsModal(TypeModal.SkillPoints)}}>
                             <Text as="div" size="2" weight="bold">
                                 Уровень {player?.level}
                             </Text>
@@ -108,7 +110,7 @@ export default function Profile({ player,locationState,setWindowSkillPoints }: P
                         </Grid>
                         <Grid rows="1" columns="2">
                             <div className='flex items-end'>
-                                <p>{player?.points}</p>
+                                <p>{player?.money}</p>
                                 <svg className="h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"><circle cx="12" cy="12" r="10" stroke="#ff7b00" strokeWidth="2"></circle><path d="M15 9.94728C14.5 9.3 13.8 8.5 12 8.5C10.2 8.5 9 9.51393 9 9.94728C9 10.3806 9.06786 10.9277 10 11.5C10.7522 11.9618 12.6684 12.0439 13.5 12.5C14.679 13.1467 14.8497 13.8202 14.8497 14.0522C14.8497 14.6837 13.4175 15.4852 12 15.5C10.536 15.5153 9.5 14.7 9 14.0522" stroke="#ff7b00" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path><path d="M12 7V17" stroke="#ff7b00" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path></g></svg>                            
                             </div>
                             <div className='flex items-end flex-col'>

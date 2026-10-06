@@ -40,6 +40,7 @@ import { InventoryRoutes } from "./inventory.js";
 import { addXpForPlayer, STAT_GAIN } from "./level.js";
 import { nowGameTime } from "./time.js";
 import { receivingTheLastAction } from "./theLastAction.js";
+import { dailyActivities } from "./dailyActivities.js";
 
 export function createApp(): express.Express {
   initializeDatabase();
@@ -88,11 +89,14 @@ export function createApp(): express.Express {
   //Друзья
   app.use("/friends", requireAuth)
   createAddFriend(app)
-  app.use("theLastAction",requireAuth)
+  app.use("/theLastAction",requireAuth)
   receivingTheLastAction(app)
   app.get("/health", (_req, res) => {
     res.json({ ok: true });
   })
+
+  app.use("/dailyActivities",requireAuth)
+  dailyActivities(app)
 
   function insertPlayerWithUniqueFriendId(playerData: Omit<typeof players.$inferInsert, "friendId">) {
     const MAX_ATTEMPTS = 10;

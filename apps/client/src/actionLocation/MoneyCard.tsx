@@ -1,8 +1,46 @@
 import { Card,Text} from "@radix-ui/themes"
-export default function MoneyCard(){
+import { dailyActivities } from "../api"
+import {PlayerDto,LocationDto} from "@mmobot/shared";
+import { TypeModal } from "../components/ui/Modal/Modal";
+import axios from "axios";
+type MoneyCardProps={
+    location?: LocationDto|null
+    player: PlayerDto| null,
+    token:string |null
+    setInfoMessages: (value: { title: string; info: string }) => void;
+    setShowModal: (value: boolean) => void;
+    setTypeShowIsModal:(value: TypeModal | null) => void
+}
+export default function MoneyCard({setTypeShowIsModal,setShowModal,setInfoMessages,location,player,token}:MoneyCardProps){
+    const activities = async () => {
+        if (!token || !player || !location) return
+        try {
+            const info = await dailyActivities(token, player.id, location.name)
+            if (info.code == "COOLDOWN") {
+                setInfoMessages({
+                    title: "Ещё не время",
+                    info: `${info.text}`,
+                });
+                setShowModal(true)
+                setTypeShowIsModal(TypeModal.Information)
+                
+            }else if(info.code == "SUCCESS"){
+                setInfoMessages({title:"На дне",info:`Вы нашли ${info.moneyReceived} след раз можно будет ${info.nextAvailableAt}`})
+                setShowModal(true)
+                setTypeShowIsModal(TypeModal.Information)
+            }
+        } catch (e) {
+            console.error(e)
+            setInfoMessages({
+                title: "Ошибка",
+                info: "Что-то пошло не так, попробуйте позже",
+            });
+        }
+        
+    }
     return(
         <Card >
-            <div className="flex flex-row justify-between">
+            <div className="flex flex-row justify-between" onClick={()=>activities()}>
                 <div className="max-w-60">
                     <Text as="div" size="2" weight="bold">
                         <div className="flex-row flex gap-2">

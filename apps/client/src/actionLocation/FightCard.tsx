@@ -2,14 +2,16 @@ import { Card,Text} from "@radix-ui/themes"
 import { getLocationState, startCombat } from "../api";
 import { LocationDto, LocationStateResponse, PlayerDto } from "@mmobot/shared";
 import { useNavigate } from "react-router-dom";
+import { TypeModal } from "../components/ui/Modal/Modal";
 type FightProps = {
-  setShowModalPvp: (value: boolean) => void
-  showModalPvp: boolean
+  setShowModal: (value: boolean) => void
+  showIsModal: boolean
+  setTypeShowIsModal:(value: TypeModal | null) => void
 }
-export default function FightCard({setShowModalPvp,showModalPvp}:FightProps){
+export default function FightCard({setShowModal,showIsModal,setTypeShowIsModal}:FightProps){
     return(
         <Card>
-          <div onClick={() => setShowModalPvp(showModalPvp ? false : true)}>
+          <div onClick={() => {setTypeShowIsModal(TypeModal.SelectOfFriendFight),setShowModal(showIsModal ? false : true)}}>
             <div className="flex flex-col">
                 <Text size="2" weight="bold">
                   <div className="flex-row flex gap-2">

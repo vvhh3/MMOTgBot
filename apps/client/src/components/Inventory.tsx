@@ -5,7 +5,8 @@ import { useEffect, useState } from "react"
 import { getCatalog, spendStatPoint } from "../api"
 import { Tabs, Text, Box, Card, Progress, Badge, Grid } from "@radix-ui/themes"
 import playerM from "../avatarPlayer/playerM.svg"
-import ModalItem from "./ui/Modal/ModalItem"
+import CenterModalItem from "./ui/Modal/CenterModalItem"
+import Modal, { TypeModal } from "./ui/Modal/Modal"
 
 type InventoryProps = {
     token: string | null
@@ -189,7 +190,7 @@ export default function Inventory({ token, player, inventory,onPlayer,onInventor
                     </Tabs.Content>
                 </Box>
             </Tabs.Root>
-            <ModalItem item={selectedItem?.item ?? null} equiped={selectedItem?.equiped ?? false} token={token} onItem={setSelectedItem} onPlayer={onPlayer} onInventory={onInventory}/>
+            <Modal  showIsModal={true} typeModal={TypeModal.Item} item={selectedItem?.item ?? null} equiped={selectedItem?.equiped ?? false} token={token} onItem={setSelectedItem} onPlayer={onPlayer} onInventory={onInventory}/>
         </div>
     )
 }

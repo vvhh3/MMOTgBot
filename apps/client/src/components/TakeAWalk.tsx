@@ -49,7 +49,16 @@ export default function TakeAWalk({ token, player,onPlayer,onInventory,locationS
             onError(e instanceof Error ? e.message : 'Ошибка запроса, попробуйте попозже')
         }
     }
-
+    if (!state) {
+        useEffect(()=>{
+            navigate("/",{replace:true})
+        },[state])
+        return (
+            <div className="flex items-center justify-center h-screen">
+                <Text size="3">Нет активного боя</Text>
+            </div>
+        )
+    }
     return (
         <div className="flex ">
             <div className="flex w-full flex-col justify-end" style={{

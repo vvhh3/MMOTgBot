@@ -162,7 +162,10 @@ export function toPlayerDto(row: PlayerRow): PlayerDto {
     strength: row.strength,
     defense: row.defense,
     statPoints: row.statPoints, // нераспределённые очки — клиент по ним показывает кнопку прокачки
-    idTheLastAction:row.idTheLastAction
+    idTheLastAction:row.idTheLastAction,
+    money:row.money,
+    cooldowns:row.cooldowns
+
   }
 }
 

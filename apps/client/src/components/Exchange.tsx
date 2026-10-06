@@ -8,7 +8,8 @@ import {
 import { Button, Card, Text } from "@radix-ui/themes";
 import { useEffect, useState } from "react";
 import { getCatalog, submitOffer, submitReady, cancelTrade } from "../api";
-import ModalSelectOfItem from "./ui/Modal/ModalSelectOfItem";
+import CenterModalSelectOfItem from "./ui/Modal/CenterModal/CenterModalSkillPoints";
+import { useNavigate } from "react-router-dom"
 
 type ExhangeType = {
   token: string | null;
@@ -25,9 +26,9 @@ export default function Exchange({
 }: ExhangeType) {
   const [inventoryItems, setInventoryItems] = useState<ItemDto[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [isShowModal, setIsShowModal] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   const [myOffer, setMyOffer] = useState<TradeItem[]>([]);
-
+  const navigate = useNavigate()
   useEffect(() => {
     if (!token) return;
     getCatalog(token)
@@ -103,7 +104,16 @@ export default function Exchange({
   };
 
   const findItemName = (itemType: number) => inventoryItems.find((i) => i.id === itemType)?.name ?? `#${itemType}`;
-
+  if (!tradeState) {
+      useEffect(()=>{
+        navigate("/",{replace:true})
+      },[tradeState])
+      return (
+        <div className="flex items-center justify-center h-screen">
+            <Text size="3">Нет обмена</Text>
+        </div>
+      )
+    }
   return (
     <div className="flex flex-col h-full">
       <div className="flex flex-row items-center gap-1.5 pl-5 h-7.5 border-b-2">
@@ -170,7 +180,7 @@ export default function Exchange({
                     </div>
                   ))}
                   <button
-                    onClick={() => setIsShowModal(true)}
+                    onClick={() => setShowModal(true)}
                     className="flex items-center justify-center border-2 border-dashed rounded-lg w-17.5 h-15 text-2xl text-gray-400 hover:border-[#E85D2F] hover:text-[#E85D2F] transition-colors"
                   >
                     +
@@ -263,10 +273,10 @@ export default function Exchange({
         </>
       )}
 
-      <ModalSelectOfItem
+      <CenterModalSelectOfItem
         token={token}
-        isShow={isShowModal}
-        onShow={setIsShowModal}
+        isShow={showModal}
+        onShow={setShowModal}
         inventoryItem={list}
         onSelect={handleSelectItem}
       />

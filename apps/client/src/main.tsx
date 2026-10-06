@@ -1,4 +1,4 @@
-import { StrictMode, useEffect, useState } from "react"
+import { StrictMode, use, useEffect, useState } from "react"
 import { createRoot } from "react-dom/client"
 import "@radix-ui/themes/styles.css"
 import "./styles.css"
@@ -25,6 +25,7 @@ import Exchange from "./components/Exchange"
 import { MobAdmin } from "./admin/adminComponents/MobAdmin";
 import { ItemAdmin } from "./admin/adminComponents/ItemAdmin";
 import Admin from "./admin/Admin";
+import { TypeModal } from "./components/ui/Modal/Modal";
 
 export default function ScrollToTop() {
   const { pathname } = useLocation();
@@ -46,12 +47,13 @@ function App() {
   const [friendsOverview, setFriendsOverview] = useState<FriendsOverviewResponse | null>(null)
   const [pvpState,setPvpState] = useState<PvpStateDto | null>(null)
   const [tradeState,setTradeState]  = useState<TradeStateDto | null>(null)
-  const [showIsModal,setIsShowModal] = useState(false)
-  const [windowSkillPoints,setWindowSkillPoints]= useState(false)
+  const [showIsModal,setShowModal] = useState(false)
+  const [typeShowIsModal,setTypeShowIsModal] = useState<TypeModal | null>(null)
   const [state,setState] = useState<CombatStateResponse>()
   //Загрузилис ли все данные
   const [ready,setReady] = useState(false)
   const [loadingProgress,setLoadingProgress] = useState(0)
+  const [infoMessages,setInfoMessages]=useState({title:"",info:""})
   const navigate = useNavigate()
 
   const preloadImage = (url: string): Promise<void> => {
@@ -91,7 +93,6 @@ function App() {
       setError("Откройте приложение внутри Telegram: для входа нужен настоящий initData.");
       return;
     }
-
     auth(initData)
       .then(async (authData) => {
         setPlayer(authData.player);
@@ -271,10 +272,10 @@ function App() {
         {ready ? (
 
           <Routes>
-          <Route path="" element={<MainLayout setWindowSkillPoints={setWindowSkillPoints} windowSkillPoins={windowSkillPoints} showIsModal={showIsModal} setIsShowModal={setIsShowModal} player={player} token={token} error={error} onError={setError} onPlayer={setPlayer} pvpState={pvpState} tradeState={tradeState}/>}>
-            <Route path="/" element={<Home onError={setError} onState={setState} token={token} player={player} locationState={locationState} friendsOverview={friendsOverview} pvpState={pvpState} tradeState={tradeState}/>} />
+          <Route path="" element={<MainLayout infoMessages={infoMessages} setPvpState={setPvpState} setTradeState={setTradeState} setTypeShowIsModal={setTypeShowIsModal} setShowModal={setShowModal} showIsModal={showIsModal}  typeShowIsModal={typeShowIsModal}  player={player} token={token} error={error} onError={setError} onPlayer={setPlayer} pvpState={pvpState} tradeState={tradeState}/>}>
+            <Route path="/" element={<Home setInfoMessages={setInfoMessages} typeShowIsModal={typeShowIsModal} setTypeShowIsModal={setTypeShowIsModal} setShowModal={setShowModal} showIsModal={showIsModal}  onError={setError} onState={setState} token={token} player={player} locationState={locationState} friendsOverview={friendsOverview} pvpState={pvpState} tradeState={tradeState}/>} />
             <Route path="Map" element={<Map token={token} onLocationState={setLocationState} onPlayer={setPlayer} />} />
-            <Route path="Profile" element={<Profile setWindowSkillPoints={setWindowSkillPoints} player={player} locationState={locationState}/>} />
+            <Route path="Profile" element={<Profile setTypeShowIsModal={setTypeShowIsModal} setShowModal={setShowModal} player={player} locationState={locationState}/>} />
             <Route path="Tasks" element={<Tasks token={token} onPlayer={setPlayer} />} />
             <Route path="Team" element={<Team token={token} player={player} liveOverview={friendsOverview}/>} />
             <Route path="Inventory" element={<Inventory token={token} player={player} inventory={inventory} onPlayer={setPlayer} onInventory={setInventory}/>} />

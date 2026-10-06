@@ -5,8 +5,9 @@ import Profile from "./Profile";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { StrictMode, useEffect, useState, useRef } from "react"
 import { PlayerDto, PvpStateDto, TradeStateDto } from "@mmobot/shared";
-import { NotificationWindow,NotificationButton } from "./ui/Notification/Notification.tsx";
-import SkillPoints from "./ui/Modal/SkillPoints.tsx";
+import {NotificationButton } from "./ui/Modal/TopModall/Notification/NotificationButton.tsx";
+import SkillPoints from "./ui/Modal/CenterModal/CenterModalSkillPoints.tsx";
+import Modal, { TypeModal } from "./ui/Modal/Modal.tsx";
 
 type LayoutProps = {
     player: PlayerDto | null
@@ -17,12 +18,18 @@ type LayoutProps = {
     pvpState: PvpStateDto | null
     tradeState: TradeStateDto | null
     showIsModal:boolean
-    setIsShowModal: React.Dispatch<React.SetStateAction<boolean>>;
-    windowSkillPoins:boolean
-    setWindowSkillPoints: React.Dispatch<React.SetStateAction<boolean>>;
+    setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
+    typeShowIsModal:TypeModal | null
+    setTypeShowIsModal:(value: TypeModal | null) => void
+    setTradeState:(value: TradeStateDto | null) => void;
+    setPvpState:(value: PvpStateDto | null) => void;
+    infoMessages:{
+    title:string;
+    info:string;
+  }
 }
 
-export default function MainLayout({ player, token, error,onError, onPlayer, pvpState, tradeState,showIsModal,setIsShowModal,setWindowSkillPoints,windowSkillPoins }: LayoutProps) {
+export default function MainLayout({ infoMessages,player, setTypeShowIsModal,token, error,onError, onPlayer, pvpState, tradeState,showIsModal,setShowModal,typeShowIsModal,setTradeState,setPvpState }: LayoutProps) {
     const notifRef = useRef<HTMLDivElement | null>(null) // ссылка на панель уведомлений
     const pvpIncoiming = pvpState?.status === "pending" && pvpState.direction === "incoming"
     const tradeIncoiming = tradeState?.status === "pending" && tradeState.direction === "incoming"
@@ -46,9 +53,9 @@ export default function MainLayout({ player, token, error,onError, onPlayer, pvp
                 <p className="text-red-500 w-full">{error}</p>
                 <div className="flex flex-row items-center gap-2">
                    
-                    <NotificationButton setIsShowModal={setIsShowModal} showIsModal={showIsModal} tradeIncoiming={tradeIncoiming} pvpIncoiming={pvpIncoiming} notifRef={notifRef} />
+                    <NotificationButton incoming={pvpState || tradeState ?  true : false} setTypeShowIsModal={setTypeShowIsModal} setShowModal={setShowModal} showIsModal={showIsModal} notifRef={notifRef} />
                     <div className="flex flex-row items-center gap-2">
-                        <button onClick={()=>setWindowSkillPoints(true)}>
+                        <button onClick={()=>{setShowModal(true),setTypeShowIsModal(TypeModal.SkillPoints)}}>
                             <div className="w-10 text-[#E8603C] ">
                                 <p className="text-[13px]">Lv {player?.level}</p>
                             </div>
@@ -62,8 +69,7 @@ export default function MainLayout({ player, token, error,onError, onPlayer, pvp
             
             <div className="relative w-full min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
                 {/* Выпадающая панель уведомлений */}
-                <NotificationWindow token={token} pvpState={pvpState} tradeState={tradeState}  showIsModal={showIsModal} tradeIncoiming={tradeIncoiming} pvpIncoiming={pvpIncoiming} notifRef={notifRef}  onError={onError}/>
-                <SkillPoints showIsModal={windowSkillPoins} onShowModal={setWindowSkillPoints} player={player} token={token} onPlayer={onPlayer} />
+                <Modal infoMessages={infoMessages} setPvpState={setPvpState}  setTradeState={setTradeState} typeModal={typeShowIsModal} token={token} pvpState={pvpState} tradeState={tradeState}  showIsModal={showIsModal} tradeIncoiming={tradeIncoiming} pvpIncoiming={pvpIncoiming} notifRef={notifRef}  onError={onError}  setShowModal={setShowModal} player={player}  onPlayer={onPlayer} />
                 <Outlet></Outlet>
             </div>
 

@@ -24,9 +24,9 @@ import {
 } from "@mmobot/shared";
 import { getLocationState, startCombat } from "../api";
 import { getLocationImage } from "../utils/getLocationImage";
-import ModalSelectOfFriend from "./ui/Modal/ModalSelectOfFriend";
 import ActionCards from "./ui/ActionCards.tsx";
 import map from '../components/ui/Maps/mapMat.png'
+import Modal, { TypeModal } from "./ui/Modal/Modal.tsx";
 
 type HomeProps = {
   token: string | null;
@@ -37,6 +37,11 @@ type HomeProps = {
   tradeState: TradeStateDto | null
   onError:(value:string)=>void
   onState:(state: CombatStateResponse) => void
+  showIsModal:boolean
+  setShowModal: React.Dispatch<React.SetStateAction<boolean>>;
+  setTypeShowIsModal:(value: TypeModal | null) => void
+  typeShowIsModal:TypeModal | null
+  setInfoMessages: (value: { title: string; info: string }) => void;
 };
 
 export default function Home({
@@ -47,10 +52,13 @@ export default function Home({
   pvpState,
   tradeState,
   onError,
-  onState
+  onState,
+  showIsModal,
+  setShowModal,
+  setTypeShowIsModal,
+  typeShowIsModal,
+  setInfoMessages
 }: HomeProps) {
-  const [showModalTrade, setShowModalTrade] = useState(false);
-  const [showModalPvp, setShowModalPvp] = useState(false);
 
   const [location, setLocation] = useState<LocationDto>();
   useEffect(() => {
@@ -125,7 +133,7 @@ export default function Home({
           gap="2"
           style={{ padding: "20px" }}
         >
-          <ActionCards onError={onError} onState={onState} showModalPvp={showModalPvp} setShowModalPvp={setShowModalPvp} setShowModalTrade={setShowModalTrade} showModalTrade={showModalTrade} token={token} locationState={locationState} player={player} location={location}/>
+          <ActionCards setInfoMessages={setInfoMessages} setTypeShowIsModal={setTypeShowIsModal} onError={onError} onState={onState} showIsModal={showIsModal} setShowModal={setShowModal}  token={token} locationState={locationState} player={player} location={location}/>
         </Grid>
         :
         <Box className="w-[70%] p-2.5">
@@ -156,26 +164,6 @@ export default function Home({
           </Link>
         </Box>
       }
-
-      <ModalSelectOfFriend
-        isShow={showModalTrade}
-        token={token}
-        onClose={() => setShowModalTrade(false)}
-        title="Выберите друга для обмена"
-        textOnButton="Обмен"
-        type="trade"
-        tradeState={tradeState}
-        />
-
-      <ModalSelectOfFriend
-        isShow={showModalPvp}
-        token={token}
-        onClose={() => setShowModalPvp(false)}
-        title="Выберите своего противника"
-        textOnButton="Вызвать на бой"
-        type="figth"
-        pvpState={pvpState}
-      />
     </div>
   );
 }
