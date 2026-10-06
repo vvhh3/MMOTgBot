@@ -28,7 +28,7 @@ type CardProps = {
   onItem?: (value: { item: ItemDto; equiped: boolean } | null) => void;
   onPlayer?: (value: PlayerDto) => void;
   onInventory?: (value: InventoryItemDto[]) => void;
-  infoMessages:{
+  infoMessages?:{
     title:string;
     info:string;
   }
@@ -48,8 +48,8 @@ type CardProps = {
   notifRef?: React.RefObject<HTMLDivElement | null>;
   tradeIncoiming?: boolean;
   pvpIncoiming?: boolean;
-  setTradeState:(value: TradeStateDto | null) => void;
-  setPvpState:(value: PvpStateDto | null) => void;
+  setTradeState?:(value: TradeStateDto | null) => void;
+  setPvpState?:(value: PvpStateDto | null) => void;
 };
 
 export default function Modal({
@@ -137,8 +137,8 @@ export default function Modal({
     case TypeModal.Notification:
       return (
         <ModalNotification
-          setPvpState={setPvpState} 
-          setTradeState={setTradeState}
+          setPvpState={setPvpState!} 
+          setTradeState={setTradeState!}
           token={token ?? null}
           onError={onError!}
           pvpState={pvpState ?? null}
@@ -152,7 +152,7 @@ export default function Modal({
       case TypeModal.Information:
       return (
         <СenterModalInformation
-        infoMessages={infoMessages}
+        infoMessages={infoMessages!}
         setShowModal={setShowModal!}
         />
       )
