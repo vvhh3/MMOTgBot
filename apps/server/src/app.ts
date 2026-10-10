@@ -188,27 +188,34 @@ export function createApp(): express.Express {
 
     // 2. Тратим очко и поднимаем стат. health тоже поднимаем при maxHealth,
     //    но не выше нового максимума.
-    for (const [stat, points] of Object.entries(body)){
-      const gain = STAT_GAIN[stat as keyof typeof STAT_GAIN] * points
+    const totalPoints = Object.values(body).reduce((a, b) => a + b, 0);
+
+    if (totalPoints > fresh.statPoints) {
+      throw new Error("Not enough stat points");
+    }
+
+    const next = {
+      statPoints: fresh.statPoints - totalPoints,
+      maxHealth: fresh.maxHealth,
+      health: fresh.health,
+      strength: fresh.strength,
+      defense: fresh.defense,
+    };
+
+    for (const [stat, points] of Object.entries(body)) {
+      const gain = STAT_GAIN[stat as keyof typeof STAT_GAIN] * points;
+
       if (stat === "maxHealth") {
-        db.update(players)
-          .set({
-            statPoints: fresh.statPoints - points,
-            maxHealth: fresh.maxHealth + gain,
-            health: Math.min(fresh.maxHealth + gain, fresh.health + gain)
-          })
-          .where(eq(players.id, player.id)).run();
-      } else {
-        db.update(players)
-          .set({
-            statPoints: fresh.statPoints - points,
-            ...(stat === "strength" ? { strength: fresh.strength + gain } : { defense: fresh.defense + gain })
-          })
-          .where(eq(players.id, player.id)).run();
+        next.maxHealth += gain;
+        next.health = Math.min(next.maxHealth, next.health + gain);
+      } else if (stat === "strength") {
+        next.strength += gain;
+      } else if (stat === "defense") {
+        next.defense += gain;
       }
     }
 
-
+    db.update(players).set(next).where(eq(players.id, player.id)).run();
     const updated = db.select().from(players).where(eq(players.id, player.id)).get()!;
     emitToPlayer(player.id, "player", toPlayerDto(updated));
     res.json({ player: toPlayerDtoEquipped(updated) });
