@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { Button, Card, Flex, Text, TextField } from "@radix-ui/themes";
 import type { PlayerDto } from "@mmobot/shared";
 import { createCharacter } from "../api";
 
 // Список аватаров для карусели. Чтобы добавить нового персонажа,
 // достаточно положить картинку в public и дописать её сюда.
-const AVATARS = ["/playerM.svg", "/playerG.svg"];
+const AVATARS = ["/playerM.svg", "/playerG.svg","/monstr.svg"];
 
 const RACES = ["Человек", "Эльф", "Орк", "Гном"];
 
@@ -43,64 +42,72 @@ export default function CharacterCreation({ token, player, onCreated }: Characte
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen gap-6 p-6">
-      <Text size="7" weight="bold">Создание персонажа</Text>
+      <h1 className="text-2xl font-bold text-[#8A7A60]">Создание персонажа</h1>
 
-      <Card style={{ padding: "20px" }}>
+      <div className="w-full max-w-sm rounded-2xl border-2 p-5 bg-white/70">
         <div className="flex flex-col items-center gap-4">
-          <div className="flex items-center gap-4">
-            <Button variant="soft" onClick={prevAvatar} disabled={AVATARS.length < 2}>{"<"}</Button>
-            <img src={avatar} alt="Аватар" className="h-50 w-auto" />
-            <Button variant="soft" onClick={nextAvatar} disabled={AVATARS.length < 2}>{">"}</Button>
-          </div>
-          <div className="flex gap-2">
-            {AVATARS.map((a, i) => (
-              <button
-                key={a}
-                onClick={() => setAvatarIndex(i)}
-                className={`h-12 w-12 rounded border-2 ${i === avatarIndex ? "border-orange-500" : "border-transparent"}`}
-              >
-                <img src={a} alt="" className="h-full w-full object-contain" />
-              </button>
-            ))}
+          <div className="flex justify-between w-full items-center gap-4">
+            <button
+              type="button"
+              onClick={prevAvatar}
+              className="h-10 w-10 rounded-full border-2 text-[#E8603C] disabled:opacity-30"
+            >
+              {"<"}
+            </button>
+            <img src={avatar} alt="Аватар" className="object-contain h-48 w-full" />
+            <button
+              type="button"
+              onClick={nextAvatar}
+              className="h-10 w-10 rounded-full border-2 text-[#E8603C] disabled:opacity-30"
+            >
+              {">"}
+            </button>
           </div>
         </div>
-      </Card>
+      </div>
 
-      <Flex direction="column" gap="2" width="320px">
-        <Text size="2" weight="bold">Имя</Text>
-        <TextField.Root
+      <div className="flex flex-col gap-2 w-full max-w-xs">
+        <label className="text-sm font-bold text-[#8A7A60]">Имя</label>
+        <input
+          type="text"
           placeholder="Введите имя"
           value={name}
           maxLength={20}
           onChange={(e) => setName(e.target.value)}
+          className="rounded-lg border-2 px-3 py-2 outline-none focus:border-[#E8603C]"
         />
-      </Flex>
+      </div>
 
-      <Flex direction="column" gap="2" width="320px">
-        <Text size="2" weight="bold">Раса</Text>
+      <div className="flex flex-col gap-2 w-full">
+        <span className="text-sm font-bold text-[#8A7A60]">Раса</span>
         <div className="flex flex-wrap gap-2">
           {RACES.map((r) => (
-            <Button
+            <button
               key={r}
-              variant={r === race ? "solid" : "soft"}
+              type="button"
               onClick={() => setRace(r)}
+              className={`rounded-lg px-3 py-1.5 border-2 transition-colors ${
+                r === race
+                  ? "bg-[#E8603C] text-white border-[#E8603C]"
+                  : "bg-transparent text-[#8A7A60] border-[#8A7A60]"
+              }`}
             >
               {r}
-            </Button>
+            </button>
           ))}
         </div>
-      </Flex>
+      </div>
 
-      {error && <Text color="red" size="2">{error}</Text>}
+      {error && <p className="text-sm text-red-500">{error}</p>}
 
-      <Button
-        size="3"
+      <button
+        type="button"
         onClick={submit}
-        loading={saving}
         disabled={name.trim().length < 2 || saving}
+        className="rounded-lg bg-[#E8603C] px-6 py-3 font-bold text-white disabled:opacity-50"
       >
-        Создать персонажа
-      </Button>
+        {saving ? "Сохранение..." : "Создать персонажа"}
+      </button>
     </div>
   );
 }

@@ -257,6 +257,24 @@ export function createApp(): express.Express {
     res.json(response);
   });
 
+  // DEV: сброс конструктора персонажа. Доступен только когда включён DEV_BYPASS_AUTH,
+  // чтобы на тестовом можно было заново пройти создание персонажа.
+  app.post("/me/character/reset", requireAuth, (req, res) => {
+    if (!config.devBypassAuth) {
+      res.status(403).json({ error: "Доступно только в dev-режиме" });
+      return;
+    }
+    const player = (req as AuthedRequest).player;
+    db.update(players)
+      .set({ isCreated: false, race: null, avatar: null })
+      .where(eq(players.id, player.id))
+      .run();
+    const updated = db.select().from(players).where(eq(players.id, player.id)).get()!;
+    emitToPlayer(player.id, "player", toPlayerDto(updated));
+    const response: CharacterCreateResponse = { player: toPlayerDtoEquipped(updated) };
+    res.json(response);
+  });
+
   app.get("/locations", requireAuth, (_req, res) => {
     const locationRows = db.select().from(locations).orderBy(asc(locations.name)).all();
     const response: LocationsResponse = { locations: locationRows.map(toLocationDto) };

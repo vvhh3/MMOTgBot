@@ -13,6 +13,11 @@ RUN npm ci --include=dev
 ARG VITE_API_BASE_URL
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
+# Режим тестирования. Ставим "true" только на тестовом сервисе,
+# чтобы в тестовом билде появлялись отладочные фичи (напр. кнопка сброса персонажа).
+ARG VITE_DEV_MODE
+ENV VITE_DEV_MODE=$VITE_DEV_MODE
+
 RUN npm run build:prod
 
 FROM base AS runtime

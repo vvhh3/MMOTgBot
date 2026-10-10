@@ -8,6 +8,7 @@ import { PlayerDto, PvpStateDto, TradeStateDto } from "@mmobot/shared";
 import {NotificationButton } from "./ui/Modal/TopModall/Notification/NotificationButton.tsx";
 import SkillPoints from "./ui/Modal/CenterModal/CenterModalSkillPoints.tsx";
 import Modal, { TypeModal } from "./ui/Modal/Modal.tsx";
+import { resetCharacter } from "../api";
 
 type LayoutProps = {
     player: PlayerDto | null
@@ -53,6 +54,23 @@ export default function MainLayout({ infoMessages,player, setTypeShowIsModal,tok
                 <p className="text-red-500 w-full">{error}</p>
                 <div className="flex flex-row items-center gap-2">
                    
+                    {import.meta.env.VITE_DEV_MODE === "true" && (
+                        <button
+                            className="text-[11px] leading-none text-[#E8603C] border border-[#E8603C] rounded px-1.5 py-1"
+                            title="DEV: заново открыть конструктор персонажа"
+                            onClick={async () => {
+                                if (!token) return;
+                                try {
+                                    const { player: updated } = await resetCharacter(token);
+                                    onPlayer(updated);
+                                } catch (e) {
+                                    onError(e instanceof Error ? e.message : "Ошибка сброса персонажа");
+                                }
+                            }}
+                        >
+                            Перс
+                        </button>
+                    )}
                     <NotificationButton incoming={pvpState || tradeState ?  true : false} setTypeShowIsModal={setTypeShowIsModal} setShowModal={setShowModal} showIsModal={showIsModal} notifRef={notifRef} />
                     <div className="flex flex-row items-center gap-2">
                         <button onClick={()=>{setShowModal(true),setTypeShowIsModal(TypeModal.SkillPoints)}}>

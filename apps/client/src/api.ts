@@ -62,6 +62,12 @@ export async function createCharacter(token: string, character: CharacterCreateR
   return response.data;
 }
 
+// DEV: сбросить конструктор персонажа (только в dev-режиме на сервере)
+export async function resetCharacter(token: string): Promise<{ player: PlayerDto }> {
+  const response = await api.post<{ player: PlayerDto }>("/me/character/reset", undefined, { headers: authHeader(token) });
+  return response.data;
+}
+
 export async function getLocations(token: string): Promise<LocationsResponse> {
   const response = await api.get<LocationsResponse>("/locations", { headers: authHeader(token) })
   return response.data
