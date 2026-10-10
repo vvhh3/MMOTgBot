@@ -193,7 +193,7 @@ export function createApp(): express.Express {
       if (stat === "maxHealth") {
         db.update(players)
           .set({
-            statPoints: fresh.statPoints - 1,
+            statPoints: fresh.statPoints - points,
             maxHealth: fresh.maxHealth + gain,
             health: Math.min(fresh.maxHealth + gain, fresh.health + gain)
           })
@@ -201,7 +201,7 @@ export function createApp(): express.Express {
       } else {
         db.update(players)
           .set({
-            statPoints: fresh.statPoints - 1,
+            statPoints: fresh.statPoints - points,
             ...(stat === "strength" ? { strength: fresh.strength + gain } : { defense: fresh.defense + gain })
           })
           .where(eq(players.id, player.id)).run();

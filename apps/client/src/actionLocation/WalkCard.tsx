@@ -15,7 +15,7 @@ export default function WalkCard({token,player,locationState,onError,onState}:Wa
    const getState = () => {
           if(!token) return
           getCombatState(token)
-          .then((res) => onState(res))
+          .then((res) => {onState(res), navigate("/TakeAWalk")})
           .catch(e => (navigate("/",{replace:true}),onError(e instanceof Error ? e.message :"Ошибка"))) 
       }
   const functionStartCombat = async () => {
@@ -41,7 +41,6 @@ export default function WalkCard({token,player,locationState,onError,onState}:Wa
 
       await startCombat(token, rand.id);
       await getState();
-      navigate("/TakeAWalk");
     } catch (e) {
       alert(e instanceof Error ? e.message : "Ошибка");
     }

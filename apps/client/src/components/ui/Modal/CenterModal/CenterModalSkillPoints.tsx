@@ -98,6 +98,7 @@ export default function CenterModalSkillPoints({
     if (!token || total === 0) return;
     try {
       const { player: updated } = await spendStatPoint(token, points);
+      console.log(points)
       onPlayer(updated);
       // available уже равен оставшимся очкам, его трогать не нужно
       setPoints(EMPTY_POINTS);
