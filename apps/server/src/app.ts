@@ -6,6 +6,8 @@ import { fileURLToPath } from "node:url"
 import type {
   AuthRequest,
   AuthResponse,
+  CharacterCreateRequest,
+  CharacterCreateResponse,
   CombatActionRequest,
   CombatActionResponse,
   CombatStartRequest,
@@ -141,7 +143,7 @@ export function createApp(): express.Express {
           .where(eq(players.id, telegramUser.id))
           .run();
       } else {
-        insertPlayerWithUniqueFriendId({ id: telegramUser.id, name, createdAt: now, lastSeenAt: now });
+        insertPlayerWithUniqueFriendId({ id: telegramUser.id, name, createdAt: now, lastSeenAt: now, isCreated: false });
       }
 
       const player = db.select().from(players).where(eq(players.id, telegramUser.id)).get()!;
@@ -219,6 +221,40 @@ export function createApp(): express.Express {
     const updated = db.select().from(players).where(eq(players.id, player.id)).get()!;
     emitToPlayer(player.id, "player", toPlayerDto(updated));
     res.json({ player: toPlayerDtoEquipped(updated) });
+  });
+
+  // КОНСТРУКТОР ПЕРСОНАЖА: POST /me/character
+  // При первом заходе игрок выбирает имя, расу и аватар. После сохранения
+  // is_created=true, и клиент пускает его в игру. Допустимые расы — список ниже.
+  const ALLOWED_RACES = ["Человек", "Эльф", "Орк", "Гном"];
+  app.post("/me/character", requireAuth, (req, res) => {
+    const player = (req as AuthedRequest).player;
+    const body = req.body as CharacterCreateRequest;
+    const name = typeof body.name === "string" ? body.name.trim() : "";
+    const race = typeof body.race === "string" ? body.race : "";
+    const avatar = typeof body.avatar === "string" ? body.avatar : "";
+
+    if (name.length < 2 || name.length > 20) {
+      res.status(400).json({ error: "Имя должно быть от 2 до 20 символов" });
+      return;
+    }
+    if (!ALLOWED_RACES.includes(race)) {
+      res.status(400).json({ error: "Недопустимая раса" });
+      return;
+    }
+    if (!avatar) {
+      res.status(400).json({ error: "Выберите аватар" });
+      return;
+    }
+
+    db.update(players)
+      .set({ name, race, avatar, isCreated: true })
+      .where(eq(players.id, player.id))
+      .run();
+    const updated = db.select().from(players).where(eq(players.id, player.id)).get()!;
+    emitToPlayer(player.id, "player", toPlayerDto(updated));
+    const response: CharacterCreateResponse = { player: toPlayerDtoEquipped(updated) };
+    res.json(response);
   });
 
   app.get("/locations", requireAuth, (_req, res) => {

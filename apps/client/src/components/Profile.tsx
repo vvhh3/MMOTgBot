@@ -1,5 +1,5 @@
-import playerM from '../avatarPlayer/playerM.svg'
-import map from '../components/ui/Maps/mapMat.png'
+import playerM from '/playerM.svg'
+import map from '/mapMat.png'
 import { Flex, Card, Text, Button, Box, Progress, Inset, Strong, Grid } from "@radix-ui/themes";
 import { Link } from 'react-router-dom'
 import { PlayerDto,LocationStateResponse,LocationDto} from '@mmobot/shared';

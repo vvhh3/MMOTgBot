@@ -1,4 +1,4 @@
-import player2 from "../avatarPlayer/playerM.svg"
+import player2 from "/playerM.svg"
 import { Button, Card, Progress, Text, Grid } from "@radix-ui/themes"
 import { LocationDto, LocationStateResponse, PlayerDto, PvpStateDto } from "@mmobot/shared";
 import { getLocationState, pvpAction } from "../api";

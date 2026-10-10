@@ -5,7 +5,7 @@ import "./styles.css"
 import { BrowserRouter, Routes, Route, Link, useNavigate } from "react-router-dom";
 import type { CombatStateResponse, FriendsOverviewResponse, InventoryItemDto, LocationStateResponse, PlayerDto, PvpStateDto, TradeStateDto } from "@mmobot/shared";
 import Loading from './components/Loading'
-import { auth, getMe,getLocations, getPvpOverview, getTradesOverview, theLastAction } from "./api";
+import { auth, getMe, getLocations, getPvpOverview, getTradesOverview, theLastAction } from "./api";
 import { getLocationImage } from "./utils/getLocationImage";
 
 import { getTelegramInitData } from "./telegram";
@@ -22,6 +22,7 @@ import TakeAWalk from "./components/TakeAWalk";
 import Inventory from "./components/Inventory";
 import Fight from "./components/Fight";
 import Exchange from "./components/Exchange"
+import CharacterCreation from "./components/CharacterCreation";
 import { MobAdmin } from "./admin/adminComponents/MobAdmin";
 import { ItemAdmin } from "./admin/adminComponents/ItemAdmin";
 import Admin from "./admin/Admin";
@@ -45,19 +46,19 @@ function App() {
   const [combat, setCombat] = useState<CombatStateResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [friendsOverview, setFriendsOverview] = useState<FriendsOverviewResponse | null>(null)
-  const [pvpState,setPvpState] = useState<PvpStateDto | null>(null)
-  const [tradeState,setTradeState]  = useState<TradeStateDto | null>(null)
-  const [showIsModal,setShowModal] = useState(false)
-  const [typeShowIsModal,setTypeShowIsModal] = useState<TypeModal | null>(null)
-  const [state,setState] = useState<CombatStateResponse>()
+  const [pvpState, setPvpState] = useState<PvpStateDto | null>(null)
+  const [tradeState, setTradeState] = useState<TradeStateDto | null>(null)
+  const [showIsModal, setShowModal] = useState(false)
+  const [typeShowIsModal, setTypeShowIsModal] = useState<TypeModal | null>(null)
+  const [state, setState] = useState<CombatStateResponse>()
   //Загрузилис ли все данные
-  const [ready,setReady] = useState(false)
-  const [loadingProgress,setLoadingProgress] = useState(0)
-  const [infoMessages,setInfoMessages]=useState({title:"",info:""})
+  const [ready, setReady] = useState(false)
+  const [loadingProgress, setLoadingProgress] = useState(0)
+  const [infoMessages, setInfoMessages] = useState({ title: "", info: "" })
   const navigate = useNavigate()
 
   const preloadImage = (url: string): Promise<void> => {
-    return new Promise ((r) => {
+    return new Promise((r) => {
       const img = new Image()
       img.onload = () => r()
       img.onerror = () => r()
@@ -66,27 +67,27 @@ function App() {
   }
 
   async function preloadLocationImages(token: string, onProgress: (p: number) => void): Promise<void> {
-  let urls: string[] = [];
-  try {
-    const { locations } = await getLocations(token);
-    for (const l of locations) {
-      urls.push(getLocationImage(l.homeImg));
-      urls.push(getLocationImage(l.fightImg));
+    let urls: string[] = [];
+    try {
+      const { locations } = await getLocations(token);
+      for (const l of locations) {
+        urls.push(getLocationImage(l.homeImg));
+        urls.push(getLocationImage(l.fightImg));
+      }
+    } catch {
+      urls = []
     }
-  } catch {
-    urls = []
+    if (urls.length === 0) {
+      onProgress(100)
+      return
+    }
+    let done = 0;
+    await Promise.all(urls.map(async (url) => {
+      await preloadImage(url);
+      done += 1;
+      onProgress((done / urls.length) * 100);
+    }));
   }
-  if (urls.length === 0) {
-    onProgress(100)
-    return
-  }
-  let done = 0;
-  await Promise.all(urls.map(async (url) => {
-    await preloadImage(url);
-    done += 1;
-    onProgress((done / urls.length) * 100);
-  }));
-}
   useEffect(() => {
     const initData = getTelegramInitData();
     if (!initData) {
@@ -168,7 +169,7 @@ function App() {
         return;
       }
       setError(err.message);
-      console.log("error",err)
+      console.log("error", err)
     };
     const onLocationState = (nextState: LocationStateResponse) => setLocationState(nextState);
     const onPlayer = (nextPlayer: PlayerDto) => setPlayer(nextPlayer);
@@ -183,9 +184,9 @@ function App() {
     socket.on("player", onPlayer);
     socket.on("inventory", onInventory);
     socket.on("combatState", onCombatState)
-    socket.on("friendsUpdate",onFriendsUpdate)
+    socket.on("friendsUpdate", onFriendsUpdate)
     socket.on("pvpState", onPvpState)
-    socket.on("tradeUpdate",onTradeState)
+    socket.on("tradeUpdate", onTradeState)
 
     return () => {
       socket.off("connect_error", onConnectError)
@@ -193,20 +194,20 @@ function App() {
       socket.off("player", onPlayer)
       socket.off("inventory", onInventory)
       socket.off("combatState", onCombatState)
-      socket.off("friendsUpdate",onFriendsUpdate)
-      socket.off("pvpState",onPvpState)
-      socket.off("tradeUpdate",onTradeState)
+      socket.off("friendsUpdate", onFriendsUpdate)
+      socket.off("pvpState", onPvpState)
+      socket.off("tradeUpdate", onTradeState)
     }
-    
+
   }, [player])
-  useEffect(()=>{
-    if(!player) return
+  useEffect(() => {
+    if (!player) return
     if (player.idTheLastAction == null) return
-    if (player.idTheLastAction.type == "Fight"){
+    if (player.idTheLastAction.type == "Fight") {
       const loadPvp = async () => {
-        if(!token) return
+        if (!token) return
         if (player.idTheLastAction == null) return
-        const session = await theLastAction(token,player.id)
+        const session = await theLastAction(token, player.id)
         setPvpState({
           id: session.info.id,
           status: session.info.status,
@@ -221,14 +222,14 @@ function App() {
           finished: session.info.finished,
           isWon: session.info.isWon,
         })
-        navigate("/Fight",{replace:true})
+        navigate("/Fight", { replace: true })
       }
       loadPvp()
     }
-    else if(player.idTheLastAction.type == "TakeAWalk"){
-      if(!token) return
+    else if (player.idTheLastAction.type == "TakeAWalk") {
+      if (!token) return
       const loadTakeAWalk = async () => {
-        const session = await theLastAction(token,player.id)
+        const session = await theLastAction(token, player.id)
         setState({
           mob: session.info.mob,
           playerHp: session.info.playerHp,
@@ -238,15 +239,15 @@ function App() {
           status: session.info.status,
           log: session.info.log
         })
-        navigate("/TakeAWalk",{replace:true})
-       
+        navigate("/TakeAWalk", { replace: true })
+
       }
       loadTakeAWalk()
     }
-    else if (player.idTheLastAction.type == "Trade"){
-      if(!token) return
+    else if (player.idTheLastAction.type == "Trade") {
+      if (!token) return
       const loadTakeAWalk = async () => {
-        const session = await theLastAction(token,player.id)
+        const session = await theLastAction(token, player.id)
         setTradeState({
           id: session.info.id,
           status: session.info.status,
@@ -258,35 +259,37 @@ function App() {
           direction: session.info.direction
         })
         console.log(tradeState)
-        navigate("/Exchange",{replace:true})
-       
+        navigate("/Exchange", { replace: true })
+
       }
       loadTakeAWalk()
     }
 
-  },[player])
+  }, [player])
   return (
     <>
       <Theme>
         <ScrollToTop />
         {ready ? (
-
+          player && !player.isCreated ? (
+            <CharacterCreation token={token} player={player} onCreated={setPlayer} />
+          ) :
           <Routes>
-          <Route path="" element={<MainLayout infoMessages={infoMessages} setPvpState={setPvpState} setTradeState={setTradeState} setTypeShowIsModal={setTypeShowIsModal} setShowModal={setShowModal} showIsModal={showIsModal}  typeShowIsModal={typeShowIsModal}  player={player} token={token} error={error} onError={setError} onPlayer={setPlayer} pvpState={pvpState} tradeState={tradeState}/>}>
-            <Route path="/" element={<Home setInfoMessages={setInfoMessages} typeShowIsModal={typeShowIsModal} setTypeShowIsModal={setTypeShowIsModal} setShowModal={setShowModal} showIsModal={showIsModal}  onError={setError} onState={setState} token={token} player={player} locationState={locationState} friendsOverview={friendsOverview} pvpState={pvpState} tradeState={tradeState}/>} />
-            <Route path="Map" element={<Map token={token} onLocationState={setLocationState} onPlayer={setPlayer} />} />
-            <Route path="Profile" element={<Profile setTypeShowIsModal={setTypeShowIsModal} setShowModal={setShowModal} player={player} locationState={locationState}/>} />
-            <Route path="Tasks" element={<Tasks token={token} onPlayer={setPlayer} />} />
-            <Route path="Team" element={<Team token={token} player={player} liveOverview={friendsOverview}/>} />
-            <Route path="Inventory" element={<Inventory token={token} player={player} inventory={inventory} onPlayer={setPlayer} onInventory={setInventory}/>} />
-            <Route path="Exchange" element={<Exchange token={token} player={player} tradeState={tradeState} inventory={inventory}/>} />
-            <Route path="AdminPanel" element={<Admin token={token} />} />
-          </Route>
-          <Route path="/TakeAWalk" element={<TakeAWalk token={token} player={player} onPlayer={setPlayer} onInventory={setInventory} locationState={locationState} onError={setError} error={error} onState={setState} state={state} />} />
-          <Route path="/Fight" element={<Fight token={token} player={player} locationState={locationState} pvpState={pvpState} />} />
-        </Routes>
+            <Route path="" element={<MainLayout infoMessages={infoMessages} setPvpState={setPvpState} setTradeState={setTradeState} setTypeShowIsModal={setTypeShowIsModal} setShowModal={setShowModal} showIsModal={showIsModal} typeShowIsModal={typeShowIsModal} player={player} token={token} error={error} onError={setError} onPlayer={setPlayer} pvpState={pvpState} tradeState={tradeState} />}>
+              <Route path="/" element={<Home setInfoMessages={setInfoMessages} typeShowIsModal={typeShowIsModal} setTypeShowIsModal={setTypeShowIsModal} setShowModal={setShowModal} showIsModal={showIsModal} onError={setError} onState={setState} token={token} player={player} locationState={locationState} friendsOverview={friendsOverview} pvpState={pvpState} tradeState={tradeState} />} />
+              <Route path="Map" element={<Map token={token} onLocationState={setLocationState} onPlayer={setPlayer} />} />
+              <Route path="Profile" element={<Profile setTypeShowIsModal={setTypeShowIsModal} setShowModal={setShowModal} player={player} locationState={locationState} />} />
+              <Route path="Tasks" element={<Tasks token={token} onPlayer={setPlayer} />} />
+              <Route path="Team" element={<Team token={token} player={player} liveOverview={friendsOverview} />} />
+              <Route path="Inventory" element={<Inventory token={token} player={player} inventory={inventory} onPlayer={setPlayer} onInventory={setInventory} />} />
+              <Route path="Exchange" element={<Exchange token={token} player={player} tradeState={tradeState} inventory={inventory} />} />
+              <Route path="AdminPanel" element={<Admin token={token} />} />
+            </Route>
+            <Route path="/TakeAWalk" element={<TakeAWalk token={token} player={player} onPlayer={setPlayer} onInventory={setInventory} locationState={locationState} onError={setError} error={error} onState={setState} state={state} />} />
+            <Route path="/Fight" element={<Fight token={token} player={player} locationState={locationState} pvpState={pvpState} />} />
+          </Routes>
         ) : (
-            <Loading progress={loadingProgress}/>
+          <Loading progress={loadingProgress} />
         )}
       </Theme>
     </>

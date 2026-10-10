@@ -42,6 +42,9 @@ export const players = sqliteTable("players",
     idTheLastAction: text("id_the_last_action", {mode: "json",}).$type<LastAction>(),
     money: integer("money").notNull().default(0),
     cooldowns: text("cooldowns", { mode: "json" }).$type<Cooldowns>().notNull().default({}),
+    isCreated: integer("is_created", { mode: "boolean" }).notNull().default(false),
+    race: text("race"),
+    avatar: text("avatar"),
   },
   // Индекс ускоряет поиск игроков по текущей локации (напр. "кто сейчас на площади").
   (table) => [

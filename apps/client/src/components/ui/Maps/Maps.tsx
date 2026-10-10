@@ -4,7 +4,7 @@ import {
   TransformComponent
 } from "react-zoom-pan-pinch";
 import { Card, Inset } from "@radix-ui/themes";
-import map from "./mapMat.png"
+import map from "/mapMat.png"
 import { LocationDto, LocationStateResponse, PlayerDto } from "@mmobot/shared";
 import { enterLocation, getLocations } from "../../../api";
 import { useNavigate } from "react-router-dom";

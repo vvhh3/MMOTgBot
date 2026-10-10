@@ -16,7 +16,21 @@ export type PlayerDto = { // описание игрока
   idTheLastAction:LastAction | null
   money:number | 0,
   cooldowns:Cooldowns,
+  isCreated: boolean // прошёл ли игрок конструктор персонажа
+  race: string | null // выбранная раса
+  avatar: string | null // выбранный аватар (имя файла из /public)
 };
+
+// Конструктор персонажа: что отправляет клиент при первом заходе
+export type CharacterCreateRequest = {
+  name: string
+  race: string
+  avatar: string
+}
+
+export type CharacterCreateResponse = {
+  player: PlayerDto
+}
 
 // какую характеристику поднять за одно очко (POST /me/stats)
 export type StatType = 'maxHealth' | 'strength' | 'defense'

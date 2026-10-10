@@ -4,6 +4,7 @@ import {
   PlayerDto,
   type AuthRequest,
   type AuthResponse,
+  type CharacterCreateRequest,
   type ClaimQuestResponse,
   type CombatActionRequest,
   type CombatStartRequest,
@@ -52,6 +53,12 @@ export async function auth(initData: string): Promise<AuthResponse> {
 
 export async function getMe(token: string): Promise<MeResponse> {
   const response = await api.get<MeResponse>("/me", { headers: authHeader(token) });
+  return response.data;
+}
+
+// Сохранить персонажа из конструктора при первом заходе
+export async function createCharacter(token: string, character: CharacterCreateRequest): Promise<{ player: PlayerDto }> {
+  const response = await api.post<{ player: PlayerDto }>("/me/character", character, { headers: authHeader(token) });
   return response.data;
 }
 

@@ -2,7 +2,7 @@ import { InventoryItemDto, ItemDto, PlayerDto } from "@mmobot/shared"
 import { useEffect, useState } from "react"
 import { getCatalog, spendStatPoint } from "../api"
 import { Tabs, Text, Box, Card, Progress, Badge, Grid } from "@radix-ui/themes"
-import playerM from "../avatarPlayer/playerM.svg"
+import playerM from "/playerM.svg"
 import Modal, { TypeModal } from "./ui/Modal/Modal"
 
 type InventoryProps = {

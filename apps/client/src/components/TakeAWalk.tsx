@@ -1,6 +1,6 @@
 
-import playerM from "../avatarPlayer/playerM.svg"
-import monstr from "../enemies/monstr.svg"
+import playerM from "/playerM.svg"
+import monstr from "/monstr.svg"
 import { Button, Card, Progress, Text, Grid, Flex } from "@radix-ui/themes"
 import { Link, useNavigate } from "react-router-dom"
 import { CombatStateResponse, InventoryItemDto, PlayerDto,LocationDto,LocationStateResponse } from "@mmobot/shared"

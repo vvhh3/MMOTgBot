@@ -37,6 +37,9 @@ export function initializeDatabase(): void {
   // чтобы INSERT/SELECT не падали с "no column named actions".
   ensureLocationsActions();
 
+  // Автофикс схемы: колонки конструктора персонажа (is_created, race, avatar).
+  ensurePlayerCharacterColumns();
+
   // Ниже — сид (начальные данные), который заносится в БД при первом запуске.
   // Список стартовых локаций: id, название, описание и координаты.
   const seedLocations: LocationDto[] = [
@@ -140,6 +143,22 @@ function ensureLocationsActions(): void {
   sqlite.exec(`ALTER TABLE "locations" ADD COLUMN "actions" text NOT NULL DEFAULT '[]'`);
 }
 
+// Идемпотентно добавляет колонки конструктора персонажа в players, если их нет.
+// Старые игроки получают is_created=1 (они уже "созданы"), чтобы не показывать
+// им конструктор повторно.
+function ensurePlayerCharacterColumns(): void {
+  if (!tableExists("players")) return;
+  if (!columnExists("players", "is_created")) {
+    sqlite.exec(`ALTER TABLE "players" ADD COLUMN "is_created" integer NOT NULL DEFAULT 1`);
+  }
+  if (!columnExists("players", "race")) {
+    sqlite.exec(`ALTER TABLE "players" ADD COLUMN "race" text`);
+  }
+  if (!columnExists("players", "avatar")) {
+    sqlite.exec(`ALTER TABLE "players" ADD COLUMN "avatar" text`);
+  }
+}
+
 // Функции ниже превращают "сырые" строки из БД (Row-типы) в DTO — объекты, которые
 // отдаются клиенту. Это прослойка между внутренним форматом хранения и внешним API.
 
@@ -164,7 +183,10 @@ export function toPlayerDto(row: PlayerRow): PlayerDto {
     statPoints: row.statPoints, // нераспределённые очки — клиент по ним показывает кнопку прокачки
     idTheLastAction:row.idTheLastAction,
     money:row.money,
-    cooldowns:row.cooldowns
+    cooldowns:row.cooldowns,
+    isCreated: row.isCreated,
+    race: row.race,
+    avatar: row.avatar
 
   }
 }

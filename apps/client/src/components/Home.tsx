@@ -10,8 +10,8 @@ import {
   Grid,
 } from "@radix-ui/themes";
 import { Link, useNavigate } from "react-router-dom";
-import playerM from "../avatarPlayer/playerM.svg";
-import playerG from "../avatarPlayer/playerG.svg";
+import playerM from "/playerM.svg";
+import playerG from "/playerG.svg";
 import { useEffect, useState } from "react";
 import {
   LocationDto,
@@ -25,7 +25,7 @@ import {
 import { getLocationState, startCombat } from "../api";
 import { getLocationImage } from "../utils/getLocationImage";
 import ActionCards from "./ui/ActionCards.tsx";
-import map from '../components/ui/Maps/mapMat.png'
+import map from '/mapMat.png'
 import Modal, { TypeModal } from "./ui/Modal/Modal.tsx";
 
 type HomeProps = {
