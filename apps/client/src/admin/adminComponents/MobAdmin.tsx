@@ -29,6 +29,7 @@ const emptyMob: MobDto = {
     defense: 0,
     loot: [],
     pointsReward: 0,
+    coinReward: 0,
     locationId: "square",
     respawnSeconds: 0
 }
@@ -182,6 +183,8 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
                             onChange={(v) => setDraft({ ...draft, defense: v })} />
                         <NumberField label="Награда (очки)" min={0} value={draft.pointsReward}
                             onChange={(v) => setDraft({ ...draft, pointsReward: v })} />
+                        <NumberField label="Награда (монеты)" min={0} value={draft.coinReward}
+                            onChange={(v) => setDraft({ ...draft, coinReward: v })} />
                         <NumberField label="Респавн (сек)" min={1} value={draft.respawnSeconds}
                             onChange={(v) => setDraft({ ...draft, respawnSeconds: v })} />
                     </Grid>
@@ -211,13 +214,14 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
                             <Table.ColumnHeaderCell justify="center">Защита</Table.ColumnHeaderCell>
                             <Table.ColumnHeaderCell>Локация</Table.ColumnHeaderCell>
                             <Table.ColumnHeaderCell>Награда</Table.ColumnHeaderCell>
+                            <Table.ColumnHeaderCell>Монеты</Table.ColumnHeaderCell>
                             <Table.ColumnHeaderCell justify="end"></Table.ColumnHeaderCell>
                         </Table.Row>
                     </Table.Header>
                     <Table.Body>
                         {mobs.length === 0 && (
                             <Table.Row>
-                                <Table.Cell colSpan={9}>
+                                <Table.Cell colSpan={10}>
                                     <Text color="gray">Мобов пока нет</Text>
                                 </Table.Cell>
                             </Table.Row>
@@ -232,6 +236,7 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
                                 <Table.Cell justify="center">{mob.defense}</Table.Cell>
                                 <Table.Cell>{mob.locationId}</Table.Cell>
                                 <Table.Cell>{mob.pointsReward}</Table.Cell>
+                                <Table.Cell>{mob.coinReward}</Table.Cell>
                                 <Table.Cell justify="end">
                                     <Flex gap="2" justify="end">
                                         <Button size="1" variant="soft" onClick={() => {

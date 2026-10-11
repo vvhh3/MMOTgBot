@@ -49,6 +49,7 @@ export type MobDto = { // описание мобов
   defense: number
   loot: number[]
   pointsReward: number
+  coinReward: number
   locationId: string
   respawnSeconds: number
 }
@@ -70,7 +71,7 @@ export type CombatLogEntry = { // типо логирование
 }
 
 export type CombatStateResponse = { // описание боя 
-  mob: MobDto;
+  mob: Omit<MobDto, "loot"> & { loot: Array<number | ItemDto> };
   playerHp: number;
   playerMaxHp: number;
   mobHp: number;

@@ -2,7 +2,6 @@ import { Card,Text} from "@radix-ui/themes"
 import { dailyActivities } from "../api"
 import {PlayerDto,LocationDto} from "@mmobot/shared";
 import { TypeModal } from "../components/ui/Modal/Modal";
-import axios from "axios";
 type MoneyCardProps={
     location?: LocationDto|null
     player: PlayerDto| null,
@@ -16,18 +15,18 @@ export default function MoneyCard({setTypeShowIsModal,setShowModal,setInfoMessag
     const activities = async () => {
         if (!token || !player || !location) return
         try {
-            const info = await dailyActivities(token, location.name)
-            if (info.code == "COOLDOWN") {
+            const message = await dailyActivities(token, location.name)
+            if (message.code == "COOLDOWN") {
                 setInfoMessages({
                     title: "Ещё не время",
-                    info: `${info.text}`,
+                    info: message.text,
                 });
                 setShowModal(true)
                 setTypeShowIsModal(TypeModal.Information)
                 
-            }else if(info.code == "SUCCESS"){
-                if (info.player) onPlayer(info.player)
-                setInfoMessages({title:"На дне",info:`Вы нашли ${info.moneyReceived} след раз можно будет ${info.nextAvailableAt}`})
+            }else if(message.code == "SUCCESS"){
+                onPlayer(message.player)
+                setInfoMessages({title:message.title,info:message.text})
                 setShowModal(true)
                 setTypeShowIsModal(TypeModal.Information)
             }
