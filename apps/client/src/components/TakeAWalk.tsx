@@ -1,5 +1,5 @@
+import { getSkins } from "../utils/skins";
 
-import playerM from "/playerM.svg"
 import monstr from "/monstr.svg"
 import { Button, Card, Progress, Text, Grid, Flex } from "@radix-ui/themes"
 import { Link, useNavigate } from "react-router-dom"
@@ -97,7 +97,7 @@ export default function TakeAWalk({ token, player,onPlayer,onInventory,locationS
                         </div>
                     </Card>
                     <div className="flex justify-center items-center">
-                        <img className="h-45 w-full max-w-[180px] object-contain" style={{ transform: 'scaleX(-1)' }} src={playerM} />
+                        <img className="h-45 w-full max-w-[180px] object-contain" style={{ transform: 'scaleX(-1)' }} src={getSkins(player?.avatar)} />
                     </div>
                     <div className="flex justify-center items-center">
                         <img className="h-45 w-full object-contain" src={monstr} />

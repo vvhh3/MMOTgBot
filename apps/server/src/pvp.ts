@@ -123,7 +123,7 @@ function buildPvpState(pvp: PvpSessionRow, playerId: number): PvpStateDto | null
     const myId = role === "player1" ? pvp.player1Id : pvp.player2Id
 
     const im = db.select({ name: players.name, maxHealth: players.maxHealth }).from(players).where(eq(players.id, myId)).get();
-    const partner = db.select({ name: players.name, maxHealth: players.maxHealth }).from(players).where(eq(players.id, partnerId)).get();
+    const partner = db.select({ name: players.name, maxHealth: players.maxHealth, avatar: players.avatar }).from(players).where(eq(players.id, partnerId)).get();
 
     if (!im || !partner) return null
 
@@ -134,6 +134,7 @@ function buildPvpState(pvp: PvpSessionRow, playerId: number): PvpStateDto | null
         direction: role === "player1" ? "outgoing" : "incoming",
         myName: im.name,
         partnerName: partner.name,
+        partnerAvatar: partner.avatar,
         myHp: role === "player1" ? pvp.player1Health : pvp.player2Health,
         myMaxHp: im.maxHealth,
         partnerMaxHp: partner.maxHealth,
@@ -438,6 +439,7 @@ export const createPvpRoutes = (app: Express) => {
                             direction: "incoming",
                             myName: player1.name,
                             partnerName: player2?.name,
+                            partnerAvatar: player2?.avatar ?? null,
                             myHp: infoPvp.player1Health,
                             myMaxHp: player1.maxHealth,
                             partnerHp: infoPvp.player2Health,
@@ -456,6 +458,7 @@ export const createPvpRoutes = (app: Express) => {
                             direction: "incoming",
                             myName: player1.name,
                             partnerName: player2?.name,
+                            partnerAvatar: player2?.avatar ?? null,
                             myHp: infoPvp.player1Health,
                             myMaxHp: player1.maxHealth,
                             partnerHp: infoPvp.player2Health,
