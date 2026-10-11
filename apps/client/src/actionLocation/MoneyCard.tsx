@@ -6,16 +6,17 @@ import axios from "axios";
 type MoneyCardProps={
     location?: LocationDto|null
     player: PlayerDto| null,
+    onPlayer: (player: PlayerDto) => void,
     token:string |null
     setInfoMessages: (value: { title: string; info: string }) => void;
     setShowModal: (value: boolean) => void;
     setTypeShowIsModal:(value: TypeModal | null) => void
 }
-export default function MoneyCard({setTypeShowIsModal,setShowModal,setInfoMessages,location,player,token}:MoneyCardProps){
+export default function MoneyCard({setTypeShowIsModal,setShowModal,setInfoMessages,location,player,onPlayer,token}:MoneyCardProps){
     const activities = async () => {
         if (!token || !player || !location) return
         try {
-            const info = await dailyActivities(token, player.id, location.name)
+            const info = await dailyActivities(token, location.name)
             if (info.code == "COOLDOWN") {
                 setInfoMessages({
                     title: "Ещё не время",
@@ -25,6 +26,7 @@ export default function MoneyCard({setTypeShowIsModal,setShowModal,setInfoMessag
                 setTypeShowIsModal(TypeModal.Information)
                 
             }else if(info.code == "SUCCESS"){
+                if (info.player) onPlayer(info.player)
                 setInfoMessages({title:"На дне",info:`Вы нашли ${info.moneyReceived} след раз можно будет ${info.nextAvailableAt}`})
                 setShowModal(true)
                 setTypeShowIsModal(TypeModal.Information)

@@ -68,45 +68,39 @@ export default function TakeAWalk({ token, player,onPlayer,onInventory,locationS
                 backgroundRepeat: 'no-repeat',
                 height: "100vh"
             }}>
-                <div className="flex justify-around flex-row" >
-                    {error && (<p className="text-red-500 text-2xl">{error}</p>)}
-                    <div className="flex flex-col">
-                        <div>
-                            <Card>
-                                <div>
-                                    <div className="flex flex-row justify-between gap-1.5">
-                                        <Text>
-                                            {player?.name}
-                                        </Text>
-                                        <div >
-                                            <Text size="1">{state?.playerHp}/{state?.playerMaxHp}</Text>
-                                        </div>
-                                    </div>
-                                    <Progress color="green" value={state?.playerHp}></Progress>
+                <div className="grid w-full grid-cols-2 items-start gap-x-2 px-2">
+                    {error && (<p className="col-span-2 text-red-500 text-2xl">{error}</p>)}
+                    <Card className="w-full min-w-0">
+                        <div className="min-w-0">
+                            <div className="flex min-w-0 flex-row items-start justify-between gap-1.5">
+                                <Text className="min-w-0 flex-1 whitespace-normal break-words">
+                                    {player?.name}
+                                </Text>
+                                <div className="shrink-0">
+                                    <Text size="1">{state?.playerHp}/{state?.playerMaxHp}</Text>
                                 </div>
-                            </Card>
+                            </div>
+                            <Progress color="green" value={state?.playerHp}></Progress>
                         </div>
-                        <div className="flex justify-center items-center">
-                            <img className="h-45 w-[180px]" style={{ transform: 'scaleX(-1)' }} src={playerM} />
+                    </Card>
+                    <Card className="w-full min-w-0">
+                        <div className="min-w-0">
+                            <div className="flex min-w-0 flex-row items-start justify-between gap-1.5">
+                                <Text className="min-w-0 flex-1 whitespace-normal break-words">
+                                    {state?.mob.name}
+                                </Text>
+                                <div className="shrink-0">
+                                    <Text size="1">{state?.mobHp}/{state?.mobMaxHp}</Text>
+                                </div>
+                            </div>
+                            <Progress color="green" value={state?.mobHp}></Progress>
                         </div>
+                    </Card>
+                    <div className="flex justify-center items-center">
+                        <img className="h-45 w-full max-w-[180px] object-contain" style={{ transform: 'scaleX(-1)' }} src={playerM} />
                     </div>
-                    <div>
-                        <div>
-                            <Card>
-                                <div>
-                                    <div className="flex flex-row justify-between gap-1.5">
-                                        <Text>
-                                            {state?.mob.name}
-                                        </Text>
-                                        <div >
-                                            <Text size="1">{state?.mobHp}/{state?.mobMaxHp}</Text>
-                                        </div>
-                                    </div>
-                                    <Progress color="green" value={state?.mobHp}></Progress>
-                                </div>
-                            </Card>
-                        </div>
-                        <img className="h-45 " src={monstr} />
+                    <div className="flex justify-center items-center">
+                        <img className="h-45 w-full object-contain" src={monstr} />
                     </div>
                 </div>
                 <div>

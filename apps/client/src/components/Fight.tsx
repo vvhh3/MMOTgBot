@@ -60,42 +60,34 @@ export default function Fight({ token, player, pvpState,locationState}: FightPro
                 backgroundRepeat: 'no-repeat',
                 height: "100vh"
             }}>
-                <div className="flex justify-around flex-row">
-                    <div className="flex flex-col">
-                        <div>
-                            <Card>
-                                <div>
-                                    <div className="flex flex-row justify-between gap-1.5">
-                                        <Text>{player?.name}</Text>
-                                        <div>
-                                            <Text size="1">{pvpState.myHp}/{pvpState.myMaxHp}</Text>
-                                        </div>
-                                    </div>
-                                    <Progress color={pvpState.myHp <= 0 ? "red" : "green"} value={pvpState.myMaxHp > 0 ? (pvpState.myHp / pvpState.myMaxHp) * 100 : 0}></Progress>
+                <div className="grid w-full grid-cols-2 items-start gap-x-2 px-2">
+                    <Card className="w-full min-w-0">
+                        <div className="min-w-0">
+                            <div className="flex min-w-0 flex-row items-start justify-between gap-1.5">
+                                <Text className="min-w-0 flex-1 whitespace-normal break-words">{player?.name}</Text>
+                                <div className="shrink-0">
+                                    <Text size="1">{pvpState.myHp}/{pvpState.myMaxHp}</Text>
                                 </div>
-                            </Card>
+                            </div>
+                            <Progress color={pvpState.myHp <= 0 ? "red" : "green"} value={pvpState.myMaxHp > 0 ? (pvpState.myHp / pvpState.myMaxHp) * 100 : 0}></Progress>
                         </div>
-                         <div className="flex justify-center items-center">
-                            <img className="h-45 w-[180px]" style={{ transform: 'scaleX(-1)' }} src={player2} />
+                    </Card>
+                    <Card className="w-full min-w-0">
+                        <div className="min-w-0">
+                            <div className="flex min-w-0 flex-row items-start justify-between gap-1.5">
+                                <Text className="min-w-0 flex-1 whitespace-normal break-words">{pvpState.partnerName}</Text>
+                                <div className="shrink-0">
+                                    <Text size="1">{pvpState.partnerHp}/{pvpState.partnerMaxHp}</Text>
+                                </div>
+                            </div>
+                            <Progress color={pvpState.partnerHp <= 0 ? "red" : "green"} value={pvpState.partnerMaxHp > 0 ? (pvpState.partnerHp / pvpState.partnerMaxHp) * 100 : 0}></Progress>
                         </div>
+                    </Card>
+                    <div className="flex justify-center items-center">
+                        <img className="h-45 w-full max-w-[180px] object-contain" style={{ transform: 'scaleX(-1)' }} src={player2} />
                     </div>
-                    <div>
-                        <div>
-                            <Card>
-                                <div>
-                                    <div className="flex flex-row justify-between gap-1.5">
-                                        <Text>{pvpState.partnerName}</Text>
-                                        <div>
-                                            <Text size="1">{pvpState.partnerHp}/{pvpState.partnerMaxHp}</Text>
-                                        </div>
-                                    </div>
-                                    <Progress color={pvpState.partnerHp <= 0 ? "red" : "green"} value={pvpState.partnerMaxHp > 0 ? (pvpState.partnerHp / pvpState.partnerMaxHp) * 100 : 0}></Progress>
-                                </div>
-                            </Card>
-                        </div>
-                        <div className="flex justify-center items-center">
-                            <img className="h-45 w-[180px]" style={{ transform: 'scaleX(-1)' }} src={player2} />
-                        </div>
+                    <div className="flex justify-center items-center">
+                        <img className="h-45 w-full max-w-[180px] object-contain" style={{ transform: 'scaleX(-1)' }} src={player2} />
                     </div>
                 </div>
 

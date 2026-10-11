@@ -22,6 +22,7 @@ import TakeAWalk from "./components/TakeAWalk";
 import Inventory from "./components/Inventory";
 import Fight from "./components/Fight";
 import Exchange from "./components/Exchange"
+import Shop from "./components/Shop"
 import CharacterCreation from "./components/CharacterCreation";
 import { MobAdmin } from "./admin/adminComponents/MobAdmin";
 import { ItemAdmin } from "./admin/adminComponents/ItemAdmin";
@@ -276,12 +277,13 @@ function App() {
           ) :
           <Routes>
             <Route path="" element={<MainLayout infoMessages={infoMessages} setPvpState={setPvpState} setTradeState={setTradeState} setTypeShowIsModal={setTypeShowIsModal} setShowModal={setShowModal} showIsModal={showIsModal} typeShowIsModal={typeShowIsModal} player={player} token={token} error={error} onError={setError} onPlayer={setPlayer} pvpState={pvpState} tradeState={tradeState} />}>
-              <Route path="/" element={<Home setInfoMessages={setInfoMessages} typeShowIsModal={typeShowIsModal} setTypeShowIsModal={setTypeShowIsModal} setShowModal={setShowModal} showIsModal={showIsModal} onError={setError} onState={setState} token={token} player={player} locationState={locationState} friendsOverview={friendsOverview} pvpState={pvpState} tradeState={tradeState} />} />
+              <Route path="/" element={<Home setInfoMessages={setInfoMessages} typeShowIsModal={typeShowIsModal} setTypeShowIsModal={setTypeShowIsModal} setShowModal={setShowModal} showIsModal={showIsModal} onError={setError} onState={setState} onPlayer={setPlayer} token={token} player={player} locationState={locationState} friendsOverview={friendsOverview} pvpState={pvpState} tradeState={tradeState} />} />
               <Route path="Map" element={<Map token={token} onLocationState={setLocationState} onPlayer={setPlayer} />} />
               <Route path="Profile" element={<Profile setTypeShowIsModal={setTypeShowIsModal} setShowModal={setShowModal} player={player} locationState={locationState} />} />
               <Route path="Tasks" element={<Tasks token={token} onPlayer={setPlayer} />} />
               <Route path="Team" element={<Team token={token} player={player} liveOverview={friendsOverview} />} />
               <Route path="Inventory" element={<Inventory token={token} player={player} inventory={inventory} onPlayer={setPlayer} onInventory={setInventory} />} />
+              <Route path="Shop" element={<Shop token={token} player={player} inventory={inventory} onPlayer={setPlayer} onInventory={setInventory} />} />
               <Route path="Exchange" element={<Exchange token={token} player={player} tradeState={tradeState} inventory={inventory} />} />
               <Route path="AdminPanel" element={<Admin token={token} />} />
             </Route>

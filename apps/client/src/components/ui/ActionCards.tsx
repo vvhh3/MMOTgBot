@@ -13,6 +13,7 @@ const cards = {
 type CardProps = {
   token: string| null
   player: PlayerDto| null
+  onPlayer: (player: PlayerDto) => void
   location?: LocationDto|null
   locationState: LocationStateResponse|null
   setShowModal: (value: boolean) => void
@@ -22,7 +23,7 @@ type CardProps = {
   setTypeShowIsModal:(value: TypeModal | null) => void
   setInfoMessages:(value:{title: string; info: string }) => void;
 }
-export default function ActionCards({setInfoMessages,token,player,location,locationState,setShowModal,showIsModal,onError,onState,setTypeShowIsModal}: CardProps){
+export default function ActionCards({setInfoMessages,token,player,onPlayer,location,locationState,setShowModal,showIsModal,onError,onState,setTypeShowIsModal}: CardProps){
   return(
     <>
       {location?.actions.map((action) => {
@@ -32,7 +33,7 @@ export default function ActionCards({setInfoMessages,token,player,location,locat
           return null;
         }
 
-        return <CardComponent setInfoMessages={setInfoMessages} setTypeShowIsModal={setTypeShowIsModal} location={location}  onError={onError} onState={onState} showIsModal={showIsModal} setShowModal={setShowModal} key={action} token={token} locationState={locationState} player={player}/>;
+        return <CardComponent setInfoMessages={setInfoMessages} setTypeShowIsModal={setTypeShowIsModal} location={location} onPlayer={onPlayer} onError={onError} onState={onState} showIsModal={showIsModal} setShowModal={setShowModal} key={action} token={token} locationState={locationState} player={player}/>;
       })}
     </>
   )

@@ -105,6 +105,7 @@ export type ItemDto = {
   defense: number
   healAmount: number
   price: number
+  shopAvailable: boolean
   icon: string
 }
 

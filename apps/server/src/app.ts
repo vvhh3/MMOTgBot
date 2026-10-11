@@ -43,6 +43,7 @@ import { addXpForPlayer, STAT_GAIN } from "./level.js";
 import { nowGameTime } from "./time.js";
 import { receivingTheLastAction } from "./theLastAction.js";
 import { dailyActivities } from "./dailyActivities.js";
+import { createShopRoutes } from "./shop.js";
 
 export function createApp(): express.Express {
   initializeDatabase();
@@ -75,6 +76,9 @@ export function createApp(): express.Express {
   //Инвентарь
   app.use("/inventory", requireAuth)
   InventoryRoutes(app)
+
+  app.use("/shop", requireAuth)
+  createShopRoutes(app)
 
   //Квесты
   app.use("/quests", requireAuth)
@@ -653,6 +657,7 @@ function serveClient(app: express.Express): void {
       req.path.startsWith("/pvp") ||
       req.path.startsWith("/friends") ||
       req.path.startsWith("/inventory") ||
+      req.path === "/shop" || req.path.startsWith("/shop/") ||
       req.path.startsWith("/leaderboard") ||
       req.path.startsWith("/combat")
     if (isApiPath) {
