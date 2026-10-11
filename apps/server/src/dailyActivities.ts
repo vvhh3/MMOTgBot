@@ -55,13 +55,12 @@ export const dailyActivities = (app: Express)=>{
         const now = new Date();
         const cooldowns = player1.cooldowns ?? {};
         const nextAvailable = cooldowns[location];
+        const msLeft = new Date(nextAvailable).getTime() - now.getTime();
+        const hours = Math.floor(msLeft / (60 * 60 * 1000));
+        const minutes = Math.floor((msLeft % (60 * 60 * 1000)) / (60 * 1000));
 
         // Награда доступна, если кулдауна ещё не было ИЛИ он уже истёк (nextAvailable <= now)
         if (nextAvailable != null && new Date(nextAvailable) > now) {
-            const msLeft = new Date(nextAvailable).getTime() - now.getTime();
-            const hours = Math.floor(msLeft / (60 * 60 * 1000));
-            const minutes = Math.floor((msLeft % (60 * 60 * 1000)) / (60 * 1000));
-
             return res.json({
                 code:"COOLDOWN",
                 text: `Ещё не время. Осталось ${hours} ч ${minutes} мин`,
@@ -95,7 +94,7 @@ export const dailyActivities = (app: Express)=>{
         return res.json({
             code:"SUCCESS",
             title:"На дне",
-            text:`Вы нашли ${amount} монет, следующий раз можно будет ${updatedCooldowns[location]}`,
+            text:`Вы нашли ${amount} монет, следующий раз можно будет через ${hours} ч ${minutes} мин`,
             success: true,
             moneyReceived: amount,
             money: updatedPlayer.money,

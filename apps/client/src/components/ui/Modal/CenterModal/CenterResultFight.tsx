@@ -10,9 +10,7 @@ type ResultFightProps={
 export default function CenterResultFight({state}:ResultFightProps){
     const navigate= useNavigate();
     const lootItems = state.mob.loot.filter((lootItem): lootItem is ItemDto => typeof lootItem !== "number");
-    useEffect(()=>{
-        console.log(state)
-    })
+
     return(
         <CenterModal >
             <Flex direction="column" gap="2" align="center">

@@ -260,7 +260,6 @@ function App() {
           partnerName: session.info.partnerName,
           direction: session.info.direction
         })
-        console.log(tradeState)
         navigate("/Exchange", { replace: true })
 
       }
