@@ -10,7 +10,7 @@ type FightProps = {
 }
 export default function FightCard({setShowModal,showIsModal,setTypeShowIsModal}:FightProps){
     return(
-        <Card>
+        <Card className="h-full w-full">
           <div onClick={() => {setTypeShowIsModal(TypeModal.SelectOfFriendFight),setShowModal(showIsModal ? false : true)}}>
             <div className="flex flex-col">
                 <Text size="2" weight="bold">

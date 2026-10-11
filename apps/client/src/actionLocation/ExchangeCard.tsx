@@ -8,7 +8,7 @@ type ExchangeProps = {
 }
 export default function ExchangeCard({showIsModal,setShowModal,setTypeShowIsModal}:ExchangeProps){
     return(
-       <Card>
+       <Card className="h-full w-full">
           <div
             onClick={() => {setTypeShowIsModal(TypeModal.SelectOfFriendExchange),setShowModal(showIsModal ? false : true)}}
           >

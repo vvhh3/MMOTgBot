@@ -101,6 +101,56 @@ export function createApp(): express.Express {
     res.json({ ok: true });
   })
 
+  app.patch("/admin/player", requireAuth, requireAdmin, (req, res) => {
+    const player = (req as AuthedRequest).player;
+    const body = req.body as {
+      money?: unknown;
+      xp?: unknown;
+      name?: unknown;
+      avatar?: unknown;
+    };
+
+    const money = body.money ?? 0;
+    const xp = body.xp ?? 0;
+    if (!Number.isSafeInteger(money) || Number(money) < 0 || Number(money) > 1_000_000_000) {
+      res.status(400).json({ error: "Money must be a whole number between 0 and 1000000000" });
+      return;
+    }
+    if (!Number.isSafeInteger(xp) || Number(xp) < 0 || Number(xp) > 1_000_000_000) {
+      res.status(400).json({ error: "XP must be a whole number between 0 and 1000000000" });
+      return;
+    }
+
+    const updates: Partial<typeof players.$inferInsert> = {};
+    if (body.name !== undefined) {
+      if (typeof body.name !== "string" || body.name.trim().length < 2 || body.name.trim().length > 20) {
+        res.status(400).json({ error: "Name must be between 2 and 20 characters" });
+        return;
+      }
+      updates.name = body.name.trim();
+    }
+    if (body.avatar !== undefined) {
+      if (typeof body.avatar !== "string" || (!/^\/skins\/skins(?:[1-9]|1\d|2[0-2])\.svg$/.test(body.avatar) && body.avatar !== "/monstr.svg")) {
+        res.status(400).json({ error: "Invalid avatar" });
+        return;
+      }
+      updates.avatar = body.avatar;
+    }
+
+    db.update(players)
+      .set({ ...updates, money: sql`${players.money} + ${Number(money)}` })
+      .where(eq(players.id, player.id))
+      .run();
+    if (Number(xp) > 0) addXpForPlayer(player.id, Number(xp));
+
+    const updatedPlayer = db.select().from(players).where(eq(players.id, player.id)).get();
+    if (!updatedPlayer) {
+      res.status(404).json({ error: "Player not found" });
+      return;
+    }
+    res.json({ player: toPlayerDto(updatedPlayer) });
+  });
+
   app.use("/dailyActivities",requireAuth)
   dailyActivities(app)
 

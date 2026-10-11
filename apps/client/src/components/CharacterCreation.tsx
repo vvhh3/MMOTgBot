@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { PlayerDto } from "@mmobot/shared";
 import { createCharacter } from "../api";
 import { SKINS } from "../utils/skins";
@@ -22,6 +22,13 @@ export default function CharacterCreation({ token, player, onCreated }: Characte
   const [error, setError] = useState<string | null>(null);
 
   const avatar = AVATARS[avatarIndex];
+
+  useEffect(() => {
+    AVATARS.forEach((src) => {
+      const image = new Image();
+      image.src = src;
+    });
+  }, []);
 
   const prevAvatar = () => setAvatarIndex((i) => (i - 1 + AVATARS.length) % AVATARS.length);
   const nextAvatar = () => setAvatarIndex((i) => (i + 1) % AVATARS.length);

@@ -7,7 +7,7 @@ type ModalInformationProps={
     setShowModal: (value: boolean) => void;
 
 }
-export default function СenterModalInformation({infoMessages,setShowModal}:ModalInformationProps){
+export default function РЎenterModalInformation({infoMessages,setShowModal}:ModalInformationProps){
     return(
         <CenterModal title={infoMessages.title} onClose={()=>setShowModal(false)}>
             <div>

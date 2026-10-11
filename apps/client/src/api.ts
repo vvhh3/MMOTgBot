@@ -56,6 +56,14 @@ export async function getMe(token: string): Promise<MeResponse> {
   return response.data;
 }
 
+export async function updateAdminPlayer(
+  token: string,
+  changes: { money?: number; xp?: number; name?: string; avatar?: string }
+): Promise<{ player: PlayerDto }> {
+  const response = await api.patch<{ player: PlayerDto }>("/admin/player", changes, { headers: authHeader(token) });
+  return response.data;
+}
+
 // Сохранить персонажа из конструктора при первом заходе
 export async function createCharacter(token: string, character: CharacterCreateRequest): Promise<{ player: PlayerDto }> {
   const response = await api.post<{ player: PlayerDto }>("/me/character", character, { headers: authHeader(token) });

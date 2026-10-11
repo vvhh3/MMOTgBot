@@ -46,7 +46,7 @@ export default function WalkCard({token,player,locationState,onError,onState}:Wa
     }
   };
     return(
-        <Card>
+        <Card className="h-full w-full">
           <div className="flex flex-row  justify-between">
             <div className="max-w-60" onClick={()=>functionStartCombat()}>
               <Text as="div" size="2" weight="bold">
