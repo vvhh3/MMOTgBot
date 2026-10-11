@@ -15,17 +15,18 @@ export default function MoneyCard({setTypeShowIsModal,setShowModal,setInfoMessag
     const activities = async () => {
         if (!token || !player || !location) return
         try {
-            const info = await dailyActivities(token, player.id, location.name)
-            if (info.code == "COOLDOWN") {
+            const message = await dailyActivities(token, player.id, location.name)
+            console.log(message)
+            if (message.code == "COOLDOWN") {
                 setInfoMessages({
                     title: "Ещё не время",
-                    info: `${info.text}`,
+                    info: message.text,
                 });
                 setShowModal(true)
                 setTypeShowIsModal(TypeModal.Information)
                 
-            }else if(info.code == "SUCCESS"){
-                setInfoMessages({title:"На дне",info:`Вы нашли ${info.moneyReceived} след раз можно будет ${info.nextAvailableAt}`})
+            }else if(message.code == "SUCCESS"){
+                setInfoMessages({title:message.title,info:message.text})
                 setShowModal(true)
                 setTypeShowIsModal(TypeModal.Information)
             }

@@ -78,9 +78,9 @@ export default function CharacterCreation({ token, player, onCreated }: Characte
         />
       </div>
 
-      <div className="flex flex-col gap-2 w-full">
+      <div className="flex flex-col gap-2 w-full max-w-xs">
         <span className="text-sm font-bold text-[#8A7A60]">Раса</span>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 justify-center">
           {RACES.map((r) => (
             <button
               key={r}

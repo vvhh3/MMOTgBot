@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, ne, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, ne, sql } from "drizzle-orm";
 import cors from "cors";
 import express from "express";
 import path from "node:path";
@@ -570,6 +570,22 @@ export function createApp(): express.Express {
       return;
     }
 
+    const lootIds = state.mob.loot.filter((lootItem): lootItem is number => typeof lootItem === "number");
+    const lootItems = lootIds.length > 0
+      ? db.select().from(items).where(inArray(items.id, lootIds)).all()
+      : [];
+    const lootItemsById = new Map(lootItems.map((item) => [item.id, toItemDto(item)]));
+    const stateWithItems = {
+      ...state,
+      mob: {
+        ...state.mob,
+        loot: lootIds.flatMap((itemId) => {
+          const item = lootItemsById.get(itemId);
+          return item ? [item] : [];
+        })
+      }
+    } satisfies CombatActionResponse["state"];
+
     // 4. Перечитываем игрока и инвентарь из БД — они могли измениться после боя
     //    (лут, очки, HP), поэтому отдаём клиенту свежие данные.
     const updatedPlayer = db.select().from(players).where(eq(players.id, player.id)).get()!
@@ -580,13 +596,13 @@ export function createApp(): express.Express {
       .orderBy(desc(inventoryItems.acquiredAt))
       .all();
 
-    emitToPlayer(player.id, "combatState", state)
+    emitToPlayer(player.id, "combatState", stateWithItems)
     emitToPlayer(player.id, "player", toPlayerDto(updatedPlayer))
     emitToPlayer(player.id, "inventory", inventory.map(toInventoryItemDto))
     broadcastLocation(mob.locationId)
 
     res.json({
-      state,
+      state: stateWithItems,
       player: toPlayerDtoEquipped(updatedPlayer),
       inventory: inventory.map(toInventoryItemDto)
     } satisfies CombatActionResponse);

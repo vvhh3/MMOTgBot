@@ -77,23 +77,12 @@ export const dailyActivities = (app: Express)=>{
             ...cooldowns,
             [location]: new Date(now.getTime() + COOLDOWN_MS).toISOString(),
         };
-
-        const updated = db
-            .update(players)
-            .set({
-            money: sql`${players.money} + ${amount}`,
-            cooldowns: updatedCooldowns,
-            })
-            .where(eq(players.id, id))
-            .returning()
-            .get();
-
+        db.update(players).set({money: sql`${players.money} + ${amount}`,cooldowns: updatedCooldowns,}).where(eq(players.id, id)).returning().get();
         return res.json({
             code:"SUCCESS",
+            title:"На дне",
+            text:`Вы нашли ${amount} монет, следующий раз можно будет ${updatedCooldowns[location]}`,
             success: true,
-            moneyReceived: amount,
-            money: updated.money,
-            nextAvailableAt: updatedCooldowns[location],
         });
         });
 }

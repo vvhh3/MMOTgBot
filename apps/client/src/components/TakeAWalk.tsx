@@ -7,6 +7,7 @@ import { CombatStateResponse, InventoryItemDto, PlayerDto,LocationDto,LocationSt
 import { useEffect, useState } from "react"
 import { combatAction,getLocationState} from "../api"
 import { getLocationImage } from "../utils/getLocationImage"
+import Modal, { TypeModal } from "./ui/Modal/Modal"
 
 type TakeAWalkProps = {
     token: string | null
@@ -144,24 +145,7 @@ export default function TakeAWalk({ token, player,onPlayer,onInventory,locationS
                     )}
 
                     {state && state.status !== "active" && (
-                        <Card className="mb-2">
-                            <Flex direction="column" gap="2" align="center">
-                                <Text size="4" weight="bold" color={
-                                    state.status === "victory" ? "green" : "red"
-                                }>
-                                    {state.status === "victory" && "Победа!"}
-                                    {state.status === "defeat" && "Вы проиграли"}
-                                    {state.status === "fled" && "Вы сбежали"}
-                                </Text>
-                                {/* последние записи лога — там же про лут и опыт */}
-                                <Text size="1" color="gray">
-                                    {state.log.slice(-3).map((l) => l.text).join(" · ")}
-                                </Text>
-                                <Button onClick={() => { navigate("/") }}>
-                                    Вернуться в город
-                                </Button>
-                            </Flex>
-                        </Card>
+                       <Modal typeModal={TypeModal.ResultFight} state={state}></Modal>
                     )}
 
                 </div>

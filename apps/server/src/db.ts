@@ -53,11 +53,11 @@ export function initializeDatabase(): void {
   // Стартовые мобы. locationId должен ссылаться на существующую локацию из seedLocations,
   // иначе сработает проверка FOREIGN KEY.
   const seedMobs: MobDto[] = [
-    { id: 0, name: "Крыса", description: "какое то описание", level: 1, loot: [1], pointsReward: 10, locationId: "square", maxHealth: 10, strength: 2, defense: 0, respawnSeconds: 60 },
-    { id: 1, name: "Громила", description: "какое то описание", level: 2, loot: [2], pointsReward: 25, locationId: "market" ,maxHealth: 25, strength: 5, defense: 1, respawnSeconds: 120 },
-    { id: 2, name: "Ржавый дрон", description: "какое то описание", level: 3, loot: [3], pointsReward: 30, locationId: "park", maxHealth: 30, strength: 6, defense: 2, respawnSeconds: 120 },
-    { id: 3, name: "Страж архива", description: "какое то описание", level: 4, loot: [4], pointsReward: 45, locationId: "forest",maxHealth: 45, strength: 8, defense: 3, respawnSeconds: 180 },
-    { id: 4, name: "Снайпер", description: "какое то описание", level: 5, loot: [5], pointsReward: 60, locationId: "railway",maxHealth: 60, strength: 12, defense: 4, respawnSeconds: 240 }
+    { id: 0, name: "Крыса", description: "какое то описание", level: 1, loot: [1], pointsReward: 10, coinReward: 5, locationId: "square", maxHealth: 10, strength: 2, defense: 0, respawnSeconds: 60 },
+    { id: 1, name: "Громила", description: "какое то описание", level: 2, loot: [2], pointsReward: 25, coinReward: 10, locationId: "market" ,maxHealth: 25, strength: 5, defense: 1, respawnSeconds: 120 },
+    { id: 2, name: "Ржавый дрон", description: "какое то описание", level: 3, loot: [3], pointsReward: 30, coinReward: 15, locationId: "park", maxHealth: 30, strength: 6, defense: 2, respawnSeconds: 120 },
+    { id: 3, name: "Страж архива", description: "какое то описание", level: 4, loot: [4], pointsReward: 45, coinReward: 20, locationId: "forest",maxHealth: 45, strength: 8, defense: 3, respawnSeconds: 180 },
+    { id: 4, name: "Снайпер", description: "какое то описание", level: 5, loot: [5], pointsReward: 60, coinReward: 30, locationId: "railway",maxHealth: 60, strength: 12, defense: 4, respawnSeconds: 240 }
   ]
 
   const seedItems: typeof items.$inferInsert[] = [
@@ -210,6 +210,7 @@ export function toMobDto(row: MobRow): MobDto{
     // loot в БД хранится как JSON-строка, но drizzle с mode: "json" уже вернул его массивом string[].
     loot: row.loot,
     pointsReward: row.pointsReward,
+    coinReward: row.coinReward,
     locationId: row.locationId,
     respawnSeconds: row.respawnSeconds
   }

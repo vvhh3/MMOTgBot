@@ -190,7 +190,10 @@ function endCombatSession(status: "victory" | "defeat" | "fled", player: PlayerR
 
         addXpForPlayer(player.id, mob.pointsReward) // добавить опыт
         db.update(players)
-            .set({ points: sql`${players.points} + ${mob.pointsReward}` })
+            .set({
+                points: sql`${players.points} + ${mob.pointsReward}`,
+                money: sql`${players.money} + ${mob.coinReward}`
+            })
             .where(eq(players.id, player.id))
             .run();
 
@@ -279,4 +282,3 @@ export const getPlayerStats = (player: PlayerRow) => {
         defense: player.defense + catalog.reduce((acc, item) => acc + item.defense, 0)
     }
 }
-

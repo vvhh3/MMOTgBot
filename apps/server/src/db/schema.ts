@@ -68,6 +68,7 @@ export const mobs = sqliteTable('mobs', {
   defense: integer("defense").notNull(),
   loot: text("loot", { mode: "json" }).$type<number[]>().notNull(),
   pointsReward: integer("points_reward").notNull(),
+  coinReward: integer("coin_reward").notNull().default(0),
   locationId: text("location_id").notNull().references(() => locations.id, { onDelete: "cascade" }),
   respawnSeconds: integer("respawn_seconds").notNull(),
 })

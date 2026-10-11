@@ -1,4 +1,4 @@
-import { TradeStateDto, PvpStateDto, PlayerDto, ItemDto, InventoryItemDto } from "@mmobot/shared";
+import { TradeStateDto, PvpStateDto,CombatStateResponse, PlayerDto, ItemDto, InventoryItemDto } from "@mmobot/shared";
 import CenterModalSkillPoints from "./CenterModal/CenterModalSkillPoints";
 import CenterModalItem from "./CenterModal/CenterModalItem";
 import LowerModalExchange from "./LowerModal/LowerModalExchange";
@@ -7,22 +7,23 @@ import CenterModalSelectOfItem from "./CenterModal/CenterModalSelectOfItem";
 import СenterModalInformation from "./CenterModal/СenterModalInformation";
 import { ModalNotification } from "./TopModall/Notification/ModalNotification"; // поправьте путь под ваш файл
 import { useEffect } from "react";
+import CenterResultFight from "./CenterModal/CenterResultFight";
 
 export enum TypeModal {
-    Item = "item",
-    SelectOfFriendExchange = "selectOfFriendExchange",
-    SelectOfFriendFight = "selectOfFriendFight",
-    SelectOfItem = "selectOfItem",
-    SkillPoints = "skillPoints",
-    Notification = "notification",
-    Information = "information"
-  
+  Item = "item",
+  SelectOfFriendExchange = "selectOfFriendExchange",
+  SelectOfFriendFight = "selectOfFriendFight",
+  SelectOfItem = "selectOfItem",
+  SkillPoints = "skillPoints",
+  Notification = "notification",
+  Information = "information",
+  ResultFight = "resultFight"
 }
 
 type CardProps = {
   token?: string | null;
   typeModal: TypeModal | null;
-  showIsModal: boolean;
+  showIsModal?: boolean;
   item?: ItemDto | null;
   equiped?: boolean;
   onItem?: (value: { item: ItemDto; equiped: boolean } | null) => void;
@@ -50,6 +51,7 @@ type CardProps = {
   pvpIncoiming?: boolean;
   setTradeState?:(value: TradeStateDto | null) => void;
   setPvpState?:(value: PvpStateDto | null) => void;
+  state?:CombatStateResponse
 };
 
 export default function Modal({
@@ -73,7 +75,8 @@ export default function Modal({
   pvpIncoiming,
   setTradeState,
   setPvpState,
-  infoMessages
+  infoMessages,
+  state
 }: CardProps) {
     if (showIsModal == false){
         
@@ -95,7 +98,7 @@ export default function Modal({
     case TypeModal.SelectOfFriendExchange:
       return (
         <LowerModalExchange
-          showIsModal={showIsModal}
+          showIsModal={showIsModal!}
           token={token ?? null}
           setShowModal={setShowModal!}
           tradeState={tradeState}
@@ -105,7 +108,7 @@ export default function Modal({
       case TypeModal.SelectOfFriendFight:
       return (
         <LowerModalFight
-          showIsModal={showIsModal}
+          showIsModal={showIsModal!}
           token={token ?? null}
           setShowModal={setShowModal!}
           pvpState={pvpState}
@@ -116,7 +119,7 @@ export default function Modal({
       return (
         <CenterModalSelectOfItem
           token={token ?? null}
-          showIsModal={showIsModal}
+          showIsModal={showIsModal!}
           setShowModal={setShowModal!}
           inventoryItem={inventoryItem ?? []}
           onSelect={onSelect!}
@@ -126,7 +129,7 @@ export default function Modal({
     case TypeModal.SkillPoints:
       return (
         <CenterModalSkillPoints
-          showIsModal={showIsModal}
+          showIsModal={showIsModal!}
           setShowModal={setShowModal!}
           player={player ?? null}
           token={token ?? null}
@@ -146,7 +149,7 @@ export default function Modal({
           notifRef={notifRef!}
           incomingTrade={tradeIncoiming ?? false}
           incomingPvp={pvpIncoiming ?? false}
-          showIsModal={showIsModal}
+          showIsModal={showIsModal!}
         />
       );
       case TypeModal.Information:
@@ -154,6 +157,12 @@ export default function Modal({
         <СenterModalInformation
         infoMessages={infoMessages!}
         setShowModal={setShowModal!}
+        />
+      )
+      case TypeModal.ResultFight:
+      return (
+        <CenterResultFight 
+        state={state!}
         />
       )
 

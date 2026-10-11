@@ -38,6 +38,8 @@ export const createMobRoutes = (app: Express) => {
             !state.defense ||
             !state.loot || 
             !state.pointsReward||
+            !Number.isInteger(state.coinReward) ||
+            state.coinReward < 0 ||
             !state.locationId|| 
             !state.respawnSeconds) {
             res.status(400).json({ error: "Data is failid" })
@@ -59,6 +61,7 @@ export const createMobRoutes = (app: Express) => {
             defense: state.defense,
             loot: state.loot ?? [],
             pointsReward: state.pointsReward,
+            coinReward: state.coinReward,
             locationId: state.locationId,
             respawnSeconds: state.respawnSeconds,
         }).returning().get() // что за returning? и зачем здесь get
@@ -75,6 +78,11 @@ export const createMobRoutes = (app: Express) => {
             return
         }
         const state = req.body as MobDto
+
+        if (state.coinReward !== undefined && (!Number.isInteger(state.coinReward) || state.coinReward < 0)) {
+            res.status(400).json({ error: "coinReward must be a non-negative integer" })
+            return
+        }
 
         if (state.locationId) {
             const location = db.select().from(locations).where(eq(locations.id, state.locationId)).get()
@@ -93,6 +101,7 @@ export const createMobRoutes = (app: Express) => {
             defense: state.defense ?? mob.defense,
             loot: state.loot ?? mob.loot,
             pointsReward: state.pointsReward ?? mob.pointsReward,
+            coinReward: state.coinReward ?? mob.coinReward,
             locationId: state.locationId ?? mob.locationId,
             respawnSeconds: state.respawnSeconds ?? mob.respawnSeconds,
         }).where(eq(mobs.id,mob.id))
@@ -115,4 +124,3 @@ export const createMobRoutes = (app: Express) => {
         res.status(200).end() //почему End - отправляет пустой ответ без тела
     })
 }
-
