@@ -2,7 +2,7 @@
   "version": "6",
   "dialect": "sqlite",
   "id": "11084e63-7026-42c2-a72c-b6e03050374d",
-  "prevId": "21cf82a4-428f-474b-87de-787f8e90d6aa",
+  "prevId": "e4aeda62-9cc6-4d06-8ddc-3431493571f4",
   "tables": {
     "combat_sessions": {
       "name": "combat_sessions",

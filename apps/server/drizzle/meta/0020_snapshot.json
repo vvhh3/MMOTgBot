@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "21cf82a4-428f-474b-87de-787f8e90d6aa",
+  "id": "e4aeda62-9cc6-4d06-8ddc-3431493571f4",
   "prevId": "b0bd4e26-31d7-4e49-aa1f-a7bf551c7974",
   "tables": {
     "combat_sessions": {
@@ -429,6 +429,14 @@
           "autoincrement": false,
           "default": 0
         },
+        "shop_available": {
+          "name": "shop_available",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": false
+        },
         "icon": {
           "name": "icon",
           "type": "text",
@@ -575,14 +583,6 @@
           "primaryKey": false,
           "notNull": true,
           "autoincrement": false
-        },
-        "coin_reward": {
-          "name": "coin_reward",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false,
-          "default": 0
         },
         "location_id": {
           "name": "location_id",
