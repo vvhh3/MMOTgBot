@@ -215,6 +215,7 @@ function App() {
           direction: session.info.direction,
           myName: session.info.myName,
           partnerName: session.info.partnerName,
+          partnerAvatar: session.info.partnerAvatar,
           myHp: session.info.myHp,
           myMaxHp: session.info.myMaxHp,
           partnerHp: session.info.partnerHp,

@@ -1,8 +1,8 @@
+import { getSkins } from "../utils/skins";
 import { InventoryItemDto, ItemDto, PlayerDto } from "@mmobot/shared"
 import { useEffect, useState } from "react"
 import { getCatalog, spendStatPoint } from "../api"
 import { Tabs, Text, Box, Card, Progress, Badge, Grid } from "@radix-ui/themes"
-import playerM from "/playerM.svg"
 import Modal, { TypeModal } from "./ui/Modal/Modal"
 
 type InventoryProps = {
@@ -85,7 +85,7 @@ export default function Inventory({ token, player, inventory,onPlayer,onInventor
                     <div className="flex flex-col">
                         <div className="flex flex-row ">
                             <div className="flex flex-row w-35 mr-1.5">
-                                <img src={playerM} className="h-25" />
+                                <img src={getSkins(player?.avatar)} className="h-25" />
                                 <div className="flex flex-col gap-1 w-5 justify-evenly">
                                     <div className="h-5 w-5 border flex justify-center items-center"><button> +</button></div>
                                     <div className="h-5 w-5 border flex justify-center items-center"><button> +</button></div>

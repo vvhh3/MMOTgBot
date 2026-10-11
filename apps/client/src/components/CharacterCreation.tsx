@@ -1,10 +1,10 @@
 import { useState } from "react";
 import type { PlayerDto } from "@mmobot/shared";
 import { createCharacter } from "../api";
+import { SKINS } from "../utils/skins";
 
-// Список аватаров для карусели. Чтобы добавить нового персонажа,
-// достаточно положить картинку в public и дописать её сюда.
-const AVATARS = ["/playerM.svg", "/playerG.svg","/monstr.svg"];
+// Нумерованные скины из public/skins и прежний вариант монстра.
+const AVATARS = [...SKINS, "/monstr.svg"];
 
 const RACES = ["Человек", "Эльф", "Орк", "Гном"];
 

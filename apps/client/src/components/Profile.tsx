@@ -1,4 +1,4 @@
-import playerM from '/playerM.svg'
+import { getSkins } from "../utils/skins";
 import map from '/mapMat.png'
 import { Flex, Card, Text, Button, Box, Progress, Inset, Strong, Grid } from "@radix-ui/themes";
 import { Link } from 'react-router-dom'
@@ -24,7 +24,7 @@ export default function Profile({ player,locationState,setShowModal,setTypeShowI
         <div className='flex flex-col items-center h-full ' >
             <div className='flex flex-col justify-center items-center '>
                 <p className='font-bold'>{player?.name}</p>
-                <img className='h-50' src={playerM} />
+                <img className='h-50' src={getSkins(player?.avatar)} />
             </div>
             <Grid columns="2" gap="3" style={{ padding: "20px" }}>
                 <button>

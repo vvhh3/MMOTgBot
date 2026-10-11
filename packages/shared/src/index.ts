@@ -294,6 +294,7 @@ export type ClaimQuestResponse = { player: PlayerDto; claimed: boolean }
 
 
 export type PvpStateDto = {
+  partnerAvatar?: string | null
   id: number
   status: "pending" | "active" | "finished"
   direction: "incoming" | "outgoing"

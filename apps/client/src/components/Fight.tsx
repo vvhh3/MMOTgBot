@@ -1,4 +1,4 @@
-import player2 from "/playerM.svg"
+import { getSkins } from "../utils/skins";
 import { Button, Card, Progress, Text, Grid } from "@radix-ui/themes"
 import { LocationDto, LocationStateResponse, PlayerDto, PvpStateDto } from "@mmobot/shared";
 import { getLocationState, pvpAction } from "../api";
@@ -84,10 +84,10 @@ export default function Fight({ token, player, pvpState,locationState}: FightPro
                         </div>
                     </Card>
                     <div className="flex justify-center items-center">
-                        <img className="h-45 w-full max-w-[180px] object-contain" style={{ transform: 'scaleX(-1)' }} src={player2} />
+                        <img className="h-45 w-full max-w-[180px] object-contain" style={{ transform: 'scaleX(-1)' }} src={getSkins(player?.avatar)} />
                     </div>
                     <div className="flex justify-center items-center">
-                        <img className="h-45 w-full max-w-[180px] object-contain" style={{ transform: 'scaleX(-1)' }} src={player2} />
+                        <img className="h-45 w-full max-w-[180px] object-contain" style={{ transform: 'scaleX(-1)' }} src={getSkins(pvpState.partnerAvatar)} />
                     </div>
                 </div>
 

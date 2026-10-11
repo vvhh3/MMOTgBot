@@ -1,3 +1,4 @@
+import { getSkins } from "../utils/skins";
 import {
   Flex,
   Card,
@@ -10,8 +11,6 @@ import {
   Grid,
 } from "@radix-ui/themes";
 import { Link, useNavigate } from "react-router-dom";
-import playerM from "/playerM.svg";
-import playerG from "/playerG.svg";
 import { useEffect, useState } from "react";
 import {
   LocationDto,
@@ -109,7 +108,7 @@ export default function Home({
                 value={player && ((player?.health * 100)/player?.maxHp)}
               />
             </Box>
-            <img className="h-37.5 min-w-35" src={playerM} />
+            <img className="h-37.5 min-w-35" src={getSkins(player?.avatar)} />
           </div>
           <div className="flex flex-col justify-center items-center ">
             <button className="flex justify-center items-center rounded-4xl h-4 w-4 bg-[#E85D2F] text-amber-50 ">
