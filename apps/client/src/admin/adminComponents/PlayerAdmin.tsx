@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { Button, Callout, Card, Flex, Heading, Select, Text, TextField } from "@radix-ui/themes";
+import { useEffect, useState } from "react";
+import { Button, Callout, Card, Flex, Heading, Select, Table, Text, TextField } from "@radix-ui/themes";
 import type { PlayerDto } from "@mmobot/shared";
-import { updateAdminPlayer } from "../../api";
+import { getAdminPlayers, updateAdminPlayer } from "../../api";
 import { SKINS } from "../../utils/skins";
 
 type PlayerAdminProps = {
@@ -11,13 +11,40 @@ type PlayerAdminProps = {
 };
 
 export function PlayerAdmin({ token, player, onPlayer }: PlayerAdminProps) {
+  const [query, setQuery] = useState("");
+  const [players, setPlayers] = useState<PlayerDto[]>([]);
+  const [selectedPlayer, setSelectedPlayer] = useState<PlayerDto | null>(null);
   const [money, setMoney] = useState("0");
   const [xp, setXp] = useState("0");
-  const [name, setName] = useState(player?.name ?? "");
-  const [avatar, setAvatar] = useState(player?.avatar ?? SKINS[0]);
+  const [name, setName] = useState("");
+  const [avatar, setAvatar] = useState(SKINS[0]);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const search = async (searchQuery = query) => {
+    if (!token) return;
+    setError(null);
+    try {
+      const result = await getAdminPlayers(token, searchQuery.trim());
+      setPlayers(result.players);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Не удалось загрузить игроков");
+    }
+  };
+
+  const selectPlayer = (target: PlayerDto) => {
+    setSelectedPlayer(target);
+    setName(target.name);
+    setAvatar(target.avatar ?? SKINS[0]);
+    setMoney("0");
+    setXp("0");
+    setSaved(false);
+  };
+
+  useEffect(() => {
+    void search("");
+  }, [token]);
 
   const save = async () => {
     if (!token) return;
@@ -26,12 +53,15 @@ export function PlayerAdmin({ token, player, onPlayer }: PlayerAdminProps) {
     setSaved(false);
     try {
       const result = await updateAdminPlayer(token, {
+        playerId: selectedPlayer?.id,
         money: Number(money),
         xp: Number(xp),
         name: name.trim(),
         avatar,
       });
-      onPlayer(result.player);
+      setSelectedPlayer(result.player);
+      setPlayers((current) => current.map((item) => item.id === result.player.id ? result.player : item));
+      if (result.player.id === player?.id) onPlayer(result.player);
       setMoney("0");
       setXp("0");
       setSaved(true);
@@ -46,9 +76,35 @@ export function PlayerAdmin({ token, player, onPlayer }: PlayerAdminProps) {
     <Card className="m-4">
       <Flex direction="column" gap="4">
         <div>
-          <Heading size="4">Мой персонаж</Heading>
-          <Text color="gray">Сейчас: {player?.money ?? 0} монет, {player?.xp ?? 0} опыта</Text>
+          <Heading size="4">Управление игроками</Heading>
+          <Text color="gray">Найди игрока по имени или ID, затем выбери его для редактирования.</Text>
         </div>
+
+        <Flex gap="2">
+          <TextField.Root className="flex-1" placeholder="Имя или ID игрока" value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void search(); }} />
+          <Button color="orange" variant="soft" onClick={() => void search()}>Найти</Button>
+        </Flex>
+
+        <div className="max-h-56 overflow-auto">
+          <Table.Root size="1">
+            <Table.Header>
+              <Table.Row><Table.ColumnHeaderCell>ID</Table.ColumnHeaderCell><Table.ColumnHeaderCell>Имя</Table.ColumnHeaderCell><Table.ColumnHeaderCell>Уровень</Table.ColumnHeaderCell><Table.ColumnHeaderCell /></Table.Row>
+            </Table.Header>
+            <Table.Body>
+              {players.map((item) => (
+                <Table.Row key={item.id} align="center">
+                  <Table.Cell>{item.id}</Table.Cell>
+                  <Table.Cell>{item.name}</Table.Cell>
+                  <Table.Cell>{item.level}</Table.Cell>
+                  <Table.Cell><Button size="1" color="orange" variant={selectedPlayer?.id === item.id ? "solid" : "soft"} onClick={() => selectPlayer(item)}>Выбрать</Button></Table.Cell>
+                </Table.Row>
+              ))}
+              {players.length === 0 && <Table.Row><Table.Cell colSpan={4}>Игроки не найдены</Table.Cell></Table.Row>}
+            </Table.Body>
+          </Table.Root>
+        </div>
+
+        {selectedPlayer && <Text weight="bold">Редактирование: {selectedPlayer.name} (ID {selectedPlayer.id}) · {selectedPlayer.money} монет · {selectedPlayer.xp} XP</Text>}
 
         <Flex gap="3" wrap="wrap">
           <label className="min-w-40 flex-1">
@@ -80,7 +136,7 @@ export function PlayerAdmin({ token, player, onPlayer }: PlayerAdminProps) {
 
         {error && <Callout.Root color="red"><Callout.Text>{error}</Callout.Text></Callout.Root>}
         {saved && <Callout.Root color="green"><Callout.Text>Данные персонажа обновлены.</Callout.Text></Callout.Root>}
-        <Button color="orange" onClick={save} disabled={!token || saving || name.trim().length < 2}>
+        <Button color="orange" onClick={save} disabled={!token || !selectedPlayer || saving || name.trim().length < 2}>
           {saving ? "Сохраняю…" : "Применить изменения"}
         </Button>
       </Flex>

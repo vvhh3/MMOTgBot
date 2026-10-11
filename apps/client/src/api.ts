@@ -20,6 +20,7 @@ import {
   type LocationActionResponse,
   type LocationsResponse,
   type LocationStateResponse,
+  type LeaderBoardResponse,
   type MeResponse,
   type MobDto,
   type MobResponse,
@@ -56,11 +57,24 @@ export async function getMe(token: string): Promise<MeResponse> {
   return response.data;
 }
 
+export async function getLeaderboard(token: string): Promise<LeaderBoardResponse> {
+  const response = await api.get<LeaderBoardResponse>("/leaderboard", { headers: authHeader(token) });
+  return response.data;
+}
+
 export async function updateAdminPlayer(
   token: string,
-  changes: { money?: number; xp?: number; name?: string; avatar?: string }
+  changes: { playerId?: number; money?: number; xp?: number; name?: string; avatar?: string }
 ): Promise<{ player: PlayerDto }> {
   const response = await api.patch<{ player: PlayerDto }>("/admin/player", changes, { headers: authHeader(token) });
+  return response.data;
+}
+
+export async function getAdminPlayers(token: string, query = ""): Promise<{ players: PlayerDto[] }> {
+  const response = await api.get<{ players: PlayerDto[] }>("/admin/players", {
+    params: { q: query },
+    headers: authHeader(token),
+  });
   return response.data;
 }
 

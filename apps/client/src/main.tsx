@@ -16,6 +16,7 @@ import Map from "./components/ui/Maps/Maps";
 import { connectSocket, getSocket } from "./socket";
 import Home from "./components/Home";
 import Tasks from "./components/Tasks";
+import Leaderboard from "./components/Leaderboard";
 import { useLocation } from "react-router-dom";
 import Team from "./components/Team";
 import TakeAWalk from "./components/TakeAWalk";
@@ -281,6 +282,7 @@ function App() {
               <Route path="Map" element={<Map token={token} onLocationState={setLocationState} onPlayer={setPlayer} />} />
               <Route path="Profile" element={<Profile setTypeShowIsModal={setTypeShowIsModal} setShowModal={setShowModal} player={player} locationState={locationState} />} />
               <Route path="Tasks" element={<Tasks token={token} onPlayer={setPlayer} />} />
+              <Route path="Leaderboard" element={<Leaderboard token={token} playerId={player?.id ?? null} playerPoints={player?.points ?? 0} />} />
               <Route path="Team" element={<Team token={token} player={player} liveOverview={friendsOverview} />} />
               <Route path="Inventory" element={<Inventory token={token} player={player} inventory={inventory} onPlayer={setPlayer} onInventory={setInventory} />} />
               <Route path="Shop" element={<Shop token={token} player={player} inventory={inventory} onPlayer={setPlayer} onInventory={setInventory} />} />

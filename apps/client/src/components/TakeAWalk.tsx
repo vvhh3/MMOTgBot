@@ -50,6 +50,8 @@ export default function TakeAWalk({ token, player,onPlayer,onInventory,locationS
             onError(e instanceof Error ? e.message : 'Ошибка запроса, попробуйте попозже')
         }
     }
+    const healthPercent = (health: number, maxHealth: number) =>
+        maxHealth > 0 ? Math.max(0, Math.min(100, (health / maxHealth) * 100)) : 0;
     if (!state) {
         useEffect(()=>{
             navigate("/",{replace:true})
@@ -81,7 +83,7 @@ export default function TakeAWalk({ token, player,onPlayer,onInventory,locationS
                                     <Text size="1">{state?.playerHp}/{state?.playerMaxHp}</Text>
                                 </div>
                             </div>
-                            <Progress color="green" value={state?.playerHp}></Progress>
+                            <Progress color="green" value={healthPercent(state.playerHp, state.playerMaxHp)}></Progress>
                         </div>
                     </Card>
                     <Card className="w-full min-w-0">
@@ -94,7 +96,7 @@ export default function TakeAWalk({ token, player,onPlayer,onInventory,locationS
                                     <Text size="1">{state?.mobHp}/{state?.mobMaxHp}</Text>
                                 </div>
                             </div>
-                            <Progress color="green" value={state?.mobHp}></Progress>
+                            <Progress color="green" value={healthPercent(state.mobHp, state.mobMaxHp)}></Progress>
                         </div>
                     </Card>
                     <div className="flex justify-center items-center">
