@@ -94,7 +94,7 @@ export const dailyActivities = (app: Express)=>{
         return res.json({
             code:"SUCCESS",
             title:"На дне",
-            text:`Вы нашли ${amount} монет, следующий раз можно будет через ${hours} ч ${minutes} мин`,
+            text:`Вы нашли ${amount} монет, следующий раз можно будет через ${COOLDOWN_MS / (60 * 60 * 1000)} ч`,
             success: true,
             moneyReceived: amount,
             money: updatedPlayer.money,

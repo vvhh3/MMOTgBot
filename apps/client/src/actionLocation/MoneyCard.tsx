@@ -2,6 +2,7 @@ import { Card,Text} from "@radix-ui/themes"
 import { dailyActivities } from "../api"
 import {PlayerDto,LocationDto} from "@mmobot/shared";
 import { TypeModal } from "../components/ui/Modal/Modal";
+import { useEffect, useState } from "react";
 type MoneyCardProps={
     location?: LocationDto|null
     player: PlayerDto| null,
@@ -12,10 +13,35 @@ type MoneyCardProps={
     setTypeShowIsModal:(value: TypeModal | null) => void
 }
 export default function MoneyCard({setTypeShowIsModal,setShowModal,setInfoMessages,location,player,onPlayer,token}:MoneyCardProps){
+    const [now, setNow] = useState(Date.now);
+    const [loading, setLoading] = useState(false);
+    const [serverCooldown, setServerCooldown] = useState<{ playerId: number; locationName: string; until: number } | null>(null);
+    const savedUntil = Date.parse(player?.cooldowns?.[location?.name ?? ""] ?? "") || 0;
+    const responseUntil = serverCooldown?.playerId === player?.id && serverCooldown?.locationName === location?.name
+        ? serverCooldown?.until ?? 0 : 0;
+    const secondsLeft = Math.max(0, Math.ceil((Math.max(savedUntil, responseUntil) - now) / 1000));
+    const timer = [Math.floor(secondsLeft / 3600), Math.floor(secondsLeft / 60) % 60, secondsLeft % 60]
+        .map(value => String(value).padStart(2, "0")).join(":");
+
+    useEffect(() => {
+        const refresh = () => setNow(Date.now());
+        const interval = window.setInterval(refresh, 1000);
+        document.addEventListener("visibilitychange", refresh);
+        return () => {
+            window.clearInterval(interval);
+            document.removeEventListener("visibilitychange", refresh);
+        };
+    }, []);
+
     const activities = async () => {
-        if (!token || !player || !location) return
+        if (!token || !player || !location || loading || secondsLeft > 0) return
+        setLoading(true)
         try {
             const message = await dailyActivities(token, location.name)
+            if (message.nextAvailableAt) {
+                setServerCooldown({ playerId: player.id, locationName: location.name, until: Date.parse(message.nextAvailableAt) || 0 });
+                setNow(Date.now());
+            }
             if (message.code == "COOLDOWN") {
                 setInfoMessages({
                     title: "Ещё не время",
@@ -36,12 +62,16 @@ export default function MoneyCard({setTypeShowIsModal,setShowModal,setInfoMessag
                 title: "Ошибка",
                 info: "Что-то пошло не так, попробуйте позже",
             });
+            setShowModal(true)
+            setTypeShowIsModal(TypeModal.Information)
+        } finally {
+            setLoading(false)
         }
         
     }
     return(
         <Card >
-            <div className="flex flex-row justify-between" onClick={()=>activities()}>
+            <button type="button" className="flex w-full flex-row justify-between text-left disabled:cursor-default" disabled={!token || !player || !location || loading || secondsLeft > 0} onClick={activities}>
                 <div className="max-w-60">
                     <Text as="div" size="2" weight="bold">
                         <div className="flex-row flex gap-2">
@@ -51,8 +81,11 @@ export default function MoneyCard({setTypeShowIsModal,setShowModal,setInfoMessag
                     <Text as="div" color="gray" size="1">
                         Можете нырнуть в фонтан и достать со дна монеты раз в 24 часа
                     </Text>
+                    <Text as="div" size="2" weight="bold" color={secondsLeft > 0 ? "gray" : "orange"} className="mt-2 tabular-nums">
+                        {loading ? "Ищем монеты…" : secondsLeft > 0 ? `До следующего купания: ${timer}` : "Можно купаться!"}
+                    </Text>
                 </div>   
-            </div>
+            </button>
         </Card>
     )
 }
