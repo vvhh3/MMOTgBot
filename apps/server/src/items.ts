@@ -31,7 +31,7 @@ export const createItemRoutes = (app: Express) => {
         if (!state.name ||
             !state.description ||
             !state.type ||
-            !state.price
+            !Number.isInteger(state.price) || state.price < 0
         ) {
             res.status(400).json({ error: "Имя,описание,тип и цена обязательны" })
             return
@@ -45,6 +45,7 @@ export const createItemRoutes = (app: Express) => {
             defense: state.defense,
             healAmount: state.healAmount,
             price: state.price,
+            shopAvailable: state.shopAvailable === true,
             icon: state.icon ?? "",
         }).returning().get()
 
@@ -69,6 +70,7 @@ export const createItemRoutes = (app: Express) => {
             defense: state.defense ?? item.defense,
             healAmount: state.healAmount ?? item.healAmount,
             price: state.price ?? item.price,
+            shopAvailable: typeof state.shopAvailable === "boolean" ? state.shopAvailable : item.shopAvailable,
             icon: state.icon ?? item.icon,
         }).where(eq(items.id, item.id))
             .returning()

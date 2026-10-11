@@ -16,6 +16,7 @@ import { isPlayerOnline } from "./realTime.js";
 export type { EventRow, InventoryItemRow, LocationRow, PlayerRow, MobRow, ItemRow } from "./db/schema.js";
 
 // Создаём папку для БД, если её ещё нет (например, apps/server/data).
+const databaseExistedAtStartup = fs.existsSync(config.databasePath);
 fs.mkdirSync(path.dirname(config.databasePath), { recursive: true });
 
 // Открываем SQLite-файл. WAL — режим журналирования, позволяющий одновременно читать
@@ -28,14 +29,26 @@ sqlite.pragma("foreign_keys = ON");
 export const db = drizzle(sqlite);
 
 export function initializeDatabase(): void {
+  const countPlayers = (): number | null => {
+    if (!tableExists("players")) return null;
+    return (sqlite.prepare('SELECT COUNT(*) AS count FROM "players"').get() as { count: number }).count;
+  };
+  console.info("[database] before migrations", JSON.stringify({
+    path: config.databasePath,
+    existedBeforeOpen: databaseExistedAtStartup,
+    volumeMountPath: process.env.RAILWAY_VOLUME_MOUNT_PATH ?? null,
+    players: countPlayers(),
+  }));
   // Применяем миграции из папки drizzle (файлы 0000_*.sql, 0001_*.sql и т.д.).
   // drizzle следит за применёнными миграциями и выполняет только новые.
   migrate(db, { migrationsFolder: migrationsFolder() });
+  console.info("[database] after migrations", JSON.stringify({ players: countPlayers() }));
 
   // Автофикс схемы: колонка locations.actions есть в коде и схеме, но не была
   // добавлена ни одной миграцией. Идемпотентно создаём её, если ещё не существует,
   // чтобы INSERT/SELECT не падали с "no column named actions".
   ensureLocationsActions();
+  ensureItemsShopAvailable();
 
   // Автофикс схемы: колонки конструктора персонажа (is_created, race, avatar).
   ensurePlayerCharacterColumns();
@@ -61,11 +74,11 @@ export function initializeDatabase(): void {
   ]
 
   const seedItems: typeof items.$inferInsert[] = [
-    { id: 1, name: "Ржавый нож", description: "Простой нож", type: "weapon", damage: 3, defense: 0, healAmount: 0, price: 10,icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 29L13 19M13 19L29 3L13 19Z"/> </svg>'},
-    { id: 2, name: "Кожаная броня", description: "Лёгкая защитная броня", type: "armor", damage: 0, defense: 2, healAmount: 0, price: 15, icon: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 2L6 8v8c0 6 4 10 10 12 6-2 10-6 10-12V8L16 2z'/><path d='M16 12v8'/><path d='M12 16h8'/></svg>"},
-    { id: 3, name: "Малая аптечка", description: "Восстанавливает здоровье", type: "potion", damage: 0, defense: 0, healAmount: 10, price: 12, icon: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 5v22M5 16h22'/><rect x='4' y='4' width='24' height='24' rx='4'/></svg>"},
-    { id: 4, name: "Металлолом", description: "Полезный материал", type: "material", damage: 0, defense: 0, healAmount: 0, price: 5, icon: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 27l4-4 5-6 8-9M9 23l-3-3M18 27c4-7 8-14 9-22l-6 1c-1 4-3 8-5 11'/></svg>" },
-    { id: 5, name: "Старая винтовка", description: "Рабочее оружие", type: "weapon", damage: 8, defense: 0, healAmount: 0, price: 30, icon: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 24h26M3 24l2-6h24l0 6M7 24v4M12 24v4M17 24v4M22 24v4M14 18h6'/></svg>" }
+    { id: 1, name: "Ржавый нож", description: "Простой нож", type: "weapon", damage: 3, defense: 0, healAmount: 0, price: 10, shopAvailable: true, icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 29L13 19M13 19L29 3L13 19Z"/> </svg>'},
+    { id: 2, name: "Кожаная броня", description: "Лёгкая защитная броня", type: "armor", damage: 0, defense: 2, healAmount: 0, price: 15, shopAvailable: true, icon: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 2L6 8v8c0 6 4 10 10 12 6-2 10-6 10-12V8L16 2z'/><path d='M16 12v8'/><path d='M12 16h8'/></svg>"},
+    { id: 3, name: "Малая аптечка", description: "Восстанавливает здоровье", type: "potion", damage: 0, defense: 0, healAmount: 10, price: 12, shopAvailable: true, icon: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 5v22M5 16h22'/><rect x='4' y='4' width='24' height='24' rx='4'/></svg>"},
+    { id: 4, name: "Металлолом", description: "Полезный материал", type: "material", damage: 0, defense: 0, healAmount: 0, price: 5, shopAvailable: false, icon: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 27l4-4 5-6 8-9M9 23l-3-3M18 27c4-7 8-14 9-22l-6 1c-1 4-3 8-5 11'/></svg>" },
+    { id: 5, name: "Старая винтовка", description: "Рабочее оружие", type: "weapon", damage: 8, defense: 0, healAmount: 0, price: 30, shopAvailable: true, icon: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 24h26M3 24l2-6h24l0 6M7 24v4M12 24v4M17 24v4M22 24v4M14 18h6'/></svg>" }
   ]
 
   // Вставляем сид. Для локаций onConflictDoUpdate: при изменении координат/названия
@@ -141,6 +154,11 @@ function ensureLocationsActions(): void {
   if (!tableExists("locations")) return;
   if (columnExists("locations", "actions")) return;
   sqlite.exec(`ALTER TABLE "locations" ADD COLUMN "actions" text NOT NULL DEFAULT '[]'`);
+}
+
+function ensureItemsShopAvailable(): void {
+  if (!tableExists("items") || columnExists("items", "shop_available")) return;
+  sqlite.exec(`ALTER TABLE "items" ADD COLUMN "shop_available" integer NOT NULL DEFAULT 0`);
 }
 
 // Идемпотентно добавляет колонки конструктора персонажа в players, если их нет.
@@ -267,6 +285,7 @@ export function toItemDto(row: ItemRow): ItemDto {
     defense: row.defense,
     healAmount: row.healAmount,
     price: row.price,
+    shopAvailable: row.shopAvailable,
     icon: row.icon
   };
 }

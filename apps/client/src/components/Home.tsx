@@ -31,6 +31,7 @@ import Modal, { TypeModal } from "./ui/Modal/Modal.tsx";
 type HomeProps = {
   token: string | null;
   player: PlayerDto | null;
+  onPlayer: (player: PlayerDto) => void;
   locationState: LocationStateResponse | null;
   friendsOverview: FriendsOverviewResponse | null;
   pvpState: PvpStateDto | null
@@ -47,6 +48,7 @@ type HomeProps = {
 export default function Home({
   token,
   player,
+  onPlayer,
   locationState,
   friendsOverview,
   pvpState,
@@ -133,7 +135,7 @@ export default function Home({
           gap="2"
           style={{ padding: "20px" }}
         >
-          <ActionCards setInfoMessages={setInfoMessages} setTypeShowIsModal={setTypeShowIsModal} onError={onError} onState={onState} showIsModal={showIsModal} setShowModal={setShowModal}  token={token} locationState={locationState} player={player} location={location}/>
+          <ActionCards setInfoMessages={setInfoMessages} setTypeShowIsModal={setTypeShowIsModal} onPlayer={onPlayer} onError={onError} onState={onState} showIsModal={showIsModal} setShowModal={setShowModal}  token={token} locationState={locationState} player={player} location={location}/>
         </Grid>
         :
         <Box className="w-[70%] p-2.5">

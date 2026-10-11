@@ -4,6 +4,9 @@ import { db } from "./db.js";
 import { eq, sql, and, or, lt } from "drizzle-orm"
 import { addXpForPlayer } from "./level.js";
 import { nowGameTime, nowGameTimeMs } from "./time.js";
+import type { AuthedRequest } from "./auth.js";
+import { toPlayerDto } from "./db.js";
+import { emitToPlayer } from "./realTime.js";
 const COOLDOWN_MS = 24 * 60 * 60 * 1000;
 type MoneyTier = {
   min: number;
@@ -36,12 +39,9 @@ function rollDailyMoney(): number {
 }
 export const dailyActivities = (app: Express)=>{
    app.post("/dailyActivities/money", (req: Request, res: Response) => {
-        const id = Number(req.body.id);
+        const id = (req as AuthedRequest).player.id;
         const location = req.body.location as string;
 
-        if (!id || Number.isNaN(id)) {
-            return res.status(400).json({ error: "Некорректный id" });
-        }
         if (!location) {
             return res.status(400).json({ error: "Не указана location" });
         }
@@ -77,12 +77,30 @@ export const dailyActivities = (app: Express)=>{
             ...cooldowns,
             [location]: new Date(now.getTime() + COOLDOWN_MS).toISOString(),
         };
-        db.update(players).set({money: sql`${players.money} + ${amount}`,cooldowns: updatedCooldowns,}).where(eq(players.id, id)).returning().get();
+        db
+            .update(players)
+            .set({
+                money: sql`${players.money} + ${amount}`,
+                cooldowns: updatedCooldowns,
+            })
+            .where(eq(players.id, id))
+            .run();
+
+        const updatedPlayer = db.select().from(players).where(eq(players.id, id)).get();
+        if (!updatedPlayer) return res.status(404).json({ error: "Игрок не найден" });
+
+        const playerDto = toPlayerDto(updatedPlayer);
+        emitToPlayer(id, "player", playerDto);
+
         return res.json({
             code:"SUCCESS",
             title:"На дне",
             text:`Вы нашли ${amount} монет, следующий раз можно будет ${updatedCooldowns[location]}`,
             success: true,
+            moneyReceived: amount,
+            money: updatedPlayer.money,
+            player: playerDto,
+            nextAvailableAt: updatedCooldowns[location],
         });
         });
 }

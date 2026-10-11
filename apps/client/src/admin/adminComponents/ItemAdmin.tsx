@@ -26,6 +26,7 @@ const emptyItem: ItemDto = {
     defense: 0,
     healAmount: 0,
     price: 0,
+    shopAvailable: false,
     icon: ''
 }
 
@@ -175,6 +176,14 @@ export const ItemAdmin = ({ token }: ItemAdminProps) => {
 
                         <NumberField label="price" min={0} value={draft.price}
                             onChange={(v) => setDraft({ ...draft, price: v })} />
+                        <label className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                checked={draft.shopAvailable}
+                                onChange={(e) => setDraft({ ...draft, shopAvailable: e.target.checked })}
+                            />
+                            <Text size="2">Доступен в магазине и для продажи игроком</Text>
+                        </label>
                         <label>
                             <Text as="div" size="1" weight="medium" mb="1" color="gray">
                                 SVG иконка
@@ -216,6 +225,7 @@ export const ItemAdmin = ({ token }: ItemAdminProps) => {
                             <Table.ColumnHeaderCell justify="center">Защита</Table.ColumnHeaderCell>
                             <Table.ColumnHeaderCell justify="center">Лечение</Table.ColumnHeaderCell>
                             <Table.ColumnHeaderCell justify="center">Цена</Table.ColumnHeaderCell>
+                            <Table.ColumnHeaderCell justify="center">Магазин</Table.ColumnHeaderCell>
                             <Table.ColumnHeaderCell justify="center">Иконка</Table.ColumnHeaderCell>
                             <Table.ColumnHeaderCell justify="end"></Table.ColumnHeaderCell>
                         </Table.Row>
@@ -223,7 +233,7 @@ export const ItemAdmin = ({ token }: ItemAdminProps) => {
                     <Table.Body>
                         {items.length === 0 && (
                             <Table.Row>
-                                <Table.Cell colSpan={10}>
+                                <Table.Cell colSpan={11}>
                                     <Text color="gray">предметов пока нет</Text>
                                 </Table.Cell>
                             </Table.Row>
@@ -238,6 +248,7 @@ export const ItemAdmin = ({ token }: ItemAdminProps) => {
                                 <Table.Cell justify="center">{item.defense}</Table.Cell>
                                 <Table.Cell>{item.healAmount}</Table.Cell>
                                 <Table.Cell>{item.price}</Table.Cell>
+                                <Table.Cell justify="center">{item.shopAvailable ? "Да" : "Нет"}</Table.Cell>
                                 <Table.Cell justify="center">
                                     {item.icon ? (
                                         <div className="w-8 h-8 mx-auto" dangerouslySetInnerHTML={{__html: item.icon}}></div>

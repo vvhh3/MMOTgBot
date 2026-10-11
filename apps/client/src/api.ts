@@ -171,6 +171,25 @@ export async function getCatalog(token: string) {
   return r.data
 }
 
+export async function getShop(token: string): Promise<ItemsResponse> {
+  const response = await api.get<ItemsResponse>("/shop", { headers: authHeader(token) })
+  return response.data
+}
+
+export async function buyShopItem(token: string, itemType: number, quantity: number) {
+  const response = await api.post<MeResponse & { total: number }>(
+    "/shop/buy", { itemType, quantity }, { headers: authHeader(token) }
+  )
+  return response.data
+}
+
+export async function sellShopItem(token: string, itemType: number, quantity: number) {
+  const response = await api.post<MeResponse & { total: number }>(
+    "/shop/sell", { itemType, quantity }, { headers: authHeader(token) }
+  )
+  return response.data
+}
+
 //Api для crud квестов
 export async function createQuest(token: string, quest: QuestsDto): Promise<QuestResponse> {
   const response = await api.post<QuestResponse>(`/quests`, quest, { headers: authHeader(token) })
@@ -313,10 +332,10 @@ export async function inventoryUnEquipedItem(token: string,idItem:number): Promi
   return res.data
 }
 
-export async function dailyActivities(token: string, playerId: number, locationName: string) {
+export async function dailyActivities(token: string, locationName: string) {
   const res = await api.post(
     "/dailyActivities/money",
-    { id: playerId, location: locationName },
+    { location: locationName },
     { headers: authHeader(token) }
   )
   return res.data
