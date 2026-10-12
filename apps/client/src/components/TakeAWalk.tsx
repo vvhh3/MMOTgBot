@@ -138,7 +138,7 @@ export default function TakeAWalk({ token, player,onPlayer,onInventory,locationS
                         </Card>
                     )}
 
-                    {state && state.status !== "active" && (
+                    {state && state.status != "fled" &&state.status !== "active" && (
                        <Modal typeModal={TypeModal.ResultFight} state={state}></Modal>
                     )}
 
