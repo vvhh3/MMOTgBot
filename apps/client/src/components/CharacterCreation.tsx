@@ -24,11 +24,30 @@ export default function CharacterCreation({ token, player, onCreated }: Characte
   const avatar = AVATARS[avatarIndex];
 
   useEffect(() => {
-    AVATARS.forEach((src) => {
+    // Держим рядом с текущим аватаром небольшое окно изображений вместо
+    // одновременной загрузки всех скинов. При переключении браузер догружает
+    // только новый крайний элемент, остальные берёт из HTTP-кэша.
+    const preloadRadius = 2;
+    const indexes = Array.from(
+      { length: preloadRadius * 2 + 1 },
+      (_, offset) =>
+        (avatarIndex + offset - preloadRadius + AVATARS.length) % AVATARS.length,
+    );
+
+    const images = [...new Set(indexes)].map((index) => {
       const image = new Image();
-      image.src = src;
+      image.decoding = "async";
+      image.src = AVATARS[index];
+      return image;
     });
-  }, []);
+
+    return () => {
+      images.forEach((image) => {
+        image.onload = null;
+        image.onerror = null;
+      });
+    };
+  }, [avatarIndex]);
 
   const prevAvatar = () => setAvatarIndex((i) => (i - 1 + AVATARS.length) % AVATARS.length);
   const nextAvatar = () => setAvatarIndex((i) => (i + 1) % AVATARS.length);
@@ -61,7 +80,13 @@ export default function CharacterCreation({ token, player, onCreated }: Characte
             >
               {"<"}
             </button>
-            <img src={avatar} alt="Аватар" className="object-contain h-48 w-full" />
+            <img
+              src={avatar}
+              alt={`Аватар ${avatarIndex + 1}`}
+              decoding="async"
+              fetchPriority="high"
+              className="object-contain h-48 w-full"
+            />
             <button
               type="button"
               onClick={nextAvatar}
