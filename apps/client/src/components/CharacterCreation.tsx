@@ -13,6 +13,7 @@ type CharacterCreationProps = {
 
 export default function CharacterCreation({ token, player, onCreated }: CharacterCreationProps) {
   const [avatarIndex, setAvatarIndex] = useState(0);
+  const [displayedAvatarIndex, setDisplayedAvatarIndex] = useState(0);
   const [name, setName] = useState(player?.name ?? "");
   const [race, setRace] = useState(RACES[0]);
   const [skins, setSkins] = useState<CharacterSkinDto[]>([]);
@@ -21,6 +22,8 @@ export default function CharacterCreation({ token, player, onCreated }: Characte
   const [error, setError] = useState<string | null>(null);
 
   const avatar = skins[avatarIndex]?.imageUrl;
+  const displayedAvatar = skins[displayedAvatarIndex]?.imageUrl;
+  const isChangingAvatar = avatarIndex !== displayedAvatarIndex;
 
   useEffect(() => {
     if (!token) return;
@@ -29,6 +32,7 @@ export default function CharacterCreation({ token, player, onCreated }: Characte
       .then(({ skins: loadedSkins }) => {
         setSkins(loadedSkins);
         setAvatarIndex(0);
+        setDisplayedAvatarIndex(0);
       })
       .catch((err) => setError(err instanceof Error ? err.message : "Не удалось загрузить персонажей"))
       .finally(() => setLoadingSkins(false));
@@ -36,29 +40,11 @@ export default function CharacterCreation({ token, player, onCreated }: Characte
 
   useEffect(() => {
     if (skins.length === 0) return;
-    // Держим рядом с текущим аватаром небольшое окно изображений вместо
-    // одновременной загрузки всех скинов. При переключении браузер догружает
-    // только новый крайний элемент, остальные берёт из HTTP-кэша.
-    const preloadRadius = 2;
-    const indexes = Array.from(
-      { length: preloadRadius * 2 + 1 },
-      (_, offset) =>
-        (avatarIndex + offset - preloadRadius + skins.length) % skins.length,
-    );
-
-    const images = [...new Set(indexes)].map((index) => {
-      const image = new Image();
-      image.decoding = "async";
-      image.src = getCharacterImage(skins[index].imageUrl);
-      return image;
-    });
-
-    return () => {
-      images.forEach((image) => {
-        image.onload = null;
-        image.onerror = null;
-      });
-    };
+    // При быстром листании не передаём каждый тяжёлый SVG на декодирование
+    // Telegram WebView. Загружаем только тот скин, на котором пользователь
+    // остановился. Новый клик отменяет предыдущий таймер.
+    const timer = window.setTimeout(() => setDisplayedAvatarIndex(avatarIndex), 300);
+    return () => window.clearTimeout(timer);
   }, [avatarIndex, skins]);
 
   const prevAvatar = () => setAvatarIndex((i) => (i - 1 + skins.length) % skins.length);
@@ -93,17 +79,22 @@ export default function CharacterCreation({ token, player, onCreated }: Characte
             >
               {"<"}
             </button>
-            {avatar ? (
+            {displayedAvatar && !isChangingAvatar ? (
               <img
-                src={getCharacterImage(avatar)}
-                alt={skins[avatarIndex]?.name ?? `Аватар ${avatarIndex + 1}`}
+                key={displayedAvatar}
+                src={getCharacterImage(displayedAvatar)}
+                alt={skins[displayedAvatarIndex]?.name ?? `Аватар ${displayedAvatarIndex + 1}`}
                 decoding="async"
                 fetchPriority="high"
                 className="object-contain h-48 w-full"
               />
             ) : (
               <div className="flex h-48 w-full items-center justify-center text-sm text-gray-500">
-                {loadingSkins ? "Загрузка персонажей…" : "Персонажи недоступны"}
+                {loadingSkins
+                  ? "Загрузка персонажей…"
+                  : isChangingAvatar
+                    ? `Персонаж ${avatarIndex + 1} из ${skins.length}`
+                    : "Персонажи недоступны"}
               </div>
             )}
             <button
@@ -155,7 +146,7 @@ export default function CharacterCreation({ token, player, onCreated }: Characte
       <button
         type="button"
         onClick={submit}
-        disabled={name.trim().length < 2 || saving || !avatar}
+        disabled={name.trim().length < 2 || saving || !avatar || isChangingAvatar}
         className="rounded-lg bg-[#E8603C] px-6 py-3 font-bold text-white disabled:opacity-50"
       >
         {saving ? "Сохранение..." : "Создать персонажа"}
