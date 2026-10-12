@@ -1,6 +1,4 @@
-import { getSkins } from "../utils/skins";
-
-import monstr from "/monstr.svg"
+import { getCharacterImage, getSkins } from "../utils/skins";
 import { Button, Card, Progress, Text, Grid, Flex } from "@radix-ui/themes"
 import { Link, useNavigate } from "react-router-dom"
 import { CombatStateResponse, InventoryItemDto, PlayerDto,LocationDto,LocationStateResponse } from "@mmobot/shared"
@@ -103,7 +101,7 @@ export default function TakeAWalk({ token, player,onPlayer,onInventory,locationS
                         <img className="h-45 w-full max-w-[180px] object-contain" style={{ transform: 'scaleX(-1)' }} src={getSkins(player?.avatar)} />
                     </div>
                     <div className="flex justify-center items-center">
-                        <img className="h-45 w-full object-contain" src={monstr} />
+                        <img className="h-45 w-full object-contain" src={getCharacterImage("/character-images/monstr.svg")} />
                     </div>
                 </div>
                 <div>

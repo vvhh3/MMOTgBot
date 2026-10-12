@@ -32,6 +32,17 @@ export type CharacterCreateResponse = {
   player: PlayerDto
 }
 
+export type CharacterSkinDto = {
+  id: number
+  name: string
+  imageUrl: string
+  sortOrder: number
+}
+
+export type CharacterSkinsResponse = {
+  skins: CharacterSkinDto[]
+}
+
 // какую характеристику поднять за одно очко (POST /me/stats)
 export type StatType = 'maxHealth' | 'strength' | 'defense'
 

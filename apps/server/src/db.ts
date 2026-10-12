@@ -7,7 +7,7 @@ import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { and, eq, inArray, or, sql } from "drizzle-orm";
 import type { EventDto, FriendsOverviewResponse, FriendDto, InventoryItemDto, LocationDto, PlayerDto, MobDto, ItemDto, QuestsDto } from "@mmobot/shared";
 import { config } from "./config.js";
-import { friendships, items, locations, mobs, players, quests } from "./db/schema.js";
+import { characterSkins, friendships, items, locations, mobs, players, quests } from "./db/schema.js";
 import type { EventRow, InventoryItemRow, LocationRow, PlayerRow, MobRow, ItemRow, QuestsRow } from "./db/schema.js";
 import { getPlayerStats } from "./combat.js";
 import { getLevelXpBounds } from "./level.js";
@@ -98,6 +98,27 @@ export function initializeDatabase(): void {
         fightImg:sql`excluded.fightImg`,
         actions: sql`excluded.actions`,
       }
+    })
+    .run()
+  const seedCharacterSkins: typeof characterSkins.$inferInsert[] = [
+    ...Array.from({ length: 22 }, (_, index) => ({
+      id: index + 1,
+      name: `Персонаж ${index + 1}`,
+      imageUrl: `/character-images/skins${index + 1}.svg`,
+      enabled: true,
+      sortOrder: index + 1,
+    })),
+    { id: 23, name: "Монстр", imageUrl: "/character-images/monstr.svg", enabled: true, sortOrder: 23 },
+  ]
+  db.insert(characterSkins)
+    .values(seedCharacterSkins)
+    .onConflictDoUpdate({
+      target: characterSkins.id,
+      set: {
+        name: sql`excluded.name`,
+        imageUrl: sql`excluded.image_url`,
+        sortOrder: sql`excluded.sort_order`,
+      },
     })
     .run()
   db.insert(mobs).values(seedMobs).onConflictDoNothing().run()

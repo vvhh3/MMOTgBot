@@ -1,10 +1,7 @@
 import { useEffect, useState } from "react";
-import type { PlayerDto } from "@mmobot/shared";
-import { createCharacter } from "../api";
-import { SKINS } from "../utils/skins";
-
-// Нумерованные скины из public/skins и прежний вариант монстра.
-const AVATARS = [...SKINS, "/monstr.svg"];
+import type { CharacterSkinDto, PlayerDto } from "@mmobot/shared";
+import { createCharacter, getCharacterSkins } from "../api";
+import { getCharacterImage } from "../utils/skins";
 
 const RACES = ["Человек", "Эльф", "Орк", "Гном"];
 
@@ -18,12 +15,27 @@ export default function CharacterCreation({ token, player, onCreated }: Characte
   const [avatarIndex, setAvatarIndex] = useState(0);
   const [name, setName] = useState(player?.name ?? "");
   const [race, setRace] = useState(RACES[0]);
+  const [skins, setSkins] = useState<CharacterSkinDto[]>([]);
+  const [loadingSkins, setLoadingSkins] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const avatar = AVATARS[avatarIndex];
+  const avatar = skins[avatarIndex]?.imageUrl;
 
   useEffect(() => {
+    if (!token) return;
+    setLoadingSkins(true);
+    getCharacterSkins(token)
+      .then(({ skins: loadedSkins }) => {
+        setSkins(loadedSkins);
+        setAvatarIndex(0);
+      })
+      .catch((err) => setError(err instanceof Error ? err.message : "Не удалось загрузить персонажей"))
+      .finally(() => setLoadingSkins(false));
+  }, [token]);
+
+  useEffect(() => {
+    if (skins.length === 0) return;
     // Держим рядом с текущим аватаром небольшое окно изображений вместо
     // одновременной загрузки всех скинов. При переключении браузер догружает
     // только новый крайний элемент, остальные берёт из HTTP-кэша.
@@ -31,13 +43,13 @@ export default function CharacterCreation({ token, player, onCreated }: Characte
     const indexes = Array.from(
       { length: preloadRadius * 2 + 1 },
       (_, offset) =>
-        (avatarIndex + offset - preloadRadius + AVATARS.length) % AVATARS.length,
+        (avatarIndex + offset - preloadRadius + skins.length) % skins.length,
     );
 
     const images = [...new Set(indexes)].map((index) => {
       const image = new Image();
       image.decoding = "async";
-      image.src = AVATARS[index];
+      image.src = getCharacterImage(skins[index].imageUrl);
       return image;
     });
 
@@ -47,13 +59,13 @@ export default function CharacterCreation({ token, player, onCreated }: Characte
         image.onerror = null;
       });
     };
-  }, [avatarIndex]);
+  }, [avatarIndex, skins]);
 
-  const prevAvatar = () => setAvatarIndex((i) => (i - 1 + AVATARS.length) % AVATARS.length);
-  const nextAvatar = () => setAvatarIndex((i) => (i + 1) % AVATARS.length);
+  const prevAvatar = () => setAvatarIndex((i) => (i - 1 + skins.length) % skins.length);
+  const nextAvatar = () => setAvatarIndex((i) => (i + 1) % skins.length);
 
   const submit = async () => {
-    if (!token) return;
+    if (!token || !avatar) return;
     setSaving(true);
     setError(null);
     try {
@@ -76,20 +88,28 @@ export default function CharacterCreation({ token, player, onCreated }: Characte
             <button
               type="button"
               onClick={prevAvatar}
+              disabled={skins.length < 2}
               className="h-10 w-10 rounded-full border-2 text-[#E8603C] disabled:opacity-30"
             >
               {"<"}
             </button>
-            <img
-              src={avatar}
-              alt={`Аватар ${avatarIndex + 1}`}
-              decoding="async"
-              fetchPriority="high"
-              className="object-contain h-48 w-full"
-            />
+            {avatar ? (
+              <img
+                src={getCharacterImage(avatar)}
+                alt={skins[avatarIndex]?.name ?? `Аватар ${avatarIndex + 1}`}
+                decoding="async"
+                fetchPriority="high"
+                className="object-contain h-48 w-full"
+              />
+            ) : (
+              <div className="flex h-48 w-full items-center justify-center text-sm text-gray-500">
+                {loadingSkins ? "Загрузка персонажей…" : "Персонажи недоступны"}
+              </div>
+            )}
             <button
               type="button"
               onClick={nextAvatar}
+              disabled={skins.length < 2}
               className="h-10 w-10 rounded-full border-2 text-[#E8603C] disabled:opacity-30"
             >
               {">"}
@@ -135,7 +155,7 @@ export default function CharacterCreation({ token, player, onCreated }: Characte
       <button
         type="button"
         onClick={submit}
-        disabled={name.trim().length < 2 || saving}
+        disabled={name.trim().length < 2 || saving || !avatar}
         className="rounded-lg bg-[#E8603C] px-6 py-3 font-bold text-white disabled:opacity-50"
       >
         {saving ? "Сохранение..." : "Создать персонажа"}

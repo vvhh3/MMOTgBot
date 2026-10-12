@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Button, Callout, Card, Flex, Heading, Select, Table, Text, TextField } from "@radix-ui/themes";
-import type { PlayerDto } from "@mmobot/shared";
-import { getAdminPlayers, updateAdminPlayer } from "../../api";
-import { SKINS } from "../../utils/skins";
+import type { CharacterSkinDto, PlayerDto } from "@mmobot/shared";
+import { getAdminPlayers, getCharacterSkins, updateAdminPlayer } from "../../api";
+import { getCharacterImage } from "../../utils/skins";
 
 type PlayerAdminProps = {
   token: string | null;
@@ -17,7 +17,8 @@ export function PlayerAdmin({ token, player, onPlayer }: PlayerAdminProps) {
   const [money, setMoney] = useState("0");
   const [xp, setXp] = useState("0");
   const [name, setName] = useState("");
-  const [avatar, setAvatar] = useState(SKINS[0]);
+  const [skins, setSkins] = useState<CharacterSkinDto[]>([]);
+  const [avatar, setAvatar] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -36,7 +37,7 @@ export function PlayerAdmin({ token, player, onPlayer }: PlayerAdminProps) {
   const selectPlayer = (target: PlayerDto) => {
     setSelectedPlayer(target);
     setName(target.name);
-    setAvatar(target.avatar ?? SKINS[0]);
+    setAvatar(target.avatar ?? skins[0]?.imageUrl ?? "");
     setMoney("0");
     setXp("0");
     setSaved(false);
@@ -44,6 +45,12 @@ export function PlayerAdmin({ token, player, onPlayer }: PlayerAdminProps) {
 
   useEffect(() => {
     void search("");
+    if (token) {
+      void getCharacterSkins(token).then(({ skins: loadedSkins }) => {
+        setSkins(loadedSkins);
+        setAvatar((current) => current || loadedSkins[0]?.imageUrl || "");
+      }).catch((err) => setError(err instanceof Error ? err.message : "Не удалось загрузить скины"));
+    }
   }, [token]);
 
   const save = async () => {
@@ -127,11 +134,10 @@ export function PlayerAdmin({ token, player, onPlayer }: PlayerAdminProps) {
           <Select.Root value={avatar} onValueChange={setAvatar}>
             <Select.Trigger />
             <Select.Content>
-              {SKINS.map((skin, index) => <Select.Item key={skin} value={skin}>Скин {index + 1}</Select.Item>)}
-              <Select.Item value="/monstr.svg">Монстр</Select.Item>
+              {skins.map((skin) => <Select.Item key={skin.id} value={skin.imageUrl}>{skin.name}</Select.Item>)}
             </Select.Content>
           </Select.Root>
-          <img src={avatar} alt="Выбранный скин" className="mt-3 h-32 w-32 object-contain" />
+          {avatar && <img src={getCharacterImage(avatar)} alt="Выбранный скин" className="mt-3 h-32 w-32 object-contain" />}
         </label>
 
         {error && <Callout.Root color="red"><Callout.Text>{error}</Callout.Text></Callout.Root>}

@@ -18,6 +18,16 @@ export const locations = sqliteTable("locations", {
     .notNull()
 })
 
+// Каталог доступных обликов персонажа. В БД хранится публичный URL,
+// сами изображения раздаются сервером как статические файлы.
+export const characterSkins = sqliteTable("character_skins", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  imageUrl: text("image_url").notNull().unique(),
+  enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
+  sortOrder: integer("sort_order").notNull().default(0),
+})
+
 // Игроки. Значения по умолчанию задают стартовые характеристики нового персонажа.
 // currentLocationId — ссылка на локацию, в которой сейчас находится игрок (может быть NULL, если ещё нигде нет).
 export const players = sqliteTable("players",
@@ -235,6 +245,7 @@ export const pvpSessions = sqliteTable("pvp_sessions", {
 // EventRow дополнительно включает playerName — имя игрока, подтянутое через join.
 export type PlayerRow = typeof players.$inferSelect;
 export type LocationRow = typeof locations.$inferSelect;
+export type CharacterSkinRow = typeof characterSkins.$inferSelect;
 export type InventoryItemRow = typeof inventoryItems.$inferSelect;
 export type EventRow = typeof events.$inferSelect & { playerName: string };
 

@@ -8,6 +8,7 @@ import type {
   AuthResponse,
   CharacterCreateRequest,
   CharacterCreateResponse,
+  CharacterSkinsResponse,
   CombatActionRequest,
   CombatActionResponse,
   CombatStartRequest,
@@ -26,7 +27,7 @@ import { createSessionToken, requireAdmin, requireAuth, validateTelegramInitData
 import { getCombatState, isMobAlive, moveCombatAction, startCombat, usePotion } from "./combat.js";
 import { config } from "./config.js";
 import { db, initializeDatabase, toEventDto, toInventoryItemDto, toLocationDto, toPlayerDto, toMobDto, toPlayerDtoEquipped, toItemDto } from "./db.js";
-import { combatSessions, events, inventoryItems, locations, players, mobs, items } from "./db/schema.js";
+import { characterSkins, combatSessions, events, inventoryItems, locations, players, mobs, items } from "./db/schema.js";
 import { getPlayersInLocation, hydratePresenceFromDatabase, movePlayer } from "./presence.js";
 
 import { createMobRoutes } from "./mobs.js";
@@ -151,11 +152,17 @@ export function createApp(): express.Express {
       updates.name = body.name.trim();
     }
     if (body.avatar !== undefined) {
-      if (typeof body.avatar !== "string" || (!/^\/skins\/skins(?:[1-9]|1\d|2[0-2])\.svg$/.test(body.avatar) && body.avatar !== "/monstr.svg")) {
+      const avatar = body.avatar;
+      const selectedSkin = typeof avatar === "string"
+        ? db.select({ id: characterSkins.id }).from(characterSkins)
+            .where(and(eq(characterSkins.imageUrl, avatar), eq(characterSkins.enabled, true)))
+            .get()
+        : undefined;
+      if (!selectedSkin) {
         res.status(400).json({ error: "Invalid avatar" });
         return;
       }
-      updates.avatar = body.avatar;
+      updates.avatar = avatar as string;
     }
 
     db.update(players)
@@ -304,6 +311,30 @@ export function createApp(): express.Express {
   // При первом заходе игрок выбирает имя, расу и аватар. После сохранения
   // is_created=true, и клиент пускает его в игру. Допустимые расы — список ниже.
   const ALLOWED_RACES = ["Человек", "Эльф", "Орк", "Гном"];
+  app.get("/character-skins", requireAuth, (_req, res) => {
+    const skins = db
+      .select({
+        id: characterSkins.id,
+        name: characterSkins.name,
+        imageUrl: characterSkins.imageUrl,
+        sortOrder: characterSkins.sortOrder,
+      })
+      .from(characterSkins)
+      .where(eq(characterSkins.enabled, true))
+      .orderBy(asc(characterSkins.sortOrder))
+      .all();
+    const response: CharacterSkinsResponse = { skins };
+    res.json(response);
+  });
+
+  app.use(
+    "/character-images",
+    express.static(path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../data/characters"), {
+      maxAge: "1y",
+      immutable: true,
+    }),
+  );
+
   app.post("/me/character", requireAuth, (req, res) => {
     const player = (req as AuthedRequest).player;
     const body = req.body as CharacterCreateRequest;
@@ -319,7 +350,12 @@ export function createApp(): express.Express {
       res.status(400).json({ error: "Недопустимая раса" });
       return;
     }
-    if (!avatar) {
+    const selectedSkin = avatar
+      ? db.select({ id: characterSkins.id }).from(characterSkins)
+          .where(and(eq(characterSkins.imageUrl, avatar), eq(characterSkins.enabled, true)))
+          .get()
+      : undefined;
+    if (!selectedSkin) {
       res.status(400).json({ error: "Выберите аватар" });
       return;
     }

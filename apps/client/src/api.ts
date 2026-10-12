@@ -5,6 +5,7 @@ import {
   type AuthRequest,
   type AuthResponse,
   type CharacterCreateRequest,
+  type CharacterSkinsResponse,
   type ClaimQuestResponse,
   type CombatActionRequest,
   type CombatStartRequest,
@@ -81,6 +82,11 @@ export async function getAdminPlayers(token: string, query = ""): Promise<{ play
 // Сохранить персонажа из конструктора при первом заходе
 export async function createCharacter(token: string, character: CharacterCreateRequest): Promise<{ player: PlayerDto }> {
   const response = await api.post<{ player: PlayerDto }>("/me/character", character, { headers: authHeader(token) });
+  return response.data;
+}
+
+export async function getCharacterSkins(token: string): Promise<CharacterSkinsResponse> {
+  const response = await api.get<CharacterSkinsResponse>("/character-skins", { headers: authHeader(token) });
   return response.data;
 }
 
