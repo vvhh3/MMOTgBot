@@ -18,6 +18,8 @@ export default function CharacterCreation({ token, player, onCreated }: Characte
   const [race, setRace] = useState(RACES[0]);
   const [skins, setSkins] = useState<CharacterSkinDto[]>([]);
   const [loadingSkins, setLoadingSkins] = useState(true);
+  const [loadingAvatar, setLoadingAvatar] = useState(true);
+  const [avatarLoadError, setAvatarLoadError] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,6 +35,8 @@ export default function CharacterCreation({ token, player, onCreated }: Characte
         setSkins(loadedSkins);
         setAvatarIndex(0);
         setDisplayedAvatarIndex(0);
+        setLoadingAvatar(true);
+        setAvatarLoadError(false);
       })
       .catch((err) => setError(err instanceof Error ? err.message : "Не удалось загрузить персонажей"))
       .finally(() => setLoadingSkins(false));
@@ -43,7 +47,9 @@ export default function CharacterCreation({ token, player, onCreated }: Characte
     // При быстром листании не передаём каждый тяжёлый SVG на декодирование
     // Telegram WebView. Загружаем только тот скин, на котором пользователь
     // остановился. Новый клик отменяет предыдущий таймер.
-    const timer = window.setTimeout(() => setDisplayedAvatarIndex(avatarIndex), 300);
+    setLoadingAvatar(true);
+    setAvatarLoadError(false);
+    const timer = window.setTimeout(() => setDisplayedAvatarIndex(avatarIndex), 500);
     return () => window.clearTimeout(timer);
   }, [avatarIndex, skins]);
 
@@ -79,24 +85,45 @@ export default function CharacterCreation({ token, player, onCreated }: Characte
             >
               {"<"}
             </button>
-            {displayedAvatar && !isChangingAvatar ? (
-              <img
-                key={displayedAvatar}
-                src={getCharacterImage(displayedAvatar)}
-                alt={skins[displayedAvatarIndex]?.name ?? `Аватар ${displayedAvatarIndex + 1}`}
-                decoding="async"
-                fetchPriority="high"
-                className="object-contain h-48 w-full"
-              />
-            ) : (
-              <div className="flex h-48 w-full items-center justify-center text-sm text-gray-500">
-                {loadingSkins
-                  ? "Загрузка персонажей…"
-                  : isChangingAvatar
-                    ? `Персонаж ${avatarIndex + 1} из ${skins.length}`
-                    : "Персонажи недоступны"}
-              </div>
-            )}
+            <div className="relative flex h-48 w-full items-center justify-center overflow-hidden bg-white">
+              {displayedAvatar && !isChangingAvatar && (
+                <img
+                  key={displayedAvatar}
+                  src={getCharacterImage(displayedAvatar)}
+                  alt={skins[displayedAvatarIndex]?.name ?? `Аватар ${displayedAvatarIndex + 1}`}
+                  decoding="async"
+                  fetchPriority="high"
+                  onLoad={() => setLoadingAvatar(false)}
+                  onError={() => {
+                    setLoadingAvatar(false);
+                    setAvatarLoadError(true);
+                  }}
+                  className={`h-48 w-full object-contain transition-opacity duration-150 ${loadingAvatar ? "opacity-0" : "opacity-100"}`}
+                />
+              )}
+
+              {(loadingSkins || isChangingAvatar || loadingAvatar) && !avatarLoadError && (
+                <div
+                  className="absolute inset-0 flex items-center justify-center bg-white"
+                  role="status"
+                  aria-label="Загрузка аватара"
+                >
+                  <span className="h-9 w-9 animate-spin rounded-full border-4 border-gray-200 border-t-[#E8603C]" />
+                </div>
+              )}
+
+              {avatarLoadError && !isChangingAvatar && (
+                <p className="absolute inset-0 flex items-center justify-center bg-white px-4 text-center text-sm text-red-500">
+                  Не удалось загрузить аватар
+                </p>
+              )}
+
+              {!loadingSkins && skins.length === 0 && (
+                <p className="absolute inset-0 flex items-center justify-center bg-white text-sm text-gray-500">
+                  Персонажи недоступны
+                </p>
+              )}
+            </div>
             <button
               type="button"
               onClick={nextAvatar}
@@ -146,7 +173,7 @@ export default function CharacterCreation({ token, player, onCreated }: Characte
       <button
         type="button"
         onClick={submit}
-        disabled={name.trim().length < 2 || saving || !avatar || isChangingAvatar}
+        disabled={name.trim().length < 2 || saving || !avatar || isChangingAvatar || loadingAvatar || avatarLoadError}
         className="rounded-lg bg-[#E8603C] px-6 py-3 font-bold text-white disabled:opacity-50"
       >
         {saving ? "Сохранение..." : "Создать персонажа"}
