@@ -4,10 +4,10 @@ import { fileURLToPath } from "node:url";
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
-import { and, eq, inArray, or, sql } from "drizzle-orm";
+import { and, eq, inArray, ne, or, sql } from "drizzle-orm";
 import type { EventDto, FriendsOverviewResponse, FriendDto, InventoryItemDto, LocationDto, PlayerDto, MobDto, ItemDto, QuestsDto } from "@mmobot/shared";
 import { config } from "./config.js";
-import { characterSkins, friendships, items, locations, mobs, players, quests } from "./db/schema.js";
+import { casinoSessions, characterSkins, friendships, items, locations, mobs, players, quests } from "./db/schema.js";
 import type { EventRow, InventoryItemRow, LocationRow, PlayerRow, MobRow, ItemRow, QuestsRow } from "./db/schema.js";
 import { getPlayerStats } from "./combat.js";
 import { getLevelXpBounds } from "./level.js";
@@ -42,6 +42,8 @@ export function initializeDatabase(): void {
   // Применяем миграции из папки drizzle (файлы 0000_*.sql, 0001_*.sql и т.д.).
   // drizzle следит за применёнными миграциями и выполняет только новые.
   migrate(db, { migrationsFolder: migrationsFolder() });
+  // Сессии старых версий, завершённые до удаления при расчёте результата.
+  db.delete(casinoSessions).where(ne(casinoSessions.status, "active")).run();
   console.info("[database] after migrations", JSON.stringify({ players: countPlayers() }));
 
   // Автофикс схемы: колонка locations.actions есть в коде и схеме, но не была
@@ -58,7 +60,7 @@ export function initializeDatabase(): void {
   const seedLocations: LocationDto[] = [
     { id: "square", name: "Площадь", description: "Описание площади", x: 31, y: 40 ,homeImg:"square-home.svg",fightImg:"square-fight.svg",actions:["fight","walk","money",]},
     { id: "rialto", name: "Рынок", description: "Описание рынка", x: 35, y: 35 ,homeImg:"square-home.svg",fightImg:"square-fight.svg",actions:["exchange","shop"]},
-    { id: "market", name: "Сити парк", description: "Описание сити парка", x: 42, y: 33 ,homeImg:"market-home.svg",fightImg:"market-fight.svg",actions:["fight","walk"]},
+    { id: "market", name: "Сити парк", description: "Описание сити парка", x: 42, y: 33 ,homeImg:"market-home.svg",fightImg:"market-fight.svg",actions:["mines","blackjack","ladder"]},
     { id: "park", name: "Парк Победы", description: "Описание парка победы", x: 39, y: 27,homeImg:"park-home.svg",fightImg:"park-fight.svg",actions:["fight","walk"]},
     { id: "forest", name: "Солдатсикй лес", description: "Описание солдатского леса", x: 64, y: 33,homeImg:"forest-home.svg",fightImg:"forest-fight.svg",actions:["fight","walk"]},
     { id: "railway", name: "Липяги", description: "Описание станции", x: 70, y: 38,homeImg:"railway-home.svg",fightImg:"railway-fight.svg",actions:["fight","walk"]}

@@ -29,6 +29,9 @@ import { MobAdmin } from "./admin/adminComponents/MobAdmin";
 import { ItemAdmin } from "./admin/adminComponents/ItemAdmin";
 import Admin from "./admin/Admin";
 import { TypeModal } from "./components/ui/Modal/Modal";
+import MinesGame from "./components/MinesGame";
+import BlackjackGame from "./components/BlackjackGame";
+import LadderGame from "./components/LadderGame";
 
 export default function ScrollToTop() {
   const { pathname } = useLocation();
@@ -41,6 +44,7 @@ export default function ScrollToTop() {
 }
 
 function App() {
+  const { pathname } = useLocation()
   const [player, setPlayer] = useState<PlayerDto | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [inventory, setInventory] = useState<InventoryItemDto[]>([])
@@ -266,8 +270,19 @@ function App() {
       }
       loadTakeAWalk()
     }
+    else if (["Mines", "Blackjack", "Ladder"].includes(player.idTheLastAction.type)) {
+      const routes = { Mines: "/Casino/Mines", Blackjack: "/Casino/Blackjack", Ladder: "/Casino/Ladder" } as const
+      const activeGameRoute = routes[player.idTheLastAction.type as keyof typeof routes]
+      if (!token || pathname === activeGameRoute) return
 
-  }, [player])
+      const loadCasinoSession = async () => {
+        await theLastAction(token, player.id)
+        navigate(activeGameRoute, { replace: true })
+      }
+      loadCasinoSession().catch(() => undefined)
+    }
+
+  }, [player, pathname, token, navigate])
   return (
     <>
       <Theme>
@@ -288,6 +303,9 @@ function App() {
               <Route path="Shop" element={<Shop token={token} player={player} inventory={inventory} onPlayer={setPlayer} onInventory={setInventory} />} />
               <Route path="Exchange" element={<Exchange token={token} player={player} tradeState={tradeState} inventory={inventory} />} />
               <Route path="AdminPanel" element={<Admin token={token} player={player} onPlayer={setPlayer} />} />
+              <Route path="Casino/Mines" element={<MinesGame token={token} player={player} onPlayer={setPlayer} />} />
+              <Route path="Casino/Blackjack" element={<BlackjackGame token={token} player={player} onPlayer={setPlayer} />} />
+              <Route path="Casino/Ladder" element={<LadderGame token={token} player={player} onPlayer={setPlayer} />} />
             </Route>
             <Route path="/TakeAWalk" element={<TakeAWalk token={token} player={player} onPlayer={setPlayer} onInventory={setInventory} locationState={locationState} onError={setError} error={error} onState={setState} state={state} />} />
             <Route path="/Fight" element={<Fight token={token} player={player} locationState={locationState} pvpState={pvpState} />} />

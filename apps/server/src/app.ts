@@ -45,6 +45,7 @@ import { nowGameTime } from "./time.js";
 import { receivingTheLastAction } from "./theLastAction.js";
 import { dailyActivities } from "./dailyActivities.js";
 import { createShopRoutes } from "./shop.js";
+import { createCasinoRoutes } from "./casino.js";
 
 export function createApp(): express.Express {
   initializeDatabase();
@@ -98,6 +99,8 @@ export function createApp(): express.Express {
   createAddFriend(app)
   app.use("/theLastAction",requireAuth)
   receivingTheLastAction(app)
+  app.use("/casino", requireAuth)
+  createCasinoRoutes(app)
   app.get("/health", (_req, res) => {
     res.json({ ok: true });
   })

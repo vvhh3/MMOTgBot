@@ -15,6 +15,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@block52/deck": "^1.0.0",
     "@mmobot/shared": "file:../../packages/shared",
     "@tma.js/init-data-node": "^2.0.8",
     "better-sqlite3": "^12.2.0",

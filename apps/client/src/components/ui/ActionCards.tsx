@@ -3,6 +3,9 @@ import WalkCard from "../../actionLocation/WalkCard";
 import MoneyCard from "../../actionLocation/MoneyCard";
 import FightCard from "../../actionLocation/FightCard";
 import ShopCard from "../../actionLocation/ShopCard";
+import MinesCard from "../../actionLocation/MinesCard";
+import BlackjackCard from "../../actionLocation/BlackjackCard";
+import LadderCard from "../../actionLocation/LadderCard";
 import { LocationDto, LocationStateResponse, PlayerDto ,CombatStateResponse} from "@mmobot/shared";
 import { TypeModal } from "./Modal/Modal";
 const cards = {
@@ -11,6 +14,9 @@ const cards = {
   money: MoneyCard,
   walk: WalkCard,
   shop: ShopCard,
+  mines: MinesCard,
+  blackjack: BlackjackCard,
+  ladder: LadderCard,
 };
 type CardProps = {
   token: string| null

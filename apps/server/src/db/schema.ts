@@ -1,7 +1,7 @@
 import { index, integer, real, sqliteTable, text, uniqueIndex ,check} from "drizzle-orm/sqlite-core";
 import { nowGameTime } from "../time.js";
 // TradeItem — тип одного пункта выкладки в трейде (из общего пакета)
-import type { LastAction, TradeItem,Cooldowns } from "@mmobot/shared";
+import type { LastAction, TradeItem,Cooldowns, CasinoGameType } from "@mmobot/shared";
 import { sql } from "drizzle-orm";
 
 // Локации игрового мира: уникальный id (текстовый ключ) + название, описание и координаты x/y на карте.
@@ -240,6 +240,22 @@ export const pvpSessions = sqliteTable("pvp_sessions", {
   index("pvp_player2_idx").on(table.player2Id),
 ])
 
+export const casinoSessions = sqliteTable("casino_sessions", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  playerId: integer("player_id").notNull().references(() => players.id, { onDelete: "cascade" }),
+  game: text("game", { enum: ["mines", "blackjack", "ladder"] as const }).$type<CasinoGameType>().notNull(),
+  status: text("status", { enum: ["active", "won", "lost"] as const }).notNull().default("active"),
+  bet: integer("bet").notNull(),
+  multiplier: real("multiplier").notNull().default(1),
+  potentialPayout: integer("potential_payout").notNull().default(0),
+  state: text("state", { mode: "json" }).$type<Record<string, unknown>>().notNull(),
+  createdAt: text("created_at").notNull(),
+  finishedAt: text("finished_at"),
+}, (table) => [
+  index("casino_sessions_player_idx").on(table.playerId),
+  index("casino_sessions_player_status_idx").on(table.playerId, table.status),
+])
+
 
 // Типы строк таблиц (выводятся drizzle из схемы). $inferSelect — тип одной записи из SELECT.
 // EventRow дополнительно включает playerName — имя игрока, подтянутое через join.
@@ -260,3 +276,4 @@ export type PlayerQuestsRow = typeof playerQuests.$inferSelect
 export type TradeRow = typeof trades.$inferSelect
 export type PvpSessionRow = typeof pvpSessions.$inferSelect
 export type FriendshipRow = typeof friendships.$inferSelect
+export type CasinoSessionRow = typeof casinoSessions.$inferSelect

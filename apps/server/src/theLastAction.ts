@@ -4,11 +4,13 @@ import { db } from "./db.js";
 import { eq, sql, and, or, lt } from "drizzle-orm"
 import { addXpForPlayer } from "./level.js";
 import { nowGameTime, nowGameTimeMs } from "./time.js";
+import type { AuthedRequest } from "./auth.js";
+import { getCasinoSessionForPlayer } from "./casino.js";
 
 
 export const receivingTheLastAction =(app: Express) => {
     app.post("/theLastAction", (req: Request, res: Response) => {
-            const id = Number(req.body.id);
+            const id = (req as AuthedRequest).player.id;
             const player1 = db.select().from(players).where(eq(players.id,id)).get()
             if(player1?.idTheLastAction !=null){
                 if(player1?.idTheLastAction?.type=="Fight"){
@@ -123,6 +125,14 @@ export const receivingTheLastAction =(app: Express) => {
                             res.json({info})
                         }
                     }
+                }
+                else if (["Mines", "Blackjack", "Ladder"].includes(player1.idTheLastAction.type)) {
+                    const info = getCasinoSessionForPlayer(player1.id, player1.idTheLastAction.id);
+                    if (!info || info.status !== "active") {
+                        db.update(players).set({ idTheLastAction: null }).where(eq(players.id, player1.id)).run();
+                        return res.status(404).json({ error: "Активная игра не найдена" });
+                    }
+                    return res.json({ info });
                 }
             }
             
