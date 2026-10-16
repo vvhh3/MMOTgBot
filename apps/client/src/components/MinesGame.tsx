@@ -12,6 +12,7 @@ export default function MinesGame({ token, player, onPlayer }: Props) {
   useEffect(() => { if (token) getCasinoSession(token).then((s) => { if (s.game === "mines") setSession(s); }).catch(() => undefined); }, [token]);
   const run = async (work: () => Promise<CasinoSessionResponse>) => { setLoading(true); setError(""); try { const next = await work(); setSession(next); onPlayer(next.player); } catch (e) { setError(e instanceof Error ? e.message : "Ошибка"); } finally { setLoading(false); } };
   const opened = new Set(session?.mines?.revealed ?? []);
+  const revealedBombs = session?.status !== "active" ? session?.mines?.bombCells : undefined;
   const validBet = Number.isInteger(bet) && bet > 0 && bet <= (player?.money ?? 0);
   return(
   <div className="flex h-full min-h-0 w-full items-start justify-center overflow-x-hidden overflow-y-auto bg-cover bg-center px-2 py-2 sm:items-center sm:px-3" style={{backgroundImage: `url(${getLocationImage("market-fight.svg")})`}}>
@@ -23,8 +24,10 @@ export default function MinesGame({ token, player, onPlayer }: Props) {
             <Text className="min-w-0 whitespace-nowrap" weight="bold">Забрать: {session?.potentialPayout ?? 0}</Text>
           </div>
           <div className="mx-auto grid w-full max-w-[34rem] grid-cols-5 gap-1.5 sm:gap-2">{Array.from({ length: 25 }, (_, cell) => {
-            const exploded = session?.mines?.explodedCell === cell; const isOpen = opened.has(cell);
-            return <button key={cell} aria-label={`Клетка ${cell + 1}`} disabled={!session || loading || session.status !== "active" || isOpen} onClick={() => run(() => revealMineCell(token!, cell))} className={`aspect-square rounded-lg border-2 text-lg font-bold transition-colors sm:text-xl ${exploded ? "border-red-500 bg-red-950/70 text-red-300" : isOpen ? "border-green-500 bg-green-950/70 text-green-300" : "border-[#76678e] bg-[#3b304f] text-[#ffb545] hover:border-[#ffb545] hover:bg-[#46385d] disabled:cursor-default"}`}>{exploded ? "✹" : isOpen ? "✓" : "✦"}</button>;
+            const exploded = session?.mines?.explodedCell === cell;
+            const isBomb = exploded || (revealedBombs?.includes(cell) ?? false);
+            const isSafe = !isBomb && (opened.has(cell) || revealedBombs !== undefined);
+            return <button key={cell} aria-label={`Клетка ${cell + 1}: ${isBomb ? "бомба" : isSafe ? "безопасно" : "закрыта"}`} disabled={!session || loading || session.status !== "active" || opened.has(cell)} onClick={() => run(() => revealMineCell(token!, cell))} className={`aspect-square rounded-lg border-2 text-lg font-bold transition-colors sm:text-xl ${exploded ? "ring-2 ring-red-400" : ""} ${isBomb ? "border-red-500 bg-red-950/70 text-red-300" : isSafe ? "border-green-500 bg-green-950/70 text-green-300" : "border-[#76678e] bg-[#3b304f] text-[#ffb545] hover:border-[#ffb545] hover:bg-[#46385d] disabled:cursor-default"}`}>{isBomb ? "✹" : isSafe ? "✓" : "✦"}</button>;
           })}</div>
       </section>
 

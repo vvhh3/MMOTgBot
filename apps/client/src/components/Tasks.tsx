@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Tabs, Text, Box, Grid, Card, Progress, Flex, Button } from "@radix-ui/themes";
-import type { PlayerDto, PlayerQuestDto, QuestsDifficulty } from "@mmobot/shared";
+import type { PlayerDto, PlayerQuestDto, QuestsDifficulty, QuestsObjectiveType } from "@mmobot/shared";
 import { claimQuest, getDailyQuests } from "../api";
 
 const DIFFICULTY_LABEL: Record<QuestsDifficulty, string> = {
@@ -9,11 +9,13 @@ const DIFFICULTY_LABEL: Record<QuestsDifficulty, string> = {
   hard: "Тяжёлый"
 };
 
-const OBJECTIVE_LABEL: Record<string, string> = {
+const OBJECTIVE_LABEL: Record<QuestsObjectiveType, string> = {
   kill: "убийств",
   walk: "прогулок",
   collect: "предметов",
-  visit: "посещений"
+  visit: "посещений",
+  loot: "трофеев с монстров",
+  casino_win: "монет прибыли"
 };
 
 type TasksProps = {
@@ -65,9 +67,9 @@ export default function Tasks({ token, onPlayer }: TasksProps) {
           <Text as="div" color="gray" size="2">
             {quest.quest.description}
           </Text>
-          <div className="flex flex-row justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <Text as="div" color="gray" size="1">
-              {OBJECTIVE_LABEL[quest.quest.objectiveType]} {quest.progress}/{quest.quest.targetCount} · +{quest.quest.targetXp} опыта · +{quest.quest.targetPoints} очков
+              {OBJECTIVE_LABEL[quest.quest.objectiveType]} {quest.progress}/{quest.quest.targetCount} · +{quest.quest.targetXp} опыта · +{quest.quest.targetPoints} очков · +{quest.quest.targetCoins} монет
             </Text>
             {completed && (
               <Button size="1" color="orange" onClick={() => onClaim(quest.id)}>

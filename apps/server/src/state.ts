@@ -46,7 +46,7 @@ export function buildLocationState(locationId: string): LocationStateResponse | 
     return {
         location: toLocationDto(location),
         players: getPlayersInLocation(locationId),
-        actions: [...actions],
+        actions: actions.filter((action) => location.actions.includes(action.id)),
         mobs: aliveMobs.map(toMobDto),
         recentEvents: recentEvents.map(toEventDto),
         serverTime: nowGameTime()

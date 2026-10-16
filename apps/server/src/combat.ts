@@ -186,6 +186,8 @@ function endCombatSession(status: "victory" | "defeat" | "fled", player: PlayerR
                     set: { quantity: sql`${inventoryItems.quantity} + 1`, acquiredAt: now }
                 })
                 .run();
+            progressQuests(player.id, "collect", item);
+            progressQuests(player.id, "loot", item);
         }
 
         addXpForPlayer(player.id, mob.pointsReward) // добавить опыт

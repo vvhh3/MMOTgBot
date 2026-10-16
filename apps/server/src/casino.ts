@@ -7,6 +7,7 @@ import type { AuthedRequest } from "./auth.js";
 import { db, toPlayerDto } from "./db.js";
 import { casinoSessions, players, type CasinoSessionRow } from "./db/schema.js";
 import { nowGameTime } from "./time.js";
+import { progressQuests } from "./quests.js";
 
 const CITY_PARK_ID = "market";
 const HOUSE_FACTOR = 0.95;
@@ -87,7 +88,12 @@ function publicSession(session: CasinoSessionRow): CasinoSessionResponse {
   };
   if (session.game === "mines") {
     const state = session.state as MinesState;
-    base.mines = { mineCount: state.mines.length, revealed: state.revealed, explodedCell: state.explodedCell };
+    base.mines = {
+      mineCount: state.mines.length,
+      revealed: state.revealed,
+      explodedCell: state.explodedCell,
+      bombCells: session.status !== "active" ? state.mines : undefined,
+    };
   } else if (session.game === "blackjack") {
     const state = session.state as BlackjackState;
     const finished = session.status !== "active";
@@ -106,6 +112,9 @@ function publicSession(session: CasinoSessionRow): CasinoSessionResponse {
       bombCount: state.bombCount ?? 2,
       revealedSafeCells: state.choices.slice(0, session.status === "active" ? state.choices.length : undefined),
       failedCell: state.failedCell,
+      bombCells: session.status !== "active"
+        ? state.bombCells ?? state.safeCells?.map((safeCell) => [0, 1, 2].filter((cell) => cell !== safeCell))
+        : undefined,
     };
   }
   return base;
@@ -134,6 +143,11 @@ function finishSession(session: CasinoSessionRow, status: "won" | "lost", payout
       money: payout > 0 ? sql`${players.money} + ${payout}` : players.money,
       idTheLastAction: null,
     }).where(eq(players.id, session.playerId)).run();
+    // Возврат ставки (в том числе ничья) не является заработком.
+    const profit = payout - session.bet;
+    if (status === "won" && profit > 0) {
+      progressQuests(session.playerId, "casino_win", session.game, profit);
+    }
   });
   return finished;
 }

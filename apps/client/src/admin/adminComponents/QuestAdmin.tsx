@@ -27,7 +27,8 @@ const emptyQuest: QuestsDto = {
     targetId: null,
     targetCount: 1,
     targetXp: 0,
-    targetPoints: 0
+    targetPoints: 0,
+    targetCoins: 0
 }
 
 const DIFFICULTY_LABEL: Record<QuestsDto["difficulty"], string> = {
@@ -39,8 +40,23 @@ const DIFFICULTY_LABEL: Record<QuestsDto["difficulty"], string> = {
 const OBJECTIVE_LABEL: Record<QuestsDto["objectiveType"], string> = {
     kill: "Убийства",
     walk: "Прогулки",
-    collect: "Предметы",
-    visit: "Посещения"
+    collect: "Предметы с прогулок и боёв",
+    visit: "Посещения",
+    loot: "Добыча предметов с монстров",
+    casino_win: "Прибыль в казино"
+}
+
+const TARGET_HINT: Record<QuestsDto["objectiveType"], string> = {
+    kill: "ID моба, например 0 — крыса",
+    walk: "ID локации, например square — Площадь",
+    collect: "ID предмета, например 1 — ржавый нож",
+    visit: "ID локации, например market — Сити парк",
+    loot: "ID предмета, например 3 — малая аптечка",
+    casino_win: "Игра казино"
+}
+
+const CASINO_LABEL: Record<string, string> = {
+    mines: "Мины", blackjack: "21", ladder: "Лестница"
 }
 
 type NumberFieldProps = {
@@ -58,6 +74,7 @@ const NumberField = ({ label, value, min, onChange }: NumberFieldProps) => (
         <TextField.Root
             type="number"
             min={min}
+            step={1}
             value={value}
             onChange={(e) => onChange(Number(e.target.value))}
         />
@@ -185,7 +202,7 @@ export const QuestAdmin = ({ token }: QuestAdminProps) => {
                             </Text>
                             <Select.Root
                                 value={draft.objectiveType}
-                                onValueChange={(value) => setDraft({ ...draft, objectiveType: value as QuestsDto["objectiveType"] })}>
+                                onValueChange={(value) => setDraft({ ...draft, objectiveType: value as QuestsDto["objectiveType"], targetId: null })}>
                                 <Select.Trigger placeholder="Выберите тип задания" style={{ width: "100%" }} />
                                 <Select.Content>
                                     {(Object.keys(OBJECTIVE_LABEL) as Array<QuestsDto["objectiveType"]>).map((t) => (
@@ -197,18 +214,36 @@ export const QuestAdmin = ({ token }: QuestAdminProps) => {
 
                         <label>
                             <Text as="div" size="1" mb="1" color="gray">
-                                Цель (id моба / предмета / локации, пусто = любая)
+                                {TARGET_HINT[draft.objectiveType]} (пусто = любая)
                             </Text>
-                            <TextField.Root
-                                type={draft.objectiveType === "walk" ? undefined : "text"}
-                                placeholder={draft.objectiveType === "kill" ? "Например: rat" : draft.objectiveType === "visit" || draft.objectiveType === "collect" ? "Например: 1" : "не требуется"}
-                                disabled={draft.objectiveType === "walk"}
-                                value={draft.targetId ?? ""}
-                                onChange={(e) => setDraft({ ...draft, targetId: e.target.value })}
-                            />
+                            {draft.objectiveType === "casino_win" ? (
+                                <Select.Root value={draft.targetId ?? "any"}
+                                    onValueChange={(value) => setDraft({ ...draft, targetId: value === "any" ? null : value })}>
+                                    <Select.Trigger style={{ width: "100%" }} />
+                                    <Select.Content>
+                                        <Select.Item value="any">Любая игра</Select.Item>
+                                        {Object.entries(CASINO_LABEL).map(([id, label]) => (
+                                            <Select.Item key={id} value={id}>{label}</Select.Item>
+                                        ))}
+                                    </Select.Content>
+                                </Select.Root>
+                            ) : (
+                                <TextField.Root
+                                    placeholder={TARGET_HINT[draft.objectiveType]}
+                                    value={draft.targetId ?? ""}
+                                    onChange={(e) => setDraft({ ...draft, targetId: e.target.value })}
+                                />
+                            )}
                         </label>
 
-                        <NumberField label="Количество для выполнения" min={1} value={draft.targetCount}
+                        {draft.objectiveType === "casino_win" && (
+                            <Text size="1" color="gray">Суммируется прибыль выигрышных раундов: выплата минус ставка. Ничьи и проигрыши не дают прогресс.</Text>
+                        )}
+                        {draft.objectiveType === "loot" && (
+                            <Text size="1" color="gray">Засчитываются только предметы, выпавшие после победы над монстром. Предметы остаются в инвентаре.</Text>
+                        )}
+
+                        <NumberField label={draft.objectiveType === "casino_win" ? "Накопить прибыль (монет)" : "Количество для выполнения"} min={1} value={draft.targetCount}
                             onChange={(v) => setDraft({ ...draft, targetCount: v })} />
 
                         <NumberField label="Награда: опыт" min={0} value={draft.targetXp}
@@ -216,6 +251,9 @@ export const QuestAdmin = ({ token }: QuestAdminProps) => {
 
                         <NumberField label="Награда: очки" min={0} value={draft.targetPoints}
                             onChange={(v) => setDraft({ ...draft, targetPoints: v })} />
+
+                        <NumberField label="Награда: монеты" min={0} value={draft.targetCoins}
+                            onChange={(v) => setDraft({ ...draft, targetCoins: v })} />
                     </Grid>
 
                     <Flex gap="3" justify="end">
@@ -244,13 +282,14 @@ export const QuestAdmin = ({ token }: QuestAdminProps) => {
                             <Table.ColumnHeaderCell justify="center">Кол-во</Table.ColumnHeaderCell>
                             <Table.ColumnHeaderCell justify="center">Опыт</Table.ColumnHeaderCell>
                             <Table.ColumnHeaderCell justify="center">Очки</Table.ColumnHeaderCell>
+                            <Table.ColumnHeaderCell justify="center">Монеты</Table.ColumnHeaderCell>
                             <Table.ColumnHeaderCell justify="end"></Table.ColumnHeaderCell>
                         </Table.Row>
                     </Table.Header>
                     <Table.Body>
                         {quests.length === 0 && (
                             <Table.Row>
-                                <Table.Cell colSpan={10}>
+                                <Table.Cell colSpan={11}>
                                     <Text color="gray">квестов пока нет</Text>
                                 </Table.Cell>
                             </Table.Row>
@@ -266,6 +305,7 @@ export const QuestAdmin = ({ token }: QuestAdminProps) => {
                                 <Table.Cell justify="center">{quest.targetCount}</Table.Cell>
                                 <Table.Cell justify="center">{quest.targetXp}</Table.Cell>
                                 <Table.Cell justify="center">{quest.targetPoints}</Table.Cell>
+                                <Table.Cell justify="center">{quest.targetCoins}</Table.Cell>
                                 <Table.Cell justify="end">
                                     <Flex gap="2" justify="end">
                                         <Button size="1" variant="soft" onClick={() => {

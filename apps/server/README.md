@@ -73,6 +73,7 @@
 - `npm run dev:bot` — запуск Telegram-бота в режиме разработки
 - `npm run build` / `npm start` — сборка и запуск из `dist/`
 - `npm run typecheck` — проверка типов
+- `npm test` — сборка сервера и тесты квестов/наград/казино на временной базе без отправки уведомлений Telegram
 - `npm run db:generate --workspace @mmobot/server` — создать миграцию
 - `npm run db:migrate --workspace @mmobot/server` — применить миграции
 - `npm run db:studio --workspace @mmobot/server` — открыть Drizzle Studio

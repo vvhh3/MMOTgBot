@@ -514,7 +514,7 @@ export function createApp(): express.Express {
       }
 
       if (body.actionId === "walk") {
-        progressQuests(player.id, "walk")
+        progressQuests(player.id, "walk", location.id)
       }
 
       tx.update(players)

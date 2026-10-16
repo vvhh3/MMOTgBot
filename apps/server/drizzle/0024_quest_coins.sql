@@ -1,0 +1,1 @@
+ALTER TABLE `quests` ADD `target_coins` integer DEFAULT 0 NOT NULL;

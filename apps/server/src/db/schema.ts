@@ -155,19 +155,21 @@ export const events = sqliteTable("events",
 
 // Каталог квестов. difficulty — сложность: easy (лёгкий) | medium (средний) | hard (тяжёлый).
 // objectiveType — какое действие засчитывается (kill — убить моба, walk — прогуляться,
-// collect — собрать предмет, visit — посетить локацию).
-// targetId — конкретная цель (id моба/предмета/локации), NULL — любой объект.
-// targetCount — сколько раз нужно выполнить действие. targetXp/targetPoints — награда.
+// collect — найти предмет на прогулке или в бою, loot — получить предмет за победу над мобом,
+// visit — посетить локацию, casino_win — накопить прибыль в выигрышных раундах казино).
+// targetId — id моба/предмета/локации либо mines/blackjack/ladder, NULL — любая цель.
+// targetCount — количество действий/предметов или монет прибыли для casino_win.
 export const quests = sqliteTable("quests", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   title: text("title").notNull(),
   description: text("description").notNull(),
   difficulty: text("difficulty", { enum: ["easy", "medium", "hard"] as const }).notNull(),
-  objectiveType: text("objective_type", { enum: ["kill", "walk", "collect", "visit"] as const }).notNull(),
+  objectiveType: text("objective_type", { enum: ["kill", "walk", "collect", "visit", "loot", "casino_win"] as const }).notNull(),
   targetId: text("target_id"), // id цели: моба/предмета/локации, NULL = любой
   targetCount: integer("target_count").notNull(), // сколько раз нужно выполнить действие
   targetXp: integer("target_xp").notNull().default(0), // награда: опыт
   targetPoints: integer("target_points").notNull().default(0), // награда: очки
+  targetCoins: integer("target_coins").notNull().default(0), // награда: монеты
 }, (table) => [index("quests_diffcluty_idx").on(table.difficulty)])
 
 // Выданные игроку квесты. assignedDay — дата выдачи ("2026-08-20").

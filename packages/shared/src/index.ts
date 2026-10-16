@@ -240,7 +240,7 @@ export type LeaderBoardResponse = {
 
 export type QuestsDifficulty = "easy" | "medium" | "hard"
 export type QuestsStatus = "waiting" | "completed" | "claimed"
-export type QuestsObjectiveType = "kill" | "walk" | "collect" | "visit"
+export type QuestsObjectiveType = "kill" | "walk" | "collect" | "visit" | "loot" | "casino_win"
 
 
 export type QuestsDto = {
@@ -253,6 +253,7 @@ export type QuestsDto = {
   targetCount: number
   targetXp: number
   targetPoints: number
+  targetCoins: number
 }
 export type PlayerQuestDto = {
   id: number
@@ -287,9 +288,9 @@ export type CasinoSessionResponse = {
   multiplier: number
   potentialPayout: number
   player: PlayerDto
-  mines?: { mineCount: number; revealed: number[]; explodedCell?: number }
+  mines?: { mineCount: number; revealed: number[]; explodedCell?: number; bombCells?: number[] }
   blackjack?: { playerCards: PlayingCardDto[]; dealerCards: Array<PlayingCardDto | null>; playerTotal: number; dealerTotal?: number; result?: string }
-  ladder?: { level: number; maxLevels: number; bombCount: 1 | 2; revealedSafeCells: number[]; failedCell?: number }
+  ladder?: { level: number; maxLevels: number; bombCount: 1 | 2; revealedSafeCells: number[]; failedCell?: number; bombCells?: number[][] }
 }
 
 // Что видит игрок в окне трейда: свою выкладку и выкладку партнёра
