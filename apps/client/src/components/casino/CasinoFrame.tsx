@@ -24,6 +24,7 @@ export default function CasinoFrame({ title, subtitle, money, error, children }:
   </main>;
 }
 
+
 export function BetInput({ value, max, onChange }: { value: number; max: number; onChange: (value: number) => void }) {
   return <label className="flex flex-col gap-2">
     <Text size="2" weight="bold">Ставка в монетах</Text>
