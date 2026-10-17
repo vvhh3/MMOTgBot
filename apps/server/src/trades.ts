@@ -30,7 +30,8 @@
 //   cancelled — кто-то отменил / протухло по таймауту
 
 import type {AuthedRequest } from "./auth.js";
-import { db } from "./db.js";
+import { db, toInventoryItemDto } from "./db.js";
+import { assertOutsideCombat, grantItems, resolveInventoryItem, type InventoryDatabase } from "./inventoryStore.js";
 import { inventoryItems, players, trades } from "./db/schema.js";
 import type { TradeRow } from "./db/schema.js";
 import { nowGameTime, nowGameTimeMs } from "./time.js";
@@ -87,67 +88,54 @@ function notifyBoth(trade: TradeRow): void {
   emitToPlayer(trade.toPlayerId, "tradeUpdate", buildTradeState(trade, trade.toPlayerId));
 }
 
-// Проверяет формат выкладки из запроса: массив объектов {itemType, quantity},
-// где оба поля — целые числа, а количество строго больше нуля.
-// Защита от NaN, строк, отрицательных чисел и дублей-мусора из JSON.
 function isValidOffer(offer: unknown): offer is TradeItem[] {
-  if (!Array.isArray(offer)) return false;
-  return offer.every((e) =>
-    Number.isInteger(e?.itemType) && Number.isInteger(e?.quantity) && e.quantity > 0
+  return Array.isArray(offer) && offer.length <= 100 && offer.every((entry) =>
+    Number.isSafeInteger(entry?.itemType) && entry.itemType > 0 &&
+    Number.isSafeInteger(entry?.quantity) && entry.quantity > 0 &&
+    (entry.inventoryItemId === undefined || (Number.isSafeInteger(entry.inventoryItemId) && entry.inventoryItemId > 0))
   );
 }
 
-// Списывает предметы у игрока. Вызывается ТОЛЬКО внутри транзакции (tx),
-// поэтому при ошибке всё исполнение откатывается целиком.
-//
-// Если какого-то предмета не хватает — бросаем ошибку. Транзакция откатится,
-// а роут /ready поймает её и вернёт игрокам понятное сообщение.
-function withdrawItems(
-  tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
-  playerId: number,
-  entries: TradeItem[]
-): void {
-  for (const entry of entries) {
-    // ищем стек предмета в инвентаре (у игрока максимум один стек на тип предмета)
-    const row = tx.select().from(inventoryItems)
-      .where(and(eq(inventoryItems.playerId, playerId), eq(inventoryItems.itemType, entry.itemType)))
-      .get();
-
-    // предмета нет или количества не хватает — обмен невозможен
-    if (!row || row.quantity < entry.quantity) {
-      throw new Error("Недостаточно предметов для обмена");
-    }
-
-    if (row.quantity - entry.quantity <= 0) {
-      // стек исчерпан — удаляем запись целиком
-      tx.delete(inventoryItems).where(eq(inventoryItems.id, row.id)).run();
-    } else {
-      // просто уменьшаем количество
-      tx.update(inventoryItems)
-        .set({ quantity: sql`${inventoryItems.quantity} - ${entry.quantity}` })
-        .where(eq(inventoryItems.id, row.id))
-        .run();
-    }
-  }
+function readOffer(tx: InventoryDatabase, playerId: number, entries: TradeItem[]) {
+  assertOutsideCombat(tx, playerId);
+  const seen = new Set<number>();
+  return entries.map((entry) => {
+    const row = resolveInventoryItem(tx, playerId, entry);
+    if (seen.has(row.id)) throw new Error("Предмет повторяется в выкладке");
+    seen.add(row.id);
+    if (row.equiped) throw new Error("Сначала снимите экипированный предмет");
+    if (row.quantity < entry.quantity) throw new Error("Недостаточно предметов для обмена");
+    const offer: TradeItem = row.weaponLevel === null
+      ? { itemType: row.itemType, quantity: entry.quantity }
+      : { itemType: row.itemType, quantity: 1, inventoryItemId: row.id, weaponLevel: row.weaponLevel };
+    return { row, offer };
+  });
 }
 
-// Кладёт предметы игроку. Тоже только внутри транзакции.
-// Работает как лут с мобов: если такой предмет уже есть — растёт quantity,
-// если нет — создаётся новый стек.
-function depositItems(
-  tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
-  playerId: number,
-  entries: TradeItem[],
-  at: string
-): void {
-  for (const entry of entries) {
-    tx.insert(inventoryItems)
-      .values({ playerId, itemType: entry.itemType, quantity: entry.quantity, acquiredAt: at })
-      .onConflictDoUpdate({
-        target: [inventoryItems.playerId, inventoryItems.itemType],
-        set: { quantity: sql`${inventoryItems.quantity} + ${entry.quantity}`, acquiredAt: at }
-      })
-      .run();
+function exchangeItems(tx: InventoryDatabase, trade: TradeRow): void {
+  // Проверяем обе стороны до первой передачи: полученный предмет нельзя тут же
+  // выдать за предмет второй стороны. Уровни сверяем с подтверждённой выкладкой.
+  const sides = [
+    { recipient: trade.toPlayerId, entries: trade.fromOffer, records: readOffer(tx, trade.fromPlayerId, trade.fromOffer) },
+    { recipient: trade.fromPlayerId, entries: trade.toOffer, records: readOffer(tx, trade.toPlayerId, trade.toOffer) },
+  ];
+  for (const side of sides) {
+    for (const [index, { row, offer }] of side.records.entries()) {
+      if (row.weaponLevel !== null && side.entries[index].weaponLevel !== row.weaponLevel) throw new Error("Уровень оружия изменился. Выложите предмет заново");
+      if (row.weaponLevel !== null) {
+        tx.update(inventoryItems).set({ playerId: side.recipient, equiped: false, acquiredAt: nowGameTime() })
+          .where(eq(inventoryItems.id, row.id)).run();
+      } else if (row.quantity === offer.quantity) {
+        tx.delete(inventoryItems).where(eq(inventoryItems.id, row.id)).run();
+      } else {
+        tx.update(inventoryItems).set({ quantity: row.quantity - offer.quantity }).where(eq(inventoryItems.id, row.id)).run();
+      }
+    }
+  }
+  for (const side of sides) {
+    for (const { row, offer } of side.records) {
+      if (row.weaponLevel === null) grantItems(tx, side.recipient, row.itemType, offer.quantity);
+    }
   }
 }
 
@@ -304,7 +292,7 @@ export const createTradeRoutes = (app: Express) => {
   app.put("/trades/:id/offer", (req: Request, res: Response) => {
     const player = (req as AuthedRequest).player;
     // клиент присылает ПОЛНУЮ выкладку целиком — она заменяет старую
-    const offer = req.body?.items;
+    let offer = req.body?.items;
 
     const trade = db.select().from(trades).where(eq(trades.id, Number(req.params.id))).get();
     if (!trade || myRole(trade, player.id) === null) {
@@ -317,6 +305,13 @@ export const createTradeRoutes = (app: Express) => {
     }
     if (!isValidOffer(offer)) {
       res.status(400).json({ error: "items должен быть массивом {itemType, quantity}" });
+      return;
+    }
+
+    try {
+      offer = readOffer(db, player.id, offer).map(({ offer }) => offer);
+    } catch (error) {
+      res.status(400).json({ error: (error as Error).message });
       return;
     }
 
@@ -365,13 +360,7 @@ export const createTradeRoutes = (app: Express) => {
     if (updated.fromReady && updated.toReady) {
       try {
         db.transaction((tx) => {
-          // списываем предметы у обоих (бросит ошибку, если у кого-то не хватает)
-          withdrawItems(tx, trade.fromPlayerId, trade.fromOffer);
-          withdrawItems(tx, trade.toPlayerId, trade.toOffer);
-
-          // меняемся местами
-          depositItems(tx, trade.toPlayerId, trade.fromOffer, nowGameTime());
-          depositItems(tx, trade.fromPlayerId, trade.toOffer, nowGameTime());
+          exchangeItems(tx, trade);
 
           tx.update(trades).set({ status: "accepted" }).where(eq(trades.id, trade.id)).run();
         });
@@ -384,10 +373,7 @@ export const createTradeRoutes = (app: Express) => {
         // каждому участнику шлём свежий инвентарь (он изменился)
         for (const pid of [trade.fromPlayerId, trade.toPlayerId]) {
           const inv = db.select().from(inventoryItems).where(eq(inventoryItems.playerId, pid)).all();
-          emitToPlayer(pid, "inventory", inv.map((i) => ({
-            id: i.id, itemType: i.itemType, quantity: i.quantity,
-            acquiredAt: i.acquiredAt, equiped: i.equiped
-          })));
+          emitToPlayer(pid, "inventory", inv.map(toInventoryItemDto));
         }
 
         res.json({ ok: true, status: "accepted" })

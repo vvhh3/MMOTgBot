@@ -1,7 +1,6 @@
 import CenterModal from "./CenterModal";
-import { CombatStateResponse, ItemDto } from "@mmobot/shared"
-import { Button, Card, Progress, Text, Grid, Flex } from "@radix-ui/themes"
-import { useEffect } from "react";
+import { CombatStateResponse, RARITY_COLORS, RARITY_LABELS } from "@mmobot/shared"
+import { Button, Text, Flex } from "@radix-ui/themes"
 import { useNavigate } from "react-router-dom";
 type ResultFightProps={
     state:CombatStateResponse
@@ -9,7 +8,7 @@ type ResultFightProps={
 
 export default function CenterResultFight({state}:ResultFightProps){
     const navigate= useNavigate();
-    const lootItems = state.mob.loot.filter((lootItem): lootItem is ItemDto => typeof lootItem !== "number");
+    const lootItems = state.droppedItems;
 
     return(
         <CenterModal >
@@ -25,7 +24,7 @@ export default function CenterResultFight({state}:ResultFightProps){
                     <Text size="1" color="gray">
                         Ваша награда
                     </Text>
-                    <Flex direction="row" align='center' gap="2">
+                    <Flex direction="row" wrap="wrap" justify="center" align="center" gap="2">
                         <div className=" flex flex-col g-1 items-center">
                             <svg className="w-10 h-10"  fill="#ff7b00" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" stroke="#ff7b00"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <g data-name="2. Coin" id="_2._Coin"> <path d="M22,9h-.19A2.83,2.83,0,0,0,22,8V6a3,3,0,0,0-3-3H3A3,3,0,0,0,0,6V8a3,3,0,0,0,2.22,2.88A3,3,0,0,0,2,12v2a3,3,0,0,0,.22,1.12A3,3,0,0,0,0,18v2a3,3,0,0,0,2.22,2.88A3,3,0,0,0,2,24v2a3,3,0,0,0,3,3H22A10,10,0,0,0,22,9Zm-9.16,6H5a1,1,0,0,1-1-1V12a1,1,0,0,1,1-1H16A10,10,0,0,0,12.84,15ZM2,6A1,1,0,0,1,3,5H19a1,1,0,0,1,1,1V8a1,1,0,0,1-1,1H3A1,1,0,0,1,2,8ZM2,18a1,1,0,0,1,1-1h9.2a10.1,10.1,0,0,0,0,4H3a1,1,0,0,1-1-1Zm3,9a1,1,0,0,1-1-1V24a1,1,0,0,1,1-1h7.84A10,10,0,0,0,16,27Zm17,0a8,8,0,1,1,8-8A8,8,0,0,1,22,27Z"></path> <path d="M22,16h2a1,1,0,0,0,0-2H23a1,1,0,0,0-2,0v.18A3,3,0,0,0,22,20a1,1,0,0,1,0,2H20a1,1,0,0,0,0,2h1a1,1,0,0,0,2,0v-.18A3,3,0,0,0,22,18a1,1,0,0,1,0-2Z"></path> </g> </g></svg>        
                             {state.mob.coinReward}
@@ -35,11 +34,13 @@ export default function CenterResultFight({state}:ResultFightProps){
                             {state.mob.pointsReward} 
                         </div>
                         {lootItems.map((lootItem, index) =>
-                            <div key={`${lootItem.id}-${index}`} className="flex flex-col items-center ">
-                                <div className="w-10 h-10"dangerouslySetInnerHTML={{ __html: lootItem.icon }}/>
+                            <div key={`${lootItem.id}-${index}`} className="flex max-w-28 flex-col items-center text-center" title={RARITY_LABELS[lootItem.rarity]}>
+                                <div className="h-10 w-10 [&_svg]:h-full [&_svg]:w-full" style={{ color: RARITY_COLORS[lootItem.rarity] }} dangerouslySetInnerHTML={{ __html: lootItem.icon }}/>
+                                <Text size="1">{lootItem.name}</Text>
                             </div>
                         )}
                     </Flex>
+                    {lootItems.length === 0 && <Text size="1" color="gray">Предметы не выпали</Text>}
                 </>
                 : 
                 <></>}

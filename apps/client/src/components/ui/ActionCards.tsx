@@ -42,7 +42,7 @@ export default function ActionCards({setInfoMessages,token,player,onPlayer,locat
         }
 
         return (
-          <div key={action} className="h-23 w-full">
+          <div key={action} className="min-h-23 w-full md:max-h-24">
             <CardComponent setInfoMessages={setInfoMessages} setTypeShowIsModal={setTypeShowIsModal} location={location} onPlayer={onPlayer} onError={onError} onState={onState} showIsModal={showIsModal} setShowModal={setShowModal} token={token} locationState={locationState} player={player}/>
           </div>
         );

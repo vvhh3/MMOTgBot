@@ -1,4 +1,5 @@
-import { and, asc, desc, eq, inArray, like, ne, sql } from "drizzle-orm";
+import { grantItems } from "./inventoryStore.js";
+import { and, asc, desc, eq, like, ne, sql } from "drizzle-orm";
 import cors from "cors";
 import express from "express";
 import path from "node:path";
@@ -26,7 +27,7 @@ import type {
 import { createSessionToken, requireAdmin, requireAuth, validateTelegramInitData, type AuthedRequest } from "./auth.js";
 import { getCombatState, isMobAlive, moveCombatAction, startCombat, usePotion } from "./combat.js";
 import { config } from "./config.js";
-import { db, initializeDatabase, toEventDto, toInventoryItemDto, toLocationDto, toPlayerDto, toMobDto, toPlayerDtoEquipped, toItemDto } from "./db.js";
+import { db, initializeDatabase, toEventDto, toInventoryItemDto, toLocationDto, toPlayerDto, toMobDto, toPlayerDtoEquipped } from "./db.js";
 import { characterSkins, combatSessions, events, inventoryItems, locations, players, mobs, items } from "./db/schema.js";
 import { getPlayersInLocation, hydratePresenceFromDatabase, movePlayer } from "./presence.js";
 
@@ -46,6 +47,7 @@ import { receivingTheLastAction } from "./theLastAction.js";
 import { dailyActivities } from "./dailyActivities.js";
 import { createShopRoutes } from "./shop.js";
 import { createCasinoRoutes } from "./casino.js";
+import { canBypassLocationRestrictions, checkLocationAccess } from "./locationAccess.js";
 
 export function createApp(): express.Express {
   initializeDatabase();
@@ -391,9 +393,12 @@ export function createApp(): express.Express {
     res.json(response);
   });
 
-  app.get("/locations", requireAuth, (_req, res) => {
+  app.get("/locations", requireAuth, (req, res) => {
     const locationRows = db.select().from(locations).orderBy(asc(locations.name)).all();
-    const response: LocationsResponse = { locations: locationRows.map(toLocationDto) };
+    const response: LocationsResponse = {
+      locations: locationRows.map(toLocationDto),
+      canBypassRestrictions: canBypassLocationRestrictions((req as AuthedRequest).player),
+    };
     res.json(response);
   })
 
@@ -407,6 +412,7 @@ export function createApp(): express.Express {
       res.status(404).json({ error: "Location not found" });
       return;
     }
+    if (!checkLocationAccess((req as AuthedRequest).player, state.location, res)) return;
 
     res.json(state);
   });
@@ -418,6 +424,7 @@ export function createApp(): express.Express {
       res.status(404).json({ error: "Location not found" });
       return;
     }
+    if (!checkLocationAccess(player, location, res)) return;
 
     db.update(players)
       .set({ currentLocationId: location.id, lastSeenAt: nowGameTime() })
@@ -427,6 +434,9 @@ export function createApp(): express.Express {
     movePlayer(toPlayerDto(updatedPlayer), location.id);
 
     moveSocketToLocation(player.id, location.id)
+    if (player.currentLocationId && player.currentLocationId !== location.id) {
+      broadcastLocation(player.currentLocationId)
+    }
     broadcastLocation(location.id)
 
     progressQuests(player.id, "visit", location.id)
@@ -498,18 +508,13 @@ export function createApp(): express.Express {
       res.status(404).json({ error: "Location not found" });
       return;
     }
+    if (!checkLocationAccess(player, location, res)) return;
 
     const now = nowGameTime();
     db.transaction((tx) => {
       if (action.itemTypes.length > 0 && Math.random() < action.dropChance) { // Выдача предмета
         const itemType = action.itemTypes[Math.floor(Math.random() * action.itemTypes.length)];
-        tx.insert(inventoryItems)
-          .values({ playerId: player.id, itemType, quantity: 1, acquiredAt: now })
-          .onConflictDoUpdate({
-            target: [inventoryItems.playerId, inventoryItems.itemType],
-            set: { quantity: sql`${inventoryItems.quantity} + 1`, acquiredAt: now }
-          })
-          .run()
+        grantItems(tx, player.id, itemType, 1, now);
         progressQuests(player.id, "collect", itemType)
       }
 
@@ -611,6 +616,8 @@ export function createApp(): express.Express {
       res.status(409).json({ error: "Enter this location before fighting" });
       return;
     }
+    const location = db.select().from(locations).where(eq(locations.id, mob.locationId)).get()!;
+    if (!checkLocationAccess(player, location, res)) return;
 
     // 3. Нет ли уже активного боя? (уникальный индекс и так не даст дубль,
     //    но лучше вернуть понятную ошибку заранее)
@@ -686,22 +693,6 @@ export function createApp(): express.Express {
       return;
     }
 
-    const lootIds = state.mob.loot.filter((lootItem): lootItem is number => typeof lootItem === "number");
-    const lootItems = lootIds.length > 0
-      ? db.select().from(items).where(inArray(items.id, lootIds)).all()
-      : [];
-    const lootItemsById = new Map(lootItems.map((item) => [item.id, toItemDto(item)]));
-    const stateWithItems = {
-      ...state,
-      mob: {
-        ...state.mob,
-        loot: lootIds.flatMap((itemId) => {
-          const item = lootItemsById.get(itemId);
-          return item ? [item] : [];
-        })
-      }
-    } satisfies CombatActionResponse["state"];
-
     // 4. Перечитываем игрока и инвентарь из БД — они могли измениться после боя
     //    (лут, очки, HP), поэтому отдаём клиенту свежие данные.
     const updatedPlayer = db.select().from(players).where(eq(players.id, player.id)).get()!
@@ -712,13 +703,13 @@ export function createApp(): express.Express {
       .orderBy(desc(inventoryItems.acquiredAt))
       .all();
 
-    emitToPlayer(player.id, "combatState", stateWithItems)
+    emitToPlayer(player.id, "combatState", state)
     emitToPlayer(player.id, "player", toPlayerDto(updatedPlayer))
     emitToPlayer(player.id, "inventory", inventory.map(toInventoryItemDto))
     broadcastLocation(mob.locationId)
 
     res.json({
-      state: stateWithItems,
+      state,
       player: toPlayerDtoEquipped(updatedPlayer),
       inventory: inventory.map(toInventoryItemDto)
     } satisfies CombatActionResponse);

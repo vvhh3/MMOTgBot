@@ -1,9 +1,9 @@
 import { getCharacterImage, getSkins } from "../utils/skins";
 import { Button, Card, Progress, Text, Grid, Flex } from "@radix-ui/themes"
 import { Link, useNavigate } from "react-router-dom"
-import { CombatStateResponse, InventoryItemDto, PlayerDto,LocationDto,LocationStateResponse } from "@mmobot/shared"
-import { useEffect, useState } from "react"
-import { combatAction,getLocationState} from "../api"
+import { CombatStateResponse, InventoryItemDto, PlayerDto,LocationStateResponse } from "@mmobot/shared"
+import { useEffect } from "react"
+import { combatAction } from "../api"
 import { getLocationImage } from "../utils/getLocationImage"
 import Modal, { TypeModal } from "./ui/Modal/Modal"
 
@@ -20,21 +20,12 @@ type TakeAWalkProps = {
 }
 
 export default function TakeAWalk({ token, player,onPlayer,onInventory,locationState,onState,state,onError,error}: TakeAWalkProps) {
-    const [location,setLocation] = useState<LocationDto>()
+    const location = locationState?.location
 
     const navigate = useNavigate()
     useEffect(() => {
-        if(locationState){
-            setLocation(locationState.location)
-            return
-        }
-
-        if(!token || !player?.currentLocationId) return
-        getLocationState(token, player.currentLocationId)
-        .then((res) => {setLocation(res.location)})
-        .catch((error) => alert(error ?? "Ошибка"))
-
-    },[token,locationState,player?.currentLocationId])
+        if (!state) navigate("/", { replace: true })
+    }, [state, navigate])
 
     const actionCombat = async (action: "attack" | "flee") => {
         try {
@@ -51,9 +42,6 @@ export default function TakeAWalk({ token, player,onPlayer,onInventory,locationS
     const healthPercent = (health: number, maxHealth: number) =>
         maxHealth > 0 ? Math.max(0, Math.min(100, (health / maxHealth) * 100)) : 0;
     if (!state) {
-        useEffect(()=>{
-            navigate("/",{replace:true})
-        },[state])
         return (
             <div className="flex items-center justify-center h-screen">
                 <Text size="3">Нет активного боя</Text>

@@ -143,7 +143,7 @@ test("migration and catalog expansion preserve existing quests, progress, money 
   assert.equal(catalog.filter((q) => q.objectiveType === "casino_win").length, 4);
   const stick = db.select().from(items).where(eq(items.name, "Палка")).get();
   assert.ok(stick.id > 6);
-  assert.ok(db.select().from(mobs).where(eq(mobs.id, 0)).get().loot.includes(stick.id));
+  assert.ok(db.select().from(mobs).where(eq(mobs.id, 0)).get().loot.some((entry) => entry.itemType === stick.id));
   assert.deepEqual(db.select().from(locations).where(eq(locations.id, "market")).get().actions, ["mines", "blackjack", "ladder"]);
   const cityPark = buildLocationState("market");
   assert.deepEqual(cityPark.actions, []);
@@ -161,7 +161,7 @@ test("migration and catalog expansion preserve existing quests, progress, money 
   initializeDatabase();
   assert.deepEqual(db.select().from(quests).all(), catalog);
   assert.equal(db.select().from(items).where(eq(items.name, "Палка")).all().length, 1);
-  assert.equal(db.select().from(mobs).where(eq(mobs.id, 0)).get().loot.filter((id) => id === stick.id).length, 1);
+  assert.equal(db.select().from(mobs).where(eq(mobs.id, 0)).get().loot.filter((entry) => entry.itemType === stick.id).length, 1);
 });
 
 test("admin creates and edits coin rewards and can clear a specific target", () => {

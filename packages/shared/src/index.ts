@@ -50,6 +50,11 @@ export type SpendStatPointRequest = {
   [key in StatType]: number
 }
 
+export type MobLootEntry = {
+  itemType: number;
+  chancePercent: number; // 0..100, независимый шанс получить одну штуку
+};
+
 export type MobDto = { // описание мобов
   id: number
   name: string
@@ -58,7 +63,7 @@ export type MobDto = { // описание мобов
   maxHealth: number
   strength: number
   defense: number
-  loot: number[]
+  loot: MobLootEntry[]
   pointsReward: number
   coinReward: number
   locationId: string
@@ -82,7 +87,8 @@ export type CombatLogEntry = { // типо логирование
 }
 
 export type CombatStateResponse = { // описание боя 
-  mob: Omit<MobDto, "loot"> & { loot: Array<number | ItemDto> };
+  mob: MobDto;
+  droppedItems: ItemDto[]; // только фактически выданные предметы; пусто до победы
   playerHp: number;
   playerMaxHp: number;
   mobHp: number;
@@ -108,7 +114,10 @@ export type CombatActionResponse = {
 }
 
 
-export type ItemDto = {
+export * from "./weapons.js";
+import type { WeaponProperties } from "./weapons.js";
+
+export type ItemDto = WeaponProperties & {
   id: number
   name: string
   description: string
@@ -136,6 +145,7 @@ export type InventoryItemDto = {
   quantity: number
   acquiredAt: string
   equiped: boolean
+  weaponLevel: number | null
 }
 
 export type LocationDto = {
@@ -147,6 +157,22 @@ export type LocationDto = {
   homeImg:string;
   fightImg:string;
   actions: string[];
+  minLevel: number;
+  isOpen: boolean;
+}
+
+export type LocationAccess = "available" | "coming_soon" | "level_required";
+
+// Одинаковый порядок проверок для карты и сервера: разработка важнее уровня.
+export function getLocationAccess(
+  location: Pick<LocationDto, "isOpen" | "minLevel">,
+  playerLevel: number,
+  canBypassRestrictions = false,
+): LocationAccess {
+  if (canBypassRestrictions) return "available";
+  if (!location.isOpen) return "coming_soon";
+  if (playerLevel < location.minLevel) return "level_required";
+  return "available";
 }
 
 export type ActionDto = {
@@ -180,6 +206,7 @@ export type MeResponse = {
 
 export type LocationsResponse = {
   locations: LocationDto[];
+  canBypassRestrictions: boolean;
 }
 
 export type LocationStateResponse = {
@@ -266,6 +293,9 @@ export type PlayerQuestDto = {
 export type TradeItem = {
   itemType: number
   quantity: number
+  inventoryItemId?: number
+  // Снимок уровня заполняет сервер; клиент не может назначать уровень.
+  weaponLevel?: number
 }
 export type CasinoGameType = "mines" | "blackjack" | "ladder"
 type typeLastAction = "Fight" | "TakeAWalk" | "Trade" | "Mines" | "Blackjack" | "Ladder"

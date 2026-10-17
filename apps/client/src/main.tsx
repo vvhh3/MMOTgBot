@@ -1,19 +1,23 @@
-import { StrictMode, use, useEffect, useState } from "react"
+import { StrictMode, useEffect, useState } from "react"
 import { createRoot } from "react-dom/client"
 import "@radix-ui/themes/styles.css"
 import "./styles.css"
-import { BrowserRouter, Routes, Route, Link, useNavigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import type { CombatStateResponse, FriendsOverviewResponse, InventoryItemDto, LocationStateResponse, PlayerDto, PvpStateDto, TradeStateDto } from "@mmobot/shared";
 import Loading from './components/Loading'
-import { auth, getMe, getLocations, getPvpOverview, getTradesOverview, theLastAction } from "./api";
+import { auth, getMe, getPvpOverview, getTradesOverview, theLastAction } from "./api";
 import { getLocationImage } from "./utils/getLocationImage";
+import { preloadImage } from "./utils/preloadImage";
+import { useCurrentLocation } from "./hooks/useCurrentLocation";
+import { usePreloadedImage } from "./hooks/usePreloadedImage";
+import mapImage from "/mapMat.png";
 
 import { getTelegramInitData } from "./telegram";
 import { Theme } from "@radix-ui/themes";
 import MainLayout from "./components/MainLayout";
 import Profile from "./components/Profile";
 import Map from "./components/ui/Maps/Maps";
-import { connectSocket, getSocket } from "./socket";
+import { connectSocket } from "./socket";
 import Home from "./components/Home";
 import Tasks from "./components/Tasks";
 import Leaderboard from "./components/Leaderboard";
@@ -25,8 +29,6 @@ import Fight from "./components/Fight";
 import Exchange from "./components/Exchange"
 import Shop from "./components/Shop"
 import CharacterCreation from "./components/CharacterCreation";
-import { MobAdmin } from "./admin/adminComponents/MobAdmin";
-import { ItemAdmin } from "./admin/adminComponents/ItemAdmin";
 import Admin from "./admin/Admin";
 import { TypeModal } from "./components/ui/Modal/Modal";
 import MinesGame from "./components/MinesGame";
@@ -48,7 +50,8 @@ function App() {
   const [player, setPlayer] = useState<PlayerDto | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [inventory, setInventory] = useState<InventoryItemDto[]>([])
-  const [locationState, setLocationState] = useState<LocationStateResponse | null>(null)
+  const currentLocation = useCurrentLocation(token, player?.currentLocationId ?? null)
+  const { state: locationState, onState: setLocationState } = currentLocation
   const [combat, setCombat] = useState<CombatStateResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [friendsOverview, setFriendsOverview] = useState<FriendsOverviewResponse | null>(null)
@@ -57,60 +60,58 @@ function App() {
   const [showIsModal, setShowModal] = useState(false)
   const [typeShowIsModal, setTypeShowIsModal] = useState<TypeModal | null>(null)
   const [state, setState] = useState<CombatStateResponse>()
-  //Загрузилис ли все данные
+  // Session data, location data and the visible background must all be ready.
   const [ready, setReady] = useState(false)
+  const [startupError, setStartupError] = useState<string | null>(null)
+  const [startupAttempt, setStartupAttempt] = useState(0)
   const [loadingProgress, setLoadingProgress] = useState(0)
   const [infoMessages, setInfoMessages] = useState({ title: "", info: "" })
   const navigate = useNavigate()
+  const screenPath = pathname.toLowerCase().replace(/\/+$/, "") || "/"
 
-  const preloadImage = (url: string): Promise<void> => {
-    return new Promise((r) => {
-      const img = new Image()
-      img.onload = () => r()
-      img.onerror = () => r()
-      img.src = url
-    })
+  const backgroundUrl = !player?.isCreated || !currentLocation.ready ? null
+    : screenPath === "/" ? (locationState ? getLocationImage(locationState.location.homeImg) : mapImage)
+    : screenPath === "/takeawalk" ? getLocationImage(locationState?.location.fightImg ?? "fonNetralitet.svg")
+    : screenPath === "/fight" ? getLocationImage("fonNetralitet.svg")
+    : screenPath === "/profile" || screenPath === "/map" ? mapImage
+    : null
+  const background = usePreloadedImage(backgroundUrl)
+  const screenReady = ready && currentLocation.ready && background.ready
+  const loadingError = startupError ?? currentLocation.error ?? background.error
+  const retryLoading = () => {
+    if (startupError) {
+      setStartupError(null)
+      setStartupAttempt((value) => value + 1)
+    } else {
+      currentLocation.retry()
+      background.retry()
+    }
   }
 
-  async function preloadLocationImages(token: string, onProgress: (p: number) => void): Promise<void> {
-    let urls: string[] = [];
-    try {
-      const { locations } = await getLocations(token);
-      for (const l of locations) {
-        urls.push(getLocationImage(l.homeImg));
-        urls.push(getLocationImage(l.fightImg));
-      }
-    } catch {
-      urls = []
-    }
-    if (urls.length === 0) {
-      onProgress(100)
-      return
-    }
-    let done = 0;
-    await Promise.all(urls.map(async (url) => {
-      await preloadImage(url);
-      done += 1;
-      onProgress((done / urls.length) * 100);
-    }));
-  }
   useEffect(() => {
+    let cancelled = false;
+    setReady(false);
+    setStartupError(null);
+    setLoadingProgress(0);
     const initData = getTelegramInitData();
     if (!initData) {
-      setError("Откройте приложение внутри Telegram: для входа нужен настоящий initData.");
+      setStartupError("Откройте приложение внутри Telegram: для входа нужен настоящий initData.");
       return;
     }
     auth(initData)
       .then(async (authData) => {
-        setPlayer(authData.player);
-        setToken(authData.token);
+        if (cancelled) return;
+        setLoadingProgress(20);
         const [meData, pvpOverview, tradesOverview] = await Promise.all([
           getMe(authData.token),
           getPvpOverview(authData.token).catch(() => null),
           getTradesOverview(authData.token).catch(() => null)
         ]);
+        if (cancelled) return;
         setPlayer(meData.player);
+        setToken(authData.token);
         setInventory(meData.inventory);
+        setLoadingProgress(60);
         const incomingPvp = pvpOverview?.invites.find((i) => i.direction === "incoming");
         if (incomingPvp) {
           setPvpState({
@@ -142,16 +143,27 @@ function App() {
           });
         }
 
-        connectSocket(authData.token);
-        await preloadLocationImages(authData.token, setLoadingProgress)
+        setReady(true);
       })
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : "Не удалось войти"))
-      .finally(() => setReady(true))
-  }, []);
+      .catch((err: unknown) => {
+        if (!cancelled) setStartupError(err instanceof Error ? err.message : "Не удалось войти");
+      });
+    return () => { cancelled = true; };
+  }, [startupAttempt]);
+
+  // Only warm backgrounds for the current location after the visible screen is ready.
   useEffect(() => {
-    if (!player) return;
-    const socket = getSocket();
-    if (!socket) return;
+    if (!screenReady || !locationState) return;
+    void Promise.allSettled([
+      preloadImage(getLocationImage(locationState.location.homeImg)),
+      preloadImage(getLocationImage(locationState.location.fightImg)),
+    ]);
+  }, [screenReady, locationState?.location.homeImg, locationState?.location.fightImg]);
+
+  useEffect(() => {
+    if (!token) return;
+    const socket = connectSocket(token, false);
+    let cancelled = false;
 
     // Фатальные ошибки авторизации: токен протух или игрока нет в БД
     // (например, после пересоздания базы на сервере). Бесконечно ретраить
@@ -161,17 +173,18 @@ function App() {
       if (err.message === "Invalid auth token" || err.message === "Player not found") {
         if (Date.now() - lastReauthAt < 10000) return;
         lastReauthAt = Date.now();
-        const s = getSocket();
-        s?.disconnect();
+        socket.disconnect();
         const initData = getTelegramInitData();
         if (!initData) return;
         auth(initData)
           .then((d) => {
+            if (cancelled) return;
             setPlayer(d.player);
             setToken(d.token);
-            connectSocket(d.token);
+            // A renewed token normally reruns this effect; identical tokens need reconnecting here.
+            if (d.token === token) socket.connect();
           })
-          .catch(() => setError("Сессия истекла, перезапустите приложение"));
+          .catch(() => { if (!cancelled) setError("Сессия истекла, перезапустите приложение"); });
         return;
       }
       setError(err.message);
@@ -193,8 +206,10 @@ function App() {
     socket.on("friendsUpdate", onFriendsUpdate)
     socket.on("pvpState", onPvpState)
     socket.on("tradeUpdate", onTradeState)
+    socket.connect();
 
     return () => {
+      cancelled = true;
       socket.off("connect_error", onConnectError)
       socket.off("locationState", onLocationState)
       socket.off("player", onPlayer)
@@ -205,7 +220,7 @@ function App() {
       socket.off("tradeUpdate", onTradeState)
     }
 
-  }, [player])
+  }, [token, setLocationState])
   useEffect(() => {
     if (!player) return
     if (player.idTheLastAction == null) return
@@ -239,6 +254,7 @@ function App() {
         const session = await theLastAction(token, player.id)
         setState({
           mob: session.info.mob,
+          droppedItems: session.info.droppedItems ?? [],
           playerHp: session.info.playerHp,
           playerMaxHp: session.info.playerMaxHp,
           mobHp: session.info.mobHp,
@@ -287,14 +303,14 @@ function App() {
     <>
       <Theme>
         <ScrollToTop />
-        {ready ? (
+        {screenReady ? (
           player && !player.isCreated ? (
             <CharacterCreation token={token} player={player} onCreated={setPlayer} />
           ) :
           <Routes>
             <Route path="" element={<MainLayout infoMessages={infoMessages} setPvpState={setPvpState} setTradeState={setTradeState} setTypeShowIsModal={setTypeShowIsModal} setShowModal={setShowModal} showIsModal={showIsModal} typeShowIsModal={typeShowIsModal} player={player} token={token} error={error} onError={setError} onPlayer={setPlayer} pvpState={pvpState} tradeState={tradeState} />}>
               <Route path="/" element={<Home setInfoMessages={setInfoMessages} typeShowIsModal={typeShowIsModal} setTypeShowIsModal={setTypeShowIsModal} setShowModal={setShowModal} showIsModal={showIsModal} onError={setError} onState={setState} onPlayer={setPlayer} token={token} player={player} locationState={locationState} friendsOverview={friendsOverview} pvpState={pvpState} tradeState={tradeState} />} />
-              <Route path="Map" element={<Map token={token} onLocationState={setLocationState} onPlayer={setPlayer} />} />
+              <Route path="Map" element={<Map token={token} player={player} onLocationState={setLocationState} onPlayer={setPlayer} />} />
               <Route path="Profile" element={<Profile setTypeShowIsModal={setTypeShowIsModal} setShowModal={setShowModal} player={player} locationState={locationState} />} />
               <Route path="Tasks" element={<Tasks token={token} onPlayer={setPlayer} />} />
               <Route path="Leaderboard" element={<Leaderboard token={token} playerId={player?.id ?? null} playerPoints={player?.points ?? 0} />} />
@@ -311,7 +327,11 @@ function App() {
             <Route path="/Fight" element={<Fight token={token} player={player} locationState={locationState} pvpState={pvpState} />} />
           </Routes>
         ) : (
-          <Loading progress={loadingProgress} />
+          <Loading
+            progress={ready ? (currentLocation.ready ? 90 : 70) : loadingProgress}
+            error={loadingError}
+            onRetry={retryLoading}
+          />
         )}
       </Theme>
     </>

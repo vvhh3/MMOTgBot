@@ -13,7 +13,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "npm run build && node --experimental-test-module-mocks --test tests/*.test.mjs"
+    "test": "npm run build --workspace @mmobot/shared && npm run build && node --experimental-test-module-mocks --test tests/*.test.mjs"
   },
   "dependencies": {
     "@block52/deck": "^1.0.0",

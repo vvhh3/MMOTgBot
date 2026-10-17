@@ -10,10 +10,8 @@ import {
   Strong,
   Grid,
 } from "@radix-ui/themes";
-import { Link, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
-  LocationDto,
   LocationStateResponse,
   PlayerDto,
   FriendsOverviewResponse,
@@ -21,11 +19,10 @@ import {
   TradeStateDto,
   CombatStateResponse
 } from "@mmobot/shared";
-import { getLocationState, startCombat } from "../api";
 import { getLocationImage } from "../utils/getLocationImage";
 import ActionCards from "./ui/ActionCards.tsx";
 import map from '/mapMat.png'
-import Modal, { TypeModal } from "./ui/Modal/Modal.tsx";
+import { TypeModal } from "./ui/Modal/Modal.tsx";
 
 type HomeProps = {
   token: string | null;
@@ -61,20 +58,7 @@ export default function Home({
   setInfoMessages
 }: HomeProps) {
 
-  const [location, setLocation] = useState<LocationDto>();
-  useEffect(() => {
-    if (locationState) {
-      setLocation(locationState.location);
-      return;
-    }
-
-    if (!token || !player?.currentLocationId) return;
-    getLocationState(token, player.currentLocationId)
-      .then((res) => {
-        setLocation(res.location);
-      })
-      .catch((error) => alert(error ?? "Ошибка"));
-  }, [token, locationState, player?.currentLocationId]);
+  const location = locationState?.location;
 
   
   return (
@@ -82,7 +66,7 @@ export default function Home({
       <div
         className="flex flex-col justify-center items-center w-full h-full object-contain bg-bottom border-b-2"
         style={{
-          backgroundImage: `url(${location ? getLocationImage(location.homeImg) : "none"})`,
+          backgroundImage: location ? `url(${getLocationImage(location.homeImg)})` : "none",
         }}
       >
         <div className="bg-[#00000074] rounded-2xl px-2.5 m-0.75">

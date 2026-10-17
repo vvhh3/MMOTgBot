@@ -1,3 +1,4 @@
+import ItemDetails from "../../ItemDetails";
 import { InventoryItemDto, ItemDto, PlayerDto } from "@mmobot/shared";
 import { useState } from "react";
 import {
@@ -11,7 +12,8 @@ type CenterModalItemProps = {
   token: string | null;
   item: ItemDto | null;
   equiped: boolean;
-  onItem: (value: { item: ItemDto; equiped: boolean } | null) => void;
+  inventoryEntry: InventoryItemDto | null;
+  onItem: (value: { item: ItemDto; equiped: boolean; inventoryEntry: InventoryItemDto } | null) => void;
   onPlayer: (value: PlayerDto) => void;
   onInventory: (value: InventoryItemDto[]) => void;
 };
@@ -19,7 +21,7 @@ type CenterModalItemProps = {
 const TYPE_LABEL = {
   weapon: "Оружие",
   armor: "Броня",
-  potion: "Зелье",
+  potion: "Расходник",
   material: "Материал",
   other: "Прочее",
 };
@@ -28,10 +30,12 @@ export default function CenterModalItem({
   token,
   item,
   equiped,
+  inventoryEntry,
   onItem,
   onPlayer,
   onInventory,
 }: CenterModalItemProps) {
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   if (item === null) return null;
@@ -42,15 +46,16 @@ export default function CenterModalItem({
   };
 
   const handleUse = async () => {
-    if (!token) return;
+    if (!token || !inventoryEntry || busy) return;
+    setBusy(true);
     try {
       let res;
       if (item.type === "potion") {
         res = await inventoryUsePotion(token, item.id);
       } else if (item.type === "armor" || item.type === "weapon") {
         res = equiped
-          ? await inventoryUnEquipedItem(token, item.id)
-          : await inventoryEquipedItem(token, item.id);
+          ? await inventoryUnEquipedItem(token, inventoryEntry.id)
+          : await inventoryEquipedItem(token, inventoryEntry.id);
       }
       if (!res) return;
       onPlayer(res.player);
@@ -58,7 +63,7 @@ export default function CenterModalItem({
       onItem(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Ошибка использования предмета");
-    }
+    } finally { setBusy(false); }
   };
 
   return (
@@ -82,6 +87,8 @@ export default function CenterModalItem({
         <p className="mt-2 text-center text-sm text-gray-500">{item.description}</p>
       </div>
 
+      <ItemDetails item={item} level={inventoryEntry?.weaponLevel} />
+
       {error && (
         <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-center text-sm text-red-500">
           {error}
@@ -92,7 +99,7 @@ export default function CenterModalItem({
         <div className="flex justify-center gap-2">
           {item.damage > 0 && (
             <div className="flex flex-col items-center rounded-lg border border-[#E85D2F]/30 bg-orange-50 py-2 w-full">
-              <p className="text-xs text-gray-500">ATK</p>
+              <p className="text-xs text-gray-500">Сила оружия</p>
               <p className="text-base font-bold text-[#E85D2F]">+{item.damage}</p>
             </div>
           )}
@@ -114,10 +121,11 @@ export default function CenterModalItem({
       {item.type === "potion" && (
         <div className="flex justify-center">
           <button
-            className="p-3 bg-green-500 rounded-2xl m-4 text-white"
+            className="p-3 bg-green-500 rounded-2xl m-4 text-white disabled:opacity-50"
+            disabled={busy || item.healAmount <= 0}
             onClick={handleUse}
           >
-            Использовать
+            {item.healAmount > 0 ? "Использовать" : "Эффект появится позже"}
           </button>
         </div>
       )}
@@ -127,6 +135,7 @@ export default function CenterModalItem({
           <button
             className="p-3 rounded-2xl m-4 text-white"
             style={{ backgroundColor: equiped ? "#E85D2F" : "#22c55e" }}
+            disabled={busy}
             onClick={handleUse}
           >
             {equiped ? "Снять" : "Надеть"}

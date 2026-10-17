@@ -1,4 +1,8 @@
-import { ItemDto } from "@mmobot/shared"
+import {
+  ItemDto, RARITY_LABELS, RARITY_COLORS, WEAPON_FAMILY_LABELS, DAMAGE_CATEGORY_LABELS,
+  DAMAGE_TYPE_LABELS, DAMAGE_TYPES_BY_CATEGORY, getPassiveIdsForType,
+  getDefaultPassiveParams, getPassiveDefinition, type ItemPassiveId,
+} from "@mmobot/shared"
 import { useEffect, useState } from "react"
 import {
     Button,
@@ -27,7 +31,8 @@ const emptyItem: ItemDto = {
     healAmount: 0,
     price: 0,
     shopAvailable: false,
-    icon: ''
+    icon: '',
+    rarity: 'common', weaponFamily: null, damageCategory: null, damageType: null, passiveId: null, passiveParams: {},
 }
 
 type NumberFieldProps = {
@@ -50,6 +55,17 @@ const NumberField = ({ label, value, min, onChange }: NumberFieldProps) => (
         />
     </label>
 )
+
+const ChoiceField = ({ label, value, options, onChange }: {
+    label: string; value: string; options: Record<string, string>; onChange: (value: string) => void;
+}) => (
+    <label className="flex flex-col gap-1 text-sm">
+        {label}
+        <select className="rounded border p-2" value={value} onChange={(event) => onChange(event.target.value)}>
+            {Object.entries(options).map(([key, name]) => <option key={key} value={key}>{name}</option>)}
+        </select>
+    </label>
+);
 
 export const ItemAdmin = ({ token }: ItemAdminProps) => {
 
@@ -152,29 +168,64 @@ export const ItemAdmin = ({ token }: ItemAdminProps) => {
                             </Text>
                             <Select.Root
                                 value={draft.type}
-                                onValueChange={(value) => setDraft({ ...draft, type: value as ItemDto["type"] })}>
+                                onValueChange={(value) => setDraft({ ...draft, type: value as ItemDto["type"],
+                                    weaponFamily: null, damageCategory: null, damageType: null, passiveId: null, passiveParams: {},
+                                })}>
                                 <Select.Trigger placeholder="Выберите тип предмета" style={{ width: "100%" }} />
                                 <Select.Content>
-                                    <Select.Item value="other">other</Select.Item>
-                                    <Select.Item value="weapon">weapon</Select.Item>
-                                    <Select.Item value="armor">armor</Select.Item>
-                                    <Select.Item value="potion">potion</Select.Item>
-                                    <Select.Item value="material">material</Select.Item>
+                                    <Select.Item value="other">Прочее</Select.Item>
+                                    <Select.Item value="weapon">Оружие</Select.Item>
+                                    <Select.Item value="armor">Броня</Select.Item>
+                                    <Select.Item value="potion">Расходник</Select.Item>
+                                    <Select.Item value="material">Материал</Select.Item>
                                 </Select.Content>
                             </Select.Root>
                         </label>
 
 
-                        <NumberField label="damage" min={0} value={draft.damage}
+                        <ChoiceField label="Редкость" value={draft.rarity} options={RARITY_LABELS}
+                            onChange={(rarity) => setDraft({ ...draft, rarity: rarity as ItemDto["rarity"] })} />
+                        {draft.type === "weapon" && (
+                            <div className="grid gap-3 rounded-lg border p-3">
+                                <p className="text-sm text-gray-600">Новые экземпляры получают уровень 1. Категории урона и пассивки подготовлены для будущей боевой системы и пока не действуют.</p>
+                                <ChoiceField label="Семейство оружия" value={draft.weaponFamily ?? "legacy"} options={WEAPON_FAMILY_LABELS}
+                                    onChange={(weaponFamily) => setDraft({ ...draft, weaponFamily: weaponFamily as ItemDto["weaponFamily"] })} />
+                                <ChoiceField label="Категория урона" value={draft.damageCategory ?? "physical"} options={DAMAGE_CATEGORY_LABELS}
+                                    onChange={(value) => {
+                                        const damageCategory = value as NonNullable<ItemDto["damageCategory"]>;
+                                        setDraft({ ...draft, damageCategory, damageType: DAMAGE_TYPES_BY_CATEGORY[damageCategory][0] });
+                                    }} />
+                                <ChoiceField label="Тип урона" value={draft.damageType ?? "blunt"}
+                                    options={Object.fromEntries(DAMAGE_TYPES_BY_CATEGORY[draft.damageCategory ?? "physical"].map((type) => [type, DAMAGE_TYPE_LABELS[type]]))}
+                                    onChange={(damageType) => setDraft({ ...draft, damageType: damageType as ItemDto["damageType"] })} />
+                            </div>
+                        )}
+                        {getPassiveIdsForType(draft.type).length > 0 && (
+                            <div className="grid gap-3 rounded-lg border p-3">
+                                <p className="text-sm text-gray-600">Особые эффекты подготовлены для будущей боевой системы и пока не действуют.</p>
+                                <ChoiceField label="Будущий эффект" value={draft.passiveId ?? "none"}
+                                    options={{ none: "Без эффекта", ...Object.fromEntries(getPassiveIdsForType(draft.type).map((id) => [id, getPassiveDefinition(id).name])) }}
+                                    onChange={(value) => {
+                                        const passiveId = value === "none" ? null : value as ItemPassiveId;
+                                        setDraft({ ...draft, passiveId, passiveParams: passiveId ? getDefaultPassiveParams(passiveId) : {} });
+                                    }} />
+                                {draft.passiveId && Object.entries(getPassiveDefinition(draft.passiveId).parameters).map(([key, rule]) => (
+                                    <NumberField key={key} label={rule.label} min={rule.min} value={draft.passiveParams[key] ?? rule.default}
+                                        onChange={(value) => setDraft({ ...draft, passiveParams: { ...draft.passiveParams, [key]: value } })} />
+                                ))}
+                                {draft.passiveId && <p className="text-sm text-gray-600">{getPassiveDefinition(draft.passiveId).describe(draft.passiveParams)}</p>}
+                            </div>
+                        )}
+                        <NumberField label="Сила оружия (текущий бонус атаки)" min={0} value={draft.damage}
                             onChange={(v) => setDraft({ ...draft, damage: v })} />
 
-                        <NumberField label="defense" min={1} value={draft.defense}
+                        <NumberField label="Защита" min={0} value={draft.defense}
                             onChange={(v) => setDraft({ ...draft, defense: v })} />
 
-                        <NumberField label="healAmount" min={0} value={draft.healAmount}
+                        <NumberField label="Лечение" min={0} value={draft.healAmount}
                             onChange={(v) => setDraft({ ...draft, healAmount: v })} />
 
-                        <NumberField label="price" min={0} value={draft.price}
+                        <NumberField label="Цена" min={0} value={draft.price}
                             onChange={(v) => setDraft({ ...draft, price: v })} />
                         <label className="flex items-center gap-2">
                             <input
@@ -221,7 +272,13 @@ export const ItemAdmin = ({ token }: ItemAdminProps) => {
                             <Table.ColumnHeaderCell>Имя</Table.ColumnHeaderCell>
                             <Table.ColumnHeaderCell>Описание</Table.ColumnHeaderCell>
                             <Table.ColumnHeaderCell>Тип</Table.ColumnHeaderCell>
-                            <Table.ColumnHeaderCell justify="center">Урон</Table.ColumnHeaderCell>
+                            <Table.ColumnHeaderCell>Редкость</Table.ColumnHeaderCell>
+                            <Table.ColumnHeaderCell>Семейство</Table.ColumnHeaderCell>
+                            <Table.ColumnHeaderCell>Категория урона</Table.ColumnHeaderCell>
+                            <Table.ColumnHeaderCell>Тип урона</Table.ColumnHeaderCell>
+                            <Table.ColumnHeaderCell>Будущий эффект</Table.ColumnHeaderCell>
+                            <Table.ColumnHeaderCell>Начальный уровень</Table.ColumnHeaderCell>
+                            <Table.ColumnHeaderCell justify="center">Сила</Table.ColumnHeaderCell>
                             <Table.ColumnHeaderCell justify="center">Защита</Table.ColumnHeaderCell>
                             <Table.ColumnHeaderCell justify="center">Лечение</Table.ColumnHeaderCell>
                             <Table.ColumnHeaderCell justify="center">Цена</Table.ColumnHeaderCell>
@@ -233,7 +290,7 @@ export const ItemAdmin = ({ token }: ItemAdminProps) => {
                     <Table.Body>
                         {items.length === 0 && (
                             <Table.Row>
-                                <Table.Cell colSpan={11}>
+                                <Table.Cell colSpan={17}>
                                     <Text color="gray">предметов пока нет</Text>
                                 </Table.Cell>
                             </Table.Row>
@@ -244,6 +301,12 @@ export const ItemAdmin = ({ token }: ItemAdminProps) => {
                                 <Table.Cell><Text weight="medium">{item.name}</Text></Table.Cell>
                                 <Table.Cell justify="center">{item.description}</Table.Cell>
                                 <Table.Cell justify="center">{item.type}</Table.Cell>
+                                <Table.Cell><span style={{ color: RARITY_COLORS[item.rarity] }}>{RARITY_LABELS[item.rarity]}</span></Table.Cell>
+                                <Table.Cell>{item.weaponFamily ? WEAPON_FAMILY_LABELS[item.weaponFamily] : "—"}</Table.Cell>
+                                <Table.Cell>{item.damageCategory ? DAMAGE_CATEGORY_LABELS[item.damageCategory] : "—"}</Table.Cell>
+                                <Table.Cell>{item.damageType ? DAMAGE_TYPE_LABELS[item.damageType] : "—"}</Table.Cell>
+                                <Table.Cell>{item.passiveId ? getPassiveDefinition(item.passiveId).name : "—"}</Table.Cell>
+                                <Table.Cell>{item.type === "weapon" ? 1 : "—"}</Table.Cell>
                                 <Table.Cell justify="center">{item.damage}</Table.Cell>
                                 <Table.Cell justify="center">{item.defense}</Table.Cell>
                                 <Table.Cell>{item.healAmount}</Table.Cell>

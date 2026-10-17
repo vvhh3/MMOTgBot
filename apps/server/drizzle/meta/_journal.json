@@ -176,6 +176,27 @@
       "when": 1792006105871,
       "tag": "0024_quest_coins",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "6",
+      "when": 1792144587416,
+      "tag": "0025_location_access",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "6",
+      "when": 1792179367995,
+      "tag": "0026_weapon_instances",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "6",
+      "when": 1792180477640,
+      "tag": "0027_loot_chances",
+      "breakpoints": true
     }
   ]
 }

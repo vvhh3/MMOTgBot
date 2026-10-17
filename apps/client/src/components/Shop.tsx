@@ -1,3 +1,4 @@
+import ItemDetails from "./ui/ItemDetails";
 import { useEffect, useMemo, useState } from "react";
 import { Button, Card, Tabs, Text } from "@radix-ui/themes";
 import type { InventoryItemDto, ItemDto, PlayerDto } from "@mmobot/shared";
@@ -13,10 +14,10 @@ type ShopProps = {
 
 export default function Shop({ token, player, inventory, onPlayer, onInventory }: ShopProps) {
   const [catalog, setCatalog] = useState<ItemDto[]>([]);
-  const [quantities, setQuantities] = useState<Record<number, number>>({});
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [busyItem, setBusyItem] = useState<number | null>(null);
+  const [busyItem, setBusyItem] = useState<string | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -30,16 +31,17 @@ export default function Shop({ token, player, inventory, onPlayer, onInventory }
     return item ? [{ ...entry, item }] : [];
   });
 
-  const transact = async (item: ItemDto, action: "buy" | "sell") => {
-    if (!token) return;
-    const quantity = Math.max(1, Math.min(99, Math.floor(quantities[item.id] ?? 1)));
-    setBusyItem(item.id);
+  const transact = async (item: ItemDto, action: "buy" | "sell", entry?: InventoryItemDto) => {
+    if (!token || busyItem) return;
+    const key = `${action}-${entry?.id ?? item.id}`;
+    const quantity = entry?.weaponLevel != null ? 1 : Math.max(1, Math.min(99, entry?.quantity ?? 99, Math.floor(quantities[key] ?? 1)));
+    setBusyItem(key);
     setError(null);
     setNotice(null);
     try {
       const result = action === "buy"
         ? await buyShopItem(token, item.id, quantity)
-        : await sellShopItem(token, item.id, quantity);
+        : await sellShopItem(token, item.id, quantity, entry?.id);
       onPlayer(result.player);
       onInventory(result.inventory);
       setNotice(action === "buy"
@@ -52,7 +54,7 @@ export default function Shop({ token, player, inventory, onPlayer, onInventory }
     }
   };
 
-  const quantityPicker = (itemId: number, max?: number) => (
+  const quantityPicker = (itemId: string, max?: number) => (
     <label className="flex items-center gap-2 text-sm">
       Количество
       <input
@@ -70,33 +72,35 @@ export default function Shop({ token, player, inventory, onPlayer, onInventory }
     </label>
   );
 
-  const itemCard = (item: ItemDto, action: "buy" | "sell", ownedQuantity?: number, equipped?: boolean) => {
+  const itemCard = (item: ItemDto, action: "buy" | "sell", entry?: InventoryItemDto) => {
     const unitPrice = action === "buy" ? item.price : Math.max(1, Math.floor(item.price / 2));
-    const busy = busyItem === item.id;
+    const key = `${action}-${entry?.id ?? item.id}`;
+    const busy = busyItem === key;
     return (
-      <Card key={item.id} className="w-full">
+      <Card key={key} className="w-full">
         <div className="flex items-start gap-3">
-          {item.icon && <div className="h-10 w-10 shrink-0" dangerouslySetInnerHTML={{ __html: item.icon }} />}
+          {item.icon && <div className="h-10 w-10 shrink-0 [&_svg]:h-full [&_svg]:w-full" dangerouslySetInnerHTML={{ __html: item.icon }} />}
           <div className="min-w-0 flex-1">
             <Text as="div" weight="bold">{item.name}</Text>
             <Text as="div" size="2" color="gray">{item.description}</Text>
             <Text as="div" size="1" color="gray">
-              {item.damage > 0 && `Урон +${item.damage} · `}
+              {item.damage > 0 && `Сила оружия +${item.damage} · `}
               {item.defense > 0 && `Защита +${item.defense} · `}
               {item.healAmount > 0 && `Лечение ${item.healAmount} HP · `}
               {action === "buy" ? `Цена ${unitPrice} за шт.` : `Продажа ${unitPrice} за шт.`}
             </Text>
-            {action === "sell" && <Text as="div" size="1">В инвентаре: {ownedQuantity}</Text>}
+            <ItemDetails item={item} level={action === "buy" && item.type === "weapon" ? 1 : entry?.weaponLevel} compact />
+            {action === "sell" && entry?.weaponLevel == null && <Text as="div" size="1">В инвентаре: {entry?.quantity}</Text>}
           </div>
         </div>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-          {quantityPicker(item.id, action === "sell" ? ownedQuantity : 99)}
+          {entry?.weaponLevel != null ? <Text size="1">Один экземпляр</Text> : quantityPicker(key, entry?.quantity)}
           <Button
             color={action === "buy" ? "orange" : "green"}
-            disabled={busy || Boolean(equipped) || (action === "buy" && (player?.money ?? 0) < item.price)}
-            onClick={() => transact(item, action)}
+            disabled={busyItem !== null || Boolean(entry?.equiped) || (action === "buy" && (player?.money ?? 0) < item.price)}
+            onClick={() => transact(item, action, entry)}
           >
-            {busy ? "Подождите…" : action === "buy" ? "Купить" : equipped ? "Сначала снимите" : "Продать"}
+            {busy ? "Подождите…" : action === "buy" ? "Купить" : entry?.equiped ? "Сначала снимите" : "Продать"}
           </Button>
         </div>
       </Card>
@@ -124,7 +128,7 @@ export default function Shop({ token, player, inventory, onPlayer, onInventory }
         <Tabs.Content value="sell" className="mt-3 flex flex-col gap-3">
           {ownedForSale.length === 0
             ? <Text color="gray">У вас нет предметов, которые принимает магазин.</Text>
-            : ownedForSale.map(({ item, quantity, equiped }) => itemCard(item, "sell", quantity, equiped))}
+            : ownedForSale.map((entry) => itemCard(entry.item, "sell", entry))}
           <Text size="1" color="gray">Магазин покупает предметы за половину их цены.</Text>
         </Tabs.Content>
       </Tabs.Root>

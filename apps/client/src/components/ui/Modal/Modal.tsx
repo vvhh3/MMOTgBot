@@ -26,7 +26,8 @@ type CardProps = {
   showIsModal?: boolean;
   item?: ItemDto | null;
   equiped?: boolean;
-  onItem?: (value: { item: ItemDto; equiped: boolean } | null) => void;
+  inventoryEntry?: InventoryItemDto | null;
+  onItem?: (value: { item: ItemDto; equiped: boolean; inventoryEntry: InventoryItemDto } | null) => void;
   onPlayer?: (value: PlayerDto) => void;
   onInventory?: (value: InventoryItemDto[]) => void;
   infoMessages?:{
@@ -38,10 +39,12 @@ type CardProps = {
   tradeState?: TradeStateDto | null;
   inventoryItem?: {
     item: ItemDto | undefined;
+    id: number;
+    weaponLevel: number | null;
     quantity: number;
     equiped: boolean;
   }[];
-  onSelect?: (itemType: number, quantity: number) => void;
+  onSelect?: (inventoryItemId: number) => void;
   setShowModal?: (value: boolean) => void;
   player?: PlayerDto | null;
   // для Notification
@@ -60,6 +63,7 @@ export default function Modal({
   showIsModal,
   item,
   equiped,
+  inventoryEntry,
   onItem,
   onPlayer,
   onInventory,
@@ -89,6 +93,7 @@ export default function Modal({
           token={token ?? null}
           item={item ?? null}
           equiped={equiped ?? false}
+          inventoryEntry={inventoryEntry ?? null}
           onItem={onItem!}
           onPlayer={onPlayer!}
           onInventory={onInventory!}

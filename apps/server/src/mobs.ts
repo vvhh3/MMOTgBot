@@ -1,126 +1,61 @@
-
-import type { Express, Request, Response } from "express";
+import type { Express } from "express";
 import { db, toMobDto } from "./db.js";
-import { locations, mobs } from "./db/schema.js";
-import { asc, eq } from "drizzle-orm";
-import { MobDto, MobResponse, MobsResponse } from "@mmobot/shared";
+import { items, locations, mobs, type MobRow } from "./db/schema.js";
+import { asc, eq, inArray } from "drizzle-orm";
+import { parseLoot } from "./loot.js";
+
+function parseMob(body: unknown, previous?: MobRow): typeof mobs.$inferInsert {
+  if (!body || typeof body !== "object" || Array.isArray(body)) throw new Error("Ожидаются параметры монстра");
+  const value = { ...previous, ...body } as Record<string, unknown>;
+  for (const key of ["name", "description", "locationId"] as const) {
+    if (typeof value[key] !== "string" || !(value[key] as string).trim()) throw new Error(`Поле ${key} обязательно`);
+  }
+  for (const [key, min] of Object.entries({ level: 1, maxHealth: 1, strength: 0, defense: 0, pointsReward: 0, coinReward: 0, respawnSeconds: 1 })) {
+    if (!Number.isSafeInteger(value[key]) || (value[key] as number) < min) throw new Error(`${key}: требуется целое число не меньше ${min}`);
+  }
+  const locationId = value.locationId as string;
+  if (!db.select({ id: locations.id }).from(locations).where(eq(locations.id, locationId)).get()) throw new Error("Локация не найдена");
+  const loot = parseLoot(value.loot);
+  const ids = [...new Set(loot.map((entry) => entry.itemType))];
+  const existing = ids.length ? db.select({ id: items.id }).from(items).where(inArray(items.id, ids)).all() : [];
+  const found = new Set(existing.map((item) => item.id));
+  const missing = ids.filter((id) => !found.has(id));
+  if (missing.length) throw new Error(`Предметы лута не найдены: ${missing.join(", ")}`);
+  return {
+    name: (value.name as string).trim(), description: (value.description as string).trim(), locationId, loot,
+    level: value.level as number, maxHealth: value.maxHealth as number, strength: value.strength as number,
+    defense: value.defense as number, pointsReward: value.pointsReward as number,
+    coinReward: value.coinReward as number, respawnSeconds: value.respawnSeconds as number,
+  };
+}
 
 export const createMobRoutes = (app: Express) => {
-
-    // получить всех мобов
-    app.get("/mobs", (req: Request, res: Response) => {
-        const state = db.select().from(mobs).orderBy(asc(mobs.level)).all() // что за asc - оператор для сортировки по возрастанию
-        const response: MobsResponse = { mobs: state.map(toMobDto) } // почему именно так - для того что бы клиент получал готовый dto формат, а не сырые данные которые отдаёт drizle
-        res.json(response)
-    })
-
-    //получить моба по id
-    app.get("/mobs/:id", (req: Request, res: Response) => {
-        const mob = db.select().from(mobs).where(eq(mobs.id, Number(req.params.id))).get()
-        if (!mob) {
-            res.status(400).json({ error: "Mob not found" })
-            return
-        }
-        const response: MobResponse = { mob: toMobDto(mob) }
-        res.json(response)
-    })
-
-
-    //создание моба
-    app.post("/mobs", (req: Request, res: Response) => {
-        const state = req.body
-
-        if (!state.name || 
-            !state.description || 
-            !state.level || 
-            !state.maxHealth ||  
-            !state.strength|| 
-            !state.defense ||
-            !state.loot || 
-            !state.pointsReward||
-            !Number.isInteger(state.coinReward) ||
-            state.coinReward < 0 ||
-            !state.locationId|| 
-            !state.respawnSeconds) {
-            res.status(400).json({ error: "Data is failid" })
-            return
-        }
-
-        const location = db.select().from(locations).where(eq(locations.id, state.locationId)).get()
-        if (!location) {
-            res.status(400).json({ error: "not found location(cheeck your location Id)" })
-            return
-        }
-
-        const create = db.insert(mobs).values({
-            name: state.name,
-            description: state.description,
-            level: state.level,
-            maxHealth: state.maxHealth,
-            strength: state.strength,
-            defense: state.defense,
-            loot: state.loot ?? [],
-            pointsReward: state.pointsReward,
-            coinReward: state.coinReward,
-            locationId: state.locationId,
-            respawnSeconds: state.respawnSeconds,
-        }).returning().get() // что за returning? и зачем здесь get
-
-        const response: MobResponse = { mob: toMobDto(create) }
-        res.status(200).json(response)
-    })
-
-    //обновить моба
-    app.put("/mobs/:id", (req: Request, res: Response) => {
-        const mob = db.select().from(mobs).where(eq(mobs.id, Number(req.params.id))).get()
-        if (!mob) {
-            res.status(400).json({ error: "mob not found" })
-            return
-        }
-        const state = req.body as MobDto
-
-        if (state.coinReward !== undefined && (!Number.isInteger(state.coinReward) || state.coinReward < 0)) {
-            res.status(400).json({ error: "coinReward must be a non-negative integer" })
-            return
-        }
-
-        if (state.locationId) {
-            const location = db.select().from(locations).where(eq(locations.id, state.locationId)).get()
-            if (!location) {
-                res.status(400).json({ error: "location not found" })
-                return
-            }
-        }
-        
-        const update = db.update(mobs).set({
-            name: state.name ?? mob.name,
-            description: state.description ?? mob.description,
-            level: state.level ?? mob.level,
-            maxHealth: state.maxHealth ?? mob.maxHealth,
-            strength: state.strength ?? mob.strength,
-            defense: state.defense ?? mob.defense,
-            loot: state.loot ?? mob.loot,
-            pointsReward: state.pointsReward ?? mob.pointsReward,
-            coinReward: state.coinReward ?? mob.coinReward,
-            locationId: state.locationId ?? mob.locationId,
-            respawnSeconds: state.respawnSeconds ?? mob.respawnSeconds,
-        }).where(eq(mobs.id,mob.id))
-        .returning()
-        .get()
-
-        const response: MobResponse = {mob: toMobDto(update)} 
-        res.status(200).json(response)
-    })
-
-    //удалить моба
-    app.delete("/mobs/:id",(req: Request,res: Response ) => {
-        const mob = db.select().from(mobs).where(eq(mobs.id,Number(req.params.id))).get()
-        if(!mob) {
-            res.status(400).json({error: "Mob not found"})
-            return
-        }
-
-        db.delete(mobs).where(eq(mobs.id,mob.id)).run()
-        res.status(200).end() //почему End - отправляет пустой ответ без тела
-    })
-}
+  app.get("/mobs", (_req, res) => {
+    res.json({ mobs: db.select().from(mobs).orderBy(asc(mobs.level)).all().map(toMobDto) });
+  });
+  app.get("/mobs/:id", (req, res) => {
+    const mob = db.select().from(mobs).where(eq(mobs.id, Number(req.params.id))).get();
+    if (!mob) return res.status(404).json({ error: "Монстр не найден" });
+    res.json({ mob: toMobDto(mob) });
+  });
+  app.post("/mobs", (req, res) => {
+    try {
+      const mob = db.insert(mobs).values(parseMob(req.body)).returning().get();
+      res.json({ mob: toMobDto(mob) });
+    } catch (error) { res.status(400).json({ error: error instanceof Error ? error.message : "Не удалось создать монстра" }); }
+  });
+  app.put("/mobs/:id", (req, res) => {
+    const previous = db.select().from(mobs).where(eq(mobs.id, Number(req.params.id))).get();
+    if (!previous) return res.status(404).json({ error: "Монстр не найден" });
+    try {
+      const mob = db.update(mobs).set(parseMob(req.body, previous)).where(eq(mobs.id, previous.id)).returning().get();
+      res.json({ mob: toMobDto(mob) });
+    } catch (error) { res.status(400).json({ error: error instanceof Error ? error.message : "Не удалось сохранить монстра" }); }
+  });
+  app.delete("/mobs/:id", (req, res) => {
+    const mob = db.select().from(mobs).where(eq(mobs.id, Number(req.params.id))).get();
+    if (!mob) return res.status(404).json({ error: "Монстр не найден" });
+    db.delete(mobs).where(eq(mobs.id, mob.id)).run();
+    res.status(200).end();
+  });
+};

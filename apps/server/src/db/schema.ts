@@ -1,7 +1,8 @@
 import { index, integer, real, sqliteTable, text, uniqueIndex ,check} from "drizzle-orm/sqlite-core";
 import { nowGameTime } from "../time.js";
 // TradeItem — тип одного пункта выкладки в трейде (из общего пакета)
-import type { LastAction, TradeItem,Cooldowns, CasinoGameType } from "@mmobot/shared";
+import type { LastAction, TradeItem,Cooldowns, CasinoGameType, MobLootEntry } from "@mmobot/shared";
+import type { ItemRarity, WeaponFamily, DamageCategory, DamageType, WeaponPassiveId } from "@mmobot/shared";
 import { sql } from "drizzle-orm";
 
 // Локации игрового мира: уникальный id (текстовый ключ) + название, описание и координаты x/y на карте.
@@ -13,10 +14,15 @@ export const locations = sqliteTable("locations", {
   y: real("y").notNull(),
   homeImg:text("homeImg").notNull(),
   fightImg:text("fightImg").notNull(),
+  minLevel: integer("min_level").notNull().default(1),
+  isOpen: integer("is_open", { mode: "boolean" }).notNull().default(false),
   actions: text("actions", { mode: "json" })
     .$type<string[]>()
     .notNull()
-})
+}, (table) => [
+  check("locations_min_level_positive", sql`${table.minLevel} >= 1 AND ${table.minLevel} = CAST(${table.minLevel} AS INTEGER)`),
+  check("locations_is_open_boolean", sql`${table.isOpen} IN (0, 1)`),
+])
 
 // Каталог доступных обликов персонажа. В БД хранится публичный URL,
 // сами изображения раздаются сервером как статические файлы.
@@ -65,7 +71,8 @@ export const players = sqliteTable("players",
 )
 
 // Мобы (враги), обитающие в локациях.
-// loot хранится как JSON-строка в колонке text, но drizzle через mode: "json" и $type<string[]>()
+// loot хранит JSON-массив { itemType, chancePercent }, по одной штуке на строку.
+// Drizzle через mode: "json"
 // автоматически сериализует массив в JSON при записи и парсит обратно при чтении.
 // onDelete: "cascade" — при удалении локации удаляются и все её мобы.
 export const mobs = sqliteTable('mobs', {
@@ -76,7 +83,7 @@ export const mobs = sqliteTable('mobs', {
   maxHealth: integer("max_health").notNull(),
   strength: integer("strength").notNull(),
   defense: integer("defense").notNull(),
-  loot: text("loot", { mode: "json" }).$type<number[]>().notNull(),
+  loot: text("loot", { mode: "json" }).$type<MobLootEntry[]>().notNull(),
   pointsReward: integer("points_reward").notNull(),
   coinReward: integer("coin_reward").notNull().default(0),
   locationId: text("location_id").notNull().references(() => locations.id, { onDelete: "cascade" }),
@@ -96,7 +103,14 @@ export const items = sqliteTable("items", {
   healAmount: integer("heal_amount").notNull().default(0), // зачем это поле? Это поле для показа сколько захилит предмет
   price: integer("price").notNull().default(0),
   shopAvailable: integer("shop_available", { mode: "boolean" }).notNull().default(false),
-  icon: text("icon").notNull().default("")
+  icon: text("icon").notNull().default(""),
+  catalogKey: text("catalog_key").unique(),
+  rarity: text("rarity").$type<ItemRarity>().notNull().default("common"),
+  weaponFamily: text("weapon_family").$type<WeaponFamily>(),
+  damageCategory: text("damage_category").$type<DamageCategory>(),
+  damageType: text("damage_type").$type<DamageType>(),
+  passiveId: text("passive_id").$type<WeaponPassiveId>(),
+  passiveParams: text("passive_params", { mode: "json" }).$type<Record<string, number>>().notNull().default({}),
 })
 
 // Сессии боя: у игрока в каждый момент может быть максимум один активный бой с мобом.
@@ -116,8 +130,8 @@ export const combatSessions = sqliteTable('combat_sessions', {
   (table) => [uniqueIndex("combat_sessions_player_idx").on(table.playerId), index("combat_sessions_mob_idx").on(table.mobId)]
 )
 
-// Предметы в инвентаре игрока. uniqueIndex не даёт дублировать один и тот же предмет у игрока
-// (вместо этого увеличивается quantity).
+// Оружие хранится по экземплярам (quantity=1, собственный weaponLevel).
+// Остальные предметы объединяются частичным индексом в один стек.
 export const inventoryItems = sqliteTable("inventory_items",
   {
     id: integer("id").primaryKey({ autoIncrement: true }),
@@ -127,9 +141,13 @@ export const inventoryItems = sqliteTable("inventory_items",
     itemType: integer("item_type").notNull(), // id предмета 
     quantity: integer("quantity").notNull(),
     acquiredAt: text("acquired_at").notNull(),
-    equiped: integer("equiped", { mode: "boolean" }).notNull().default(false)
+    equiped: integer("equiped", { mode: "boolean" }).notNull().default(false),
+    weaponLevel: integer("weapon_level")
   },
-  (table) => [uniqueIndex("inventory_items_player_item_unique").on(table.playerId, table.itemType)]
+  (table) => [
+    uniqueIndex("inventory_items_player_stack_unique").on(table.playerId, table.itemType).where(sql`${table.weaponLevel} IS NULL`),
+    check("inventory_weapon_instance", sql`${table.weaponLevel} IS NULL OR (${table.quantity} = 1 AND ${table.weaponLevel} >= 1 AND ${table.weaponLevel} = CAST(${table.weaponLevel} AS INTEGER))`),
+  ]
 );
 
 // Журнал игровых событий (что происходило в локации). type — например, "entered", "scavenge".

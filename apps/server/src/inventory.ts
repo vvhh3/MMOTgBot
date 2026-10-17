@@ -1,3 +1,4 @@
+import { assertOutsideCombat, resolveInventoryItem } from "./inventoryStore.js";
 
 import { AuthedRequest } from "./auth.js"
 import type { Express, Request, Response } from "express"
@@ -24,17 +25,14 @@ export const InventoryRoutes = (app: Express) => {
     app.post("/inventory/equip", (req: Request, res: Response) => {
         const player = (req as AuthedRequest).player
 
-        const itemType = parseItemType(req.body);
-        if (itemType === null) {
-            res.status(400).json({ error: "itemType must be an integer" })
-            return
+        let inventoryItem;
+        try {
+            assertOutsideCombat(db, player.id);
+            inventoryItem = resolveInventoryItem(db, player.id, req.body ?? {});
+        } catch (error) {
+            res.status(400).json({ error: (error as Error).message });
+            return;
         }
-
-        const inventoryItem = db.select().from(inventoryItems)
-            .where(and(
-                eq(inventoryItems.playerId, player.id),
-                eq(inventoryItems.itemType, itemType)))
-            .get()
 
         //Есть ли предмет в инвенторе
         if (!inventoryItem || inventoryItem.quantity < 1) {
@@ -65,6 +63,7 @@ export const InventoryRoutes = (app: Express) => {
             ))
             .all()
 
+        db.transaction(() => {
         for (const row of equiped) {
             if (row.item.type === item.type) {
                 db.update(inventoryItems)
@@ -79,6 +78,8 @@ export const InventoryRoutes = (app: Express) => {
             .set({ equiped: true })
             .where(eq(inventoryItems.id, inventoryItem.id))
             .run()
+
+        });
 
         const update = db.select().from(inventoryItems).where(eq(inventoryItems.playerId, player.id)).all()
         const updatedPlayer = db.select().from(players).where(eq(players.id, player.id)).get()!
@@ -116,6 +117,11 @@ export const InventoryRoutes = (app: Express) => {
             return
         }
 
+        if (item.healAmount <= 0) {
+            res.status(400).json({ error: "Эффект этого расходника пока недоступен" })
+            return
+        }
+
         if (player.health >= player.maxHealth) {
             res.status(400).json({ error: "health is already full" })
             return
@@ -144,17 +150,14 @@ export const InventoryRoutes = (app: Express) => {
     app.post("/inventory/unequip", (req: Request, res: Response) => {
         const player = (req as AuthedRequest).player
 
-        const itemType = parseItemType(req.body);
-        if (itemType === null) {
-            res.status(400).json({ error: "itemType must be an integer" })
-            return
+        let inventoryItem;
+        try {
+            assertOutsideCombat(db, player.id);
+            inventoryItem = resolveInventoryItem(db, player.id, req.body ?? {});
+        } catch (error) {
+            res.status(400).json({ error: (error as Error).message });
+            return;
         }
-
-        const inventoryItem = db.select().from(inventoryItems)
-            .where(and(
-                eq(inventoryItems.playerId, player.id),
-                eq(inventoryItems.itemType, itemType)))
-            .get()
 
         if (!inventoryItem || !inventoryItem.equiped) {
             res.status(400).json({ error: "item is not equipped" })

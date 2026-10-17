@@ -110,8 +110,12 @@ export async function enterLocation(token: string, locationId: string): Promise<
   return response.data;
 }
 
-export async function getLocationState(token: string, locationId: string): Promise<LocationStateResponse> {
-  const response = await api.get<LocationStateResponse>(`/locations/${locationId}/state`, { headers: authHeader(token) });
+export async function getLocationState(token: string, locationId: string, signal?: AbortSignal): Promise<LocationStateResponse> {
+  const response = await api.get<LocationStateResponse>(`/locations/${locationId}/state`, {
+    headers: authHeader(token),
+    signal,
+    timeout: 15_000,
+  });
   return response.data;
 }
 
@@ -213,9 +217,9 @@ export async function buyShopItem(token: string, itemType: number, quantity: num
   return response.data
 }
 
-export async function sellShopItem(token: string, itemType: number, quantity: number) {
+export async function sellShopItem(token: string, itemType: number, quantity: number, inventoryItemId?: number) {
   const response = await api.post<MeResponse & { total: number }>(
-    "/shop/sell", { itemType, quantity }, { headers: authHeader(token) }
+    "/shop/sell", { itemType, quantity, inventoryItemId }, { headers: authHeader(token) }
   )
   return response.data
 }
@@ -295,7 +299,7 @@ export async function cancelTrade(token: string, id: number) {
   const response = await api.delete(`/trades/${id}`, { headers: authHeader(token) })
   return response.data
 }
-export async function submitOffer(token: string, id: number, items: { itemType: number; quantity: number }[]) {
+export async function submitOffer(token: string, id: number, items: import("@mmobot/shared").TradeItem[]) {
   const response = await api.put(`/trades/${id}/offer`, { items: items }, { headers: authHeader(token) })
   return response.data
 }
@@ -352,13 +356,13 @@ export async function inventoryUsePotion(token: string,idItem:number): Promise<M
 }
 //экипировка броня/оружие
 export async function inventoryEquipedItem(token: string,idItem:number): Promise<MeResponse> {
-  const res = await api.post("/inventory/equip", { itemType: idItem }, { headers: authHeader(token) })
+  const res = await api.post("/inventory/equip", { inventoryItemId: idItem }, { headers: authHeader(token) })
   return res.data
 }
 
 //снять броня/оружие
 export async function inventoryUnEquipedItem(token: string,idItem:number): Promise<MeResponse> {
-  const res = await api.post("/inventory/unequip", { itemType: idItem }, { headers: authHeader(token) })
+  const res = await api.post("/inventory/unequip", { inventoryItemId: idItem }, { headers: authHeader(token) })
   return res.data
 }
 

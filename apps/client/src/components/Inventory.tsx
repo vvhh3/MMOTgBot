@@ -1,5 +1,5 @@
 import { getSkins } from "../utils/skins";
-import { InventoryItemDto, ItemDto, PlayerDto } from "@mmobot/shared"
+import { InventoryItemDto, ItemDto, PlayerDto, RARITY_COLORS, RARITY_LABELS } from "@mmobot/shared"
 import { useEffect, useState } from "react"
 import { getCatalog, spendStatPoint } from "../api"
 import { Tabs, Text, Box, Card, Progress, Badge, Grid } from "@radix-ui/themes"
@@ -18,7 +18,7 @@ export default function Inventory({ token, player, inventory,onPlayer,onInventor
     const [error, setError] = useState<string | null>(null)
 
     const [inventoryItems, setInventoryItems] = useState<ItemDto[]>([])
-    const [selectedItem,setSelectedItem] = useState<{ item: ItemDto; equiped: boolean } | null>(null)
+    const [selectedItem,setSelectedItem] = useState<{ item: ItemDto; equiped: boolean; inventoryEntry: InventoryItemDto } | null>(null)
 
     useEffect(() => {
         if (!token) return
@@ -40,6 +40,7 @@ export default function Inventory({ token, player, inventory,onPlayer,onInventor
     }
 
     const list = (inventory ?? []).map(inv => ({
+        inventoryEntry: inv,
         item: inventoryItems.find(i => i.id === inv.itemType),
         quantity: inv.quantity,
         equiped: inv.equiped,
@@ -52,28 +53,32 @@ export default function Inventory({ token, player, inventory,onPlayer,onInventor
 
         return (
             <div className="p-2.5 items-center justify-center flex">
-                <Grid rows="5" columns="5" gap="3">
-                    {Array.from({ length: 25 }).map((_, index) => {
+                <div className="grid w-full grid-cols-5 gap-2">
+                    {Array.from({ length: Math.max(25, Math.ceil(visibleItems.length / 5) * 5) }).map((_, index) => {
                         const entry = visibleItems[index]
 
                         return (
                             <button
-                                onClick={() => entry?.item && setSelectedItem({ item: entry.item, equiped: entry.equiped })}
-                                key={index}
-                                className={`border h-17 w-17 p-0.5 flex flex-col justify-between overflow-hidden ${entry?.equiped ? "border-[#E85D2F] border-2 bg-orange-50" : "border-[#898888]"}`}>
+                                onClick={() => entry?.item && setSelectedItem({ item: entry.item, equiped: entry.equiped, inventoryEntry: entry.inventoryEntry })}
+                                key={entry?.inventoryEntry.id ?? `empty-${index}`}
+                                disabled={!entry?.item}
+                                title={entry?.item ? `${entry.item.name} · ${RARITY_LABELS[entry.item.rarity]}${entry.inventoryEntry.weaponLevel ? ` · Ур. ${entry.inventoryEntry.weaponLevel}` : ""}` : "Пустая ячейка"}
+                                aria-label={entry?.item ? `${entry.item.name}${entry.inventoryEntry.weaponLevel ? `, уровень ${entry.inventoryEntry.weaponLevel}` : ""}` : "Пустая ячейка"}
+                                style={{ borderColor: entry?.item?.type === "weapon" ? RARITY_COLORS[entry.item.rarity] : undefined }}
+                                className={`border aspect-square min-w-0 p-1 flex flex-col justify-between overflow-hidden ${entry?.equiped ? "border-[#E85D2F] border-2 bg-orange-50" : "border-[#898888]"}`}>
                                 {entry?.item && (
                                     <>
                                         {entry.item.icon ? 
-                                        <div className="w-8 h-8" dangerouslySetInnerHTML={{__html: entry.item.icon}}></div>
+                                        <div className="h-7 w-7 [&_svg]:h-full [&_svg]:w-full" dangerouslySetInnerHTML={{__html: entry.item.icon}}></div>
                                         : <p className="truncate text-lg">{entry.item.name}  </p>
                                         }
-                                        <Text size="1" align="right">x{entry.quantity}</Text>
+                                        <Text size="1" align="right">{entry.inventoryEntry.weaponLevel != null ? `Ур. ${entry.inventoryEntry.weaponLevel}` : `×${entry.quantity}`}{entry.equiped ? " ✓" : ""}</Text>
                                     </>
                                 )}
                             </button>
                         )
                     })}
-                </Grid>
+                </div>
             </div>
         )
     }
@@ -161,7 +166,7 @@ export default function Inventory({ token, player, inventory,onPlayer,onInventor
                         </Tabs.Trigger>
 
                         <Tabs.Trigger className="shrink-0 px-6" value="Potions">
-                            Зелья
+                            Расходники
                         </Tabs.Trigger>
 
                         <Tabs.Trigger className="shrink-0 px-6" value="Other">
@@ -187,7 +192,7 @@ export default function Inventory({ token, player, inventory,onPlayer,onInventor
                     </Tabs.Content>
                 </Box>
             </Tabs.Root>
-            <Modal  showIsModal={true} typeModal={TypeModal.Item} item={selectedItem?.item ?? null} equiped={selectedItem?.equiped ?? false} token={token} onItem={setSelectedItem} onPlayer={onPlayer} onInventory={onInventory}/>
+            <Modal  showIsModal={true} typeModal={TypeModal.Item} item={selectedItem?.item ?? null} inventoryEntry={selectedItem?.inventoryEntry ?? null} equiped={selectedItem?.equiped ?? false} token={token} onItem={setSelectedItem} onPlayer={onPlayer} onInventory={onInventory}/>
         </div>
     )
 }

@@ -1,3 +1,4 @@
+import ItemDetails from "./ui/ItemDetails";
 import {
   InventoryItemDto,
   ItemDto,
@@ -9,7 +10,7 @@ import { Button, Card, Text } from "@radix-ui/themes";
 import { useEffect, useState } from "react";
 import { getCatalog, submitOffer, submitReady, cancelTrade } from "../api";
 import CenterModalSelectOfItem from "./ui/Modal/CenterModal/CenterModalSelectOfItem";
-import { useNavigate } from "react-router-dom"
+
 
 type ExhangeType = {
   token: string | null;
@@ -28,7 +29,6 @@ export default function Exchange({
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [myOffer, setMyOffer] = useState<TradeItem[]>([]);
-  const navigate = useNavigate()
   useEffect(() => {
     if (!token) return;
     getCatalog(token)
@@ -47,34 +47,33 @@ export default function Exchange({
   if (!inventory || !tradeState) return null;
 
   const list = (inventory ?? []).map((inv) => ({
+    id: inv.id,
+    weaponLevel: inv.weaponLevel,
     item: inventoryItems.find((i) => i.id === inv.itemType),
     quantity: inv.quantity,
     equiped: inv.equiped,
   }));
 
-  const handleSelectItem = (itemType: number, maxQty: number) => {
-    const existing = myOffer.find((o) => o.itemType === itemType);
-    if (existing) {
-      setMyOffer(
-        myOffer.map((o) =>
-          o.itemType === itemType? { ...o, quantity: Math.min(o.quantity + 1, maxQty) }: o
-        ),
-      );
-    } else {
-      setMyOffer([...myOffer, { itemType, quantity: 1 }]);
-    }
+  const offerKey = (offer: TradeItem) => offer.inventoryItemId != null ? `instance-${offer.inventoryItemId}` : `stack-${offer.itemType}`;
+  const maxQuantity = (offer: TradeItem) => offer.inventoryItemId != null ? 1 : (inventory.find((entry) => entry.itemType === offer.itemType)?.quantity ?? 0);
+  const handleSelectItem = (inventoryItemId: number) => {
+    const entry = inventory.find((row) => row.id === inventoryItemId);
+    if (!entry || entry.equiped) return;
+    const next: TradeItem = entry.weaponLevel === null
+      ? { itemType: entry.itemType, quantity: 1 }
+      : { itemType: entry.itemType, quantity: 1, inventoryItemId: entry.id, weaponLevel: entry.weaponLevel };
+    const existing = myOffer.find((offer) => offerKey(offer) === offerKey(next));
+    setMyOffer(existing ? myOffer.map((offer) => offerKey(offer) === offerKey(next)
+      ? { ...offer, quantity: Math.min(offer.quantity + 1, entry.quantity) } : offer) : [...myOffer, next]);
   };
-
-  const handleRemoveItem = (itemType: number) => {
-    setMyOffer(myOffer.filter((o) => o.itemType !== itemType));
+  const handleRemoveItem = (key: string) => setMyOffer(myOffer.filter((offer) => offerKey(offer) !== key));
+  const handleChangeQty = (key: string, delta: number) => setMyOffer(myOffer.map((offer) => offerKey(offer) === key
+    ? { ...offer, quantity: Math.min(maxQuantity(offer), Math.max(0, offer.quantity + delta)) } : offer).filter((offer) => offer.quantity > 0));
+  const offerDetails = (offer: TradeItem) => {
+    const item = inventoryItems.find((entry) => entry.id === offer.itemType);
+    return item ? <ItemDetails item={item} level={offer.weaponLevel} compact /> : null;
   };
-
-  const handleChangeQty = (itemType: number, delta: number) => {
-    setMyOffer(
-      myOffer.map((o) => o.itemType === itemType ? { ...o, quantity: Math.max(0, o.quantity + delta) }: o)
-        .filter((o) => o.quantity > 0),
-    );
-  };
+  const offerDirty = JSON.stringify(myOffer) !== JSON.stringify(tradeState.myOffer);
 
   const handleSubmitOffer = async () => {
     if (!token || !tradeState) return;
@@ -104,16 +103,6 @@ export default function Exchange({
   };
 
   const findItemName = (itemType: number) => inventoryItems.find((i) => i.id === itemType)?.name ?? `#${itemType}`;
-  if (!tradeState) {
-      useEffect(()=>{
-        navigate("/",{replace:true})
-      },[tradeState])
-      return (
-        <div className="flex items-center justify-center h-screen">
-            <Text size="3">Нет обмена</Text>
-        </div>
-      )
-    }
   return (
     <div className="flex flex-col h-full">
       <div className="flex flex-row items-center gap-1.5 pl-5 h-7.5 border-b-2">
@@ -148,15 +137,16 @@ export default function Exchange({
                   )}
                   {myOffer.map((o) => (
                     <div
-                      key={o.itemType}
+                      key={offerKey(o)}
                       className="flex flex-col items-center border rounded-lg px-2 py-1 min-w-17.5"
                     >
                       <p className="text-xs font-medium">
                         {findItemName(o.itemType)}
                       </p>
+                      {offerDetails(o)}
                       <div className="flex items-center gap-1 mt-1">
                         <button
-                          onClick={() => handleChangeQty(o.itemType, -1)}
+                          onClick={() => handleChangeQty(offerKey(o), -1)}
                           className="w-5 h-5 text-xs border rounded flex items-center justify-center"
                         >
                           −
@@ -165,14 +155,14 @@ export default function Exchange({
                           {o.quantity}
                         </span>
                         <button
-                          onClick={() => handleChangeQty(o.itemType, 1)}
+                          onClick={() => handleChangeQty(offerKey(o), 1)}
                           className="w-5 h-5 text-xs border rounded flex items-center justify-center"
                         >
                           +
                         </button>
                       </div>
                       <button
-                        onClick={() => handleRemoveItem(o.itemType)}
+                        onClick={() => handleRemoveItem(offerKey(o))}
                         className="text-[10px] text-red-400 mt-0.5"
                       >
                         удалить
@@ -221,12 +211,13 @@ export default function Exchange({
                   )}
                   {tradeState.partnerOffer.map((o) => (
                     <div
-                      key={o.itemType}
+                      key={offerKey(o)}
                       className="flex flex-col items-center border rounded-lg px-2 py-1 min-w-17.5 bg-gray-50"
                     >
                       <p className="text-xs font-medium">
                         {findItemName(o.itemType)}
                       </p>
+                      {offerDetails(o)}
                       <p className="text-xs text-gray-500">×{o.quantity}</p>
                     </div>
                   ))}
@@ -253,10 +244,11 @@ export default function Exchange({
                 Выложить на стол
               </Button>
               <Button
+                disabled={offerDirty}
                 onClick={handleReady}
                 style={{ background: "#22c55e", color: "white", border: "solid 2px black" }}
               >
-                Готово
+                {offerDirty ? "Сначала выложите изменения на стол" : "Готово"}
               </Button>
               <Button
                 onClick={handleCancel}

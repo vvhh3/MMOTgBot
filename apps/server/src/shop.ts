@@ -1,3 +1,4 @@
+import { assertOutsideCombat, grantItems, resolveInventoryItem } from "./inventoryStore.js";
 import type { Express, Request, Response } from "express";
 import { and, asc, eq, sql } from "drizzle-orm";
 import type { ItemDto, InventoryItemDto, PlayerDto } from "@mmobot/shared";
@@ -16,10 +17,10 @@ class ShopError extends Error {
   }
 }
 
-function parsePositiveInteger(value: unknown, label: string): number {
+function parsePositiveInteger(value: unknown, label: string, max = Number.MAX_SAFE_INTEGER): number {
   const parsed = Number(value);
-  if (!Number.isSafeInteger(parsed) || parsed < 1 || parsed > 99) {
-    throw new ShopError(`${label} must be an integer from 1 to 99`);
+  if (!Number.isSafeInteger(parsed) || parsed < 1 || parsed > max) {
+    throw new ShopError(`${label}: требуется целое число от 1 до ${max}`);
   }
   return parsed;
 }
@@ -38,7 +39,7 @@ export function createShopRoutes(app: Express): void {
     const playerId = (req as AuthedRequest).player.id;
     try {
       const itemId = parsePositiveInteger(req.body?.itemType, "itemType");
-      const quantity = parsePositiveInteger(req.body?.quantity, "quantity");
+      const quantity = parsePositiveInteger(req.body?.quantity, "quantity", 99);
       let total = 0;
 
       db.transaction((tx) => {
@@ -52,17 +53,7 @@ export function createShopRoutes(app: Express): void {
         if (player.money < total) throw new ShopError("Недостаточно монет");
 
         tx.update(players).set({ money: player.money - total }).where(eq(players.id, playerId)).run();
-        const owned = tx.select().from(inventoryItems).where(and(
-          eq(inventoryItems.playerId, playerId), eq(inventoryItems.itemType, itemId)
-        )).get();
-        if (owned) {
-          tx.update(inventoryItems).set({ quantity: owned.quantity + quantity })
-            .where(eq(inventoryItems.id, owned.id)).run();
-        } else {
-          tx.insert(inventoryItems).values({
-            playerId, itemType: itemId, quantity, acquiredAt: nowGameTime(), equiped: false
-          }).run();
-        }
+        grantItems(tx, playerId, itemId, quantity);
       });
 
       res.json(buildResponse(playerId, total));
@@ -76,15 +67,14 @@ export function createShopRoutes(app: Express): void {
     const playerId = (req as AuthedRequest).player.id;
     try {
       const itemId = parsePositiveInteger(req.body?.itemType, "itemType");
-      const quantity = parsePositiveInteger(req.body?.quantity, "quantity");
+      const quantity = parsePositiveInteger(req.body?.quantity, "quantity", 99);
       let total = 0;
 
       db.transaction((tx) => {
         const item = tx.select().from(items).where(eq(items.id, itemId)).get();
         if (!item || !item.shopAvailable || item.price <= 0) throw new ShopError("Этот предмет нельзя продать", 400);
-        const owned = tx.select().from(inventoryItems).where(and(
-          eq(inventoryItems.playerId, playerId), eq(inventoryItems.itemType, itemId)
-        )).get();
+        assertOutsideCombat(tx, playerId);
+        const owned = resolveInventoryItem(tx, playerId, req.body ?? {});
         if (!owned || owned.quantity < quantity) throw new ShopError("Недостаточно предметов");
         if (owned.equiped) throw new ShopError("Сначала снимите экипированный предмет");
 
@@ -103,7 +93,7 @@ export function createShopRoutes(app: Express): void {
 
       res.json(buildResponse(playerId, total));
     } catch (error) {
-      const shopError = error instanceof ShopError ? error : new ShopError("Не удалось продать предмет", 500);
+      const shopError = error instanceof ShopError ? error : new ShopError(error instanceof Error ? error.message : "Не удалось продать предмет");
       res.status(shopError.status).json({ error: shopError.message });
     }
   });

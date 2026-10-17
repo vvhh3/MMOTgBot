@@ -1,5 +1,7 @@
-import type { CombatLogEntry, CombatStateResponse } from "@mmobot/shared";
-import { db, toMobDto, toPlayerDto } from "./db.js";
+import { rollLoot } from "./loot.js";
+import { grantItems } from "./inventoryStore.js";
+import type { CombatLogEntry, CombatStateResponse, ItemDto } from "@mmobot/shared";
+import { db, toMobDto, toPlayerDto, toItemDto } from "./db.js";
 import { combatSessions, events, inventoryItems, items, players } from "./db/schema.js";
 import type { CombatSessionRow, MobRow, PlayerRow } from "./db/schema.js";
 import { movePlayer } from "./presence.js";
@@ -67,8 +69,33 @@ export function moveCombatAction(
     session: CombatSessionRow,
     action: "attack" | "flee"
 ): CombatStateResponse {
+    const state = db.transaction(() => {
+        const active = db.select().from(combatSessions).where(and(
+            eq(combatSessions.id, session.id), eq(combatSessions.playerId, player.id),
+            eq(combatSessions.mobId, mob.id), eq(combatSessions.status, "active"),
+        )).get();
+        if (!active) throw new Error("Бой уже завершён");
+        return resolveCombatAction(player, mob, active, action);
+    });
+    // Публикуем изменения в памяти только после успешной записи хода и награды.
+    if (state.status === "active") {
+        combatSessionsLogs.set(session.id, state.log);
+    } else {
+        combatSessionsLogs.delete(session.id);
+        if (state.status === "victory") markMobDead(mob);
+        if (state.status === "defeat") movePlayer(toPlayerDto({ ...player, currentLocationId: "square" }), "square");
+    }
+    return state;
+}
+
+function resolveCombatAction(
+    player: PlayerRow,
+    mob: MobRow,
+    session: CombatSessionRow,
+    action: "attack" | "flee"
+): CombatStateResponse {
     const now = nowGameTime();
-    const log = combatSessionsLogs.get(session.id) ?? [];
+    const log = [...(combatSessionsLogs.get(session.id) ?? [])];
 
     let playerHp = session.playerHealth;
     let mobHp = session.mobHealth;
@@ -119,11 +146,13 @@ export function moveCombatAction(
         .where(eq(players.id, player.id))
         .run();
 
-    if (status === "victory" || status === "defeat" || status === "fled") {
-        endCombatSession(status, player, mob, session.id);
+    const droppedItems = status === "active" ? [] : endCombatSession(status, player, mob, session.id);
+    if (status === "victory") {
+        log.push({ text: droppedItems.length
+            ? `Добыча: ${droppedItems.map((item) => item.name).join(", ")}`
+            : "Предметы не выпали", at: now });
     }
-
-    return buildCombatState(mob, player, playerHp, mobHp, status, log);
+    return buildCombatState(mob, player, playerHp, mobHp, status, log, droppedItems);
 }
 
 export function usePotion(player: PlayerRow, itemType: number, session: CombatSessionRow, mob: MobRow): CombatStateResponse | null {
@@ -173,19 +202,15 @@ export function usePotion(player: PlayerRow, itemType: number, session: CombatSe
     return buildCombatState(mob, player, newHealth, session.mobHealth, "active", log)
 }
 
-function endCombatSession(status: "victory" | "defeat" | "fled", player: PlayerRow, mob: MobRow, sessionId: number): void {
+function endCombatSession(status: "victory" | "defeat" | "fled", player: PlayerRow, mob: MobRow, sessionId: number): ItemDto[] {
     const now = nowGameTime();
+    const droppedItems: ItemDto[] = [];
 
     if (status === "victory") {
-        // кладём каждый предмет из лута моба в инвентарь (quantity растёт, дубли не создаются)
-        for (const item of mob.loot) {
-            db.insert(inventoryItems)
-                .values({ playerId: player.id, itemType: item, quantity: 1, acquiredAt: now })
-                .onConflictDoUpdate({ // Если уже существует строка с таким же playerId + itemType, не создавать новую строку, а обновить существующую
-                    target: [inventoryItems.playerId, inventoryItems.itemType],
-                    set: { quantity: sql`${inventoryItems.quantity} + 1`, acquiredAt: now }
-                })
-                .run();
+        // Один розыгрыш при победе. Выдача, квесты и завершение боя — в транзакции хода.
+        for (const item of rollLoot(mob.loot)) {
+            grantItems(db, player.id, item, 1, now);
+            droppedItems.push(toItemDto(db.select().from(items).where(eq(items.id, item)).get()!));
             progressQuests(player.id, "collect", item);
             progressQuests(player.id, "loot", item);
         }
@@ -205,7 +230,6 @@ function endCombatSession(status: "victory" | "defeat" | "fled", player: PlayerR
             .values({ playerId: player.id, locationId: mob.locationId, type: "kill", createdAt: now })
             .run();
 
-        markMobDead(mob);
     } else if (status === "defeat") {
 
         db.update(players)
@@ -221,14 +245,12 @@ function endCombatSession(status: "victory" | "defeat" | "fled", player: PlayerR
             .values({ playerId: player.id, locationId: mob.locationId, type: "death", createdAt: now })
             .run();
 
-        // телепортируем игрока на стартовую локацию ("square" из сида)
-        movePlayer(toPlayerDto({ ...player, currentLocationId: "square" }), "square");
     }
 
     // В любом завершившемся бою (победа/поражение/побег) удаляем сессию,
     // чтобы игрок мог начать новый бой (uniqueIndex на playerId не даст дубль)
     db.delete(combatSessions).where(eq(combatSessions.id, sessionId)).run()
-    combatSessionsLogs.delete(sessionId)
+    return droppedItems;
 }
 
 
@@ -253,10 +275,12 @@ function buildCombatState(
     playerHp: number,
     mobHp: number,
     status: CombatStateResponse["status"],
-    log: CombatLogEntry[]
+    log: CombatLogEntry[],
+    droppedItems: ItemDto[] = []
 ): CombatStateResponse {
     return {
         mob: toMobDto(mob),
+        droppedItems,
         playerHp: playerHp,
         playerMaxHp: player.maxHealth,
         mobHp,

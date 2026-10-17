@@ -1,3 +1,5 @@
+import { seedWeaponCatalog } from "./weaponCatalog.js";
+import { seedMemeItemCatalog } from "./memeItemCatalog.js";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -12,6 +14,8 @@ import type { EventRow, InventoryItemRow, LocationRow, PlayerRow, MobRow, ItemRo
 import { getPlayerStats } from "./combat.js";
 import { getLevelXpBounds } from "./level.js";
 import { isPlayerOnline } from "./realTime.js";
+import { getLocationAccess } from "@mmobot/shared";
+import { canBypassLocationRestrictions } from "./locationAccess.js";
 
 export type { EventRow, InventoryItemRow, LocationRow, PlayerRow, MobRow, ItemRow } from "./db/schema.js";
 
@@ -58,29 +62,29 @@ export function initializeDatabase(): void {
   // Ниже — сид (начальные данные), который заносится в БД при первом запуске.
   // Список стартовых локаций: id, название, описание и координаты.
   const seedLocations: LocationDto[] = [
-    { id: "square", name: "Площадь", description: "Описание площади", x: 31, y: 40 ,homeImg:"square-home.svg",fightImg:"square-fight.svg",actions:["fight","walk","money",]},
-    { id: "rialto", name: "Рынок", description: "Описание рынка", x: 35, y: 35 ,homeImg:"square-home.svg",fightImg:"square-fight.svg",actions:["exchange","shop"]},
-    { id: "market", name: "Сити парк", description: "Описание сити парка", x: 42, y: 33 ,homeImg:"market-home.svg",fightImg:"market-fight.svg",actions:["mines","blackjack","ladder"]},
-    { id: "park", name: "Парк Победы", description: "Описание парка победы", x: 39, y: 27,homeImg:"park-home.svg",fightImg:"park-fight.svg",actions:["fight","walk"]},
-    { id: "forest", name: "Солдатсикй лес", description: "Описание солдатского леса", x: 64, y: 33,homeImg:"forest-home.svg",fightImg:"forest-fight.svg",actions:["fight","walk"]},
-    { id: "railway", name: "Липяги", description: "Описание станции", x: 70, y: 38,homeImg:"railway-home.svg",fightImg:"railway-fight.svg",actions:["fight","walk"]}
+    { id: "square", name: "Площадь", description: "Описание площади", x: 31, y: 40 ,homeImg:"square-home.svg",fightImg:"square-fight.svg",actions:["fight","walk","money",], minLevel: 1, isOpen: true},
+    { id: "rialto", name: "Рынок", description: "Описание рынка", x: 39, y: 37 ,homeImg:"square-home.svg",fightImg:"square-fight.svg",actions:["exchange","shop"], minLevel: 1, isOpen: true},
+    { id: "market", name: "Сити парк", description: "Описание сити парка", x: 42, y: 33 ,homeImg:"market-home.svg",fightImg:"market-fight.svg",actions:["mines","blackjack","ladder"], minLevel: 1, isOpen: true},
+    { id: "park", name: "Парк Победы", description: "Описание парка победы", x: 39, y: 27,homeImg:"park-home.svg",fightImg:"park-fight.svg",actions:["fight","walk"], minLevel: 1, isOpen: false},
+    { id: "forest", name: "Солдатсикй лес", description: "Описание солдатского леса", x: 64, y: 33,homeImg:"forest-home.svg",fightImg:"forest-fight.svg",actions:["fight","walk"], minLevel: 1, isOpen: false},
+    { id: "railway", name: "Липяги", description: "Описание станции", x: 70, y: 38,homeImg:"railway-home.svg",fightImg:"railway-fight.svg",actions:["fight","walk"], minLevel: 1, isOpen: false}
   ]
 
   // Стартовые мобы. locationId должен ссылаться на существующую локацию из seedLocations,
   // иначе сработает проверка FOREIGN KEY.
   const seedMobs: MobDto[] = [
-    { id: 0, name: "Крыса", description: "какое то описание", level: 1, loot: [1], pointsReward: 10, coinReward: 5, locationId: "square", maxHealth: 10, strength: 2, defense: 0, respawnSeconds: 60 },
-    { id: 2, name: "Ржавый дрон", description: "какое то описание", level: 3, loot: [3], pointsReward: 30, coinReward: 15, locationId: "park", maxHealth: 30, strength: 6, defense: 2, respawnSeconds: 120 },
-    { id: 3, name: "Страж архива", description: "какое то описание", level: 4, loot: [4], pointsReward: 45, coinReward: 20, locationId: "forest",maxHealth: 45, strength: 8, defense: 3, respawnSeconds: 180 },
-    { id: 4, name: "Снайпер", description: "какое то описание", level: 5, loot: [5], pointsReward: 60, coinReward: 30, locationId: "railway",maxHealth: 60, strength: 12, defense: 4, respawnSeconds: 240 }
+    { id: 0, name: "Крыса", description: "какое то описание", level: 1, loot: [{ itemType: 1, chancePercent: 100 }], pointsReward: 10, coinReward: 5, locationId: "square", maxHealth: 10, strength: 2, defense: 0, respawnSeconds: 60 },
+    { id: 2, name: "Ржавый дрон", description: "какое то описание", level: 3, loot: [{ itemType: 3, chancePercent: 100 }], pointsReward: 30, coinReward: 15, locationId: "park", maxHealth: 30, strength: 6, defense: 2, respawnSeconds: 120 },
+    { id: 3, name: "Страж архива", description: "какое то описание", level: 4, loot: [{ itemType: 4, chancePercent: 100 }], pointsReward: 45, coinReward: 20, locationId: "forest",maxHealth: 45, strength: 8, defense: 3, respawnSeconds: 180 },
+    { id: 4, name: "Снайпер", description: "какое то описание", level: 5, loot: [{ itemType: 5, chancePercent: 100 }], pointsReward: 60, coinReward: 30, locationId: "railway",maxHealth: 60, strength: 12, defense: 4, respawnSeconds: 240 }
   ]
 
   const seedItems: typeof items.$inferInsert[] = [
-    { id: 1, name: "Ржавый нож", description: "Простой нож", type: "weapon", damage: 3, defense: 0, healAmount: 0, price: 10, shopAvailable: true, icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 29L13 19M13 19L29 3L13 19Z"/> </svg>'},
+    { id: 1, name: "Ржавый нож", description: "Простой нож", type: "weapon", weaponFamily: "legacy", damageCategory: "physical", damageType: "piercing", damage: 3, defense: 0, healAmount: 0, price: 10, shopAvailable: true, icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 29L13 19M13 19L29 3L13 19Z"/> </svg>'},
     { id: 2, name: "Кожаная броня", description: "Лёгкая защитная броня", type: "armor", damage: 0, defense: 2, healAmount: 0, price: 15, shopAvailable: true, icon: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 2L6 8v8c0 6 4 10 10 12 6-2 10-6 10-12V8L16 2z'/><path d='M16 12v8'/><path d='M12 16h8'/></svg>"},
     { id: 3, name: "Малая аптечка", description: "Восстанавливает здоровье", type: "potion", damage: 0, defense: 0, healAmount: 10, price: 12, shopAvailable: true, icon: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 5v22M5 16h22'/><rect x='4' y='4' width='24' height='24' rx='4'/></svg>"},
     { id: 4, name: "Металлолом", description: "Полезный материал", type: "material", damage: 0, defense: 0, healAmount: 0, price: 5, shopAvailable: false, icon: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 27l4-4 5-6 8-9M9 23l-3-3M18 27c4-7 8-14 9-22l-6 1c-1 4-3 8-5 11'/></svg>" },
-    { id: 5, name: "Старая винтовка", description: "Рабочее оружие", type: "weapon", damage: 8, defense: 0, healAmount: 0, price: 30, shopAvailable: true, icon: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 24h26M3 24l2-6h24l0 6M7 24v4M12 24v4M17 24v4M22 24v4M14 18h6'/></svg>" }
+    { id: 5, name: "Старая винтовка", description: "Рабочее оружие", type: "weapon", weaponFamily: "legacy", damageCategory: "physical", damageType: "piercing", damage: 8, defense: 0, healAmount: 0, price: 30, shopAvailable: true, icon: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 24h26M3 24l2-6h24l0 6M7 24v4M12 24v4M17 24v4M22 24v4M14 18h6'/></svg>" }
   ]
 
   // Вставляем сид. Для локаций onConflictDoUpdate: при изменении координат/названия
@@ -98,6 +102,7 @@ export function initializeDatabase(): void {
         homeImg:sql`excluded.homeImg`,
         fightImg:sql`excluded.fightImg`,
         actions: sql`excluded.actions`,
+        // minLevel/isOpen управляются в БД и не сбрасываются при перезапуске.
       }
     })
     .run()
@@ -122,36 +127,25 @@ export function initializeDatabase(): void {
       },
     })
     .run()
-  db.insert(mobs).values(seedMobs).onConflictDoNothing().run()
-  removeCityParkCombat();
   db.insert(items)
     .values(seedItems)
-    .onConflictDoUpdate({
-      target: items.id,
-      set: {
-        name: sql`excluded.name`,
-        description: sql`excluded.description`,
-        type: sql`excluded.type`,
-        damage: sql`excluded.damage`,
-        defense: sql`excluded.defense`,
-        healAmount: sql`excluded.heal_amount`,
-        price: sql`excluded.price`,
-        icon: sql`excluded.icon`,
-      }
-    })
+    .onConflictDoNothing()
     .run()
 
   // Новый предмет получает свободный id, чтобы не затереть предметы из админки.
   const stick = db.select().from(items).where(eq(items.name, "Палка")).get()
     ?? db.insert(items).values({
       name: "Палка", description: "Простое оружие, которое можно добыть у крыс на Площади",
-      type: "weapon", damage: 1, price: 2, shopAvailable: false,
+      type: "weapon", weaponFamily: "legacy", damageCategory: "physical", damageType: "blunt", damage: 1, price: 2, shopAvailable: false,
       icon: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round'><path d='M7 27L23 5M17 13L25 12'/></svg>",
     }).returning().get();
-  const rat = db.select().from(mobs).where(eq(mobs.id, 0)).get();
-  if (rat && !rat.loot.includes(stick.id)) {
-    db.update(mobs).set({ loot: [...rat.loot, stick.id] }).where(eq(mobs.id, rat.id)).run();
-  }
+  seedWeaponCatalog(db);
+  seedMemeItemCatalog(db);
+  // Настройки добычи существующих мобов, включая пустой список, сохраняются.
+  db.insert(mobs).values(seedMobs.map((mob) => mob.id === 0
+    ? { ...mob, loot: [...mob.loot, { itemType: stick.id, chancePercent: 100 }] }
+    : mob)).onConflictDoNothing().run();
+  removeCityParkCombat();
 
   // Дополняем каталог и в существующей БД. Награды/настройки уже созданных
   // заданий не перезаписываем, повторный запуск не создаёт копии.
@@ -182,6 +176,25 @@ export function initializeDatabase(): void {
     const existingTitles = new Set(tx.select({ title: quests.title }).from(quests).all().map((quest) => quest.title));
     const missingQuests = seedQuests.filter((quest) => !existingTitles.has(quest.title));
     if (missingQuests.length > 0) tx.insert(quests).values(missingQuests).run();
+  });
+  resetUnavailablePlayerLocations();
+}
+
+// После изменения правил игроки не должны оставаться в закрытых локациях.
+// На следующем входе они смогут выбрать доступную точку на карте.
+function resetUnavailablePlayerLocations(): void {
+  db.transaction((tx) => {
+    const residents = tx.select({ player: players, location: locations }).from(players)
+      .innerJoin(locations, eq(players.currentLocationId, locations.id)).all();
+    for (const { player, location } of residents) {
+      if (getLocationAccess(location, player.level, canBypassLocationRestrictions(player)) === "available") continue;
+      tx.update(players).set({
+        currentLocationId: null,
+        ...(player.idTheLastAction?.type === "TakeAWalk" ? { idTheLastAction: null } : {}),
+      }).where(eq(players.id, player.id)).run();
+      tx.update(combatSessions).set({ status: "fled" })
+        .where(and(eq(combatSessions.playerId, player.id), eq(combatSessions.status, "active"))).run();
+    }
   });
 }
 
@@ -307,7 +320,7 @@ export function toMobDto(row: MobRow): MobDto{
     maxHealth: row.maxHealth,
     strength: row.strength,
     defense: row.defense,
-    // loot в БД хранится как JSON-строка, но drizzle с mode: "json" уже вернул его массивом string[].
+    // Возможная добыча со своими шансами, не результат конкретного боя.
     loot: row.loot,
     pointsReward: row.pointsReward,
     coinReward: row.coinReward,
@@ -368,7 +381,13 @@ export function toItemDto(row: ItemRow): ItemDto {
     healAmount: row.healAmount,
     price: row.price,
     shopAvailable: row.shopAvailable,
-    icon: row.icon
+    icon: row.icon,
+    rarity: row.rarity,
+    weaponFamily: row.weaponFamily,
+    damageCategory: row.damageCategory,
+    damageType: row.damageType,
+    passiveId: row.passiveId,
+    passiveParams: row.passiveParams,
   };
 }
 
@@ -381,7 +400,9 @@ export function toLocationDto(row: LocationRow): LocationDto {
     y: row.y,
     homeImg:row.homeImg,
     fightImg:row.fightImg,
-    actions:row.actions
+    actions:row.actions,
+    minLevel: row.minLevel,
+    isOpen: row.isOpen,
   };
 }
 
@@ -391,7 +412,8 @@ export function toInventoryItemDto(row: InventoryItemRow): InventoryItemDto {
     itemType: row.itemType,
     quantity: row.quantity,
     acquiredAt: row.acquiredAt,
-    equiped: row.equiped
+    equiped: row.equiped,
+    weaponLevel: row.weaponLevel,
   };
 }
 

@@ -2,8 +2,7 @@ import { getSkins } from "../utils/skins";
 import map from '/mapMat.png'
 import { Flex, Card, Text, Button, Box, Progress, Inset, Strong, Grid } from "@radix-ui/themes";
 import { Link } from 'react-router-dom'
-import { PlayerDto,LocationStateResponse,LocationDto} from '@mmobot/shared';
-import { useEffect, useState } from 'react';
+import { PlayerDto,LocationStateResponse} from '@mmobot/shared';
 import { TypeModal } from './ui/Modal/Modal';
 
 type ProfileProps = {
@@ -13,13 +12,7 @@ type ProfileProps = {
     setTypeShowIsModal:(value: TypeModal | null) => void
 }
 export default function Profile({ player,locationState,setShowModal,setTypeShowIsModal }: ProfileProps) {
-    const [location, setLocation] = useState<LocationDto>();
-    useEffect(() => {
-        if (locationState) {
-          setLocation(locationState.location);
-          return;
-        }
-    },[])
+    const location = locationState?.location;
     return (
         <div className='flex flex-col items-center h-full ' >
             <div className='flex flex-col justify-center items-center '>
@@ -78,9 +71,9 @@ export default function Profile({ player,locationState,setShowModal,setTypeShowI
                                         width: "100%",
                                         height: 140,
                                         backgroundColor: "var(--gray-5)",
-                                        objectPosition: `${location?.x}% ${location?.y}%`,
-                                        transformOrigin: `${location?.x}% ${location?.y}%`,
-                                        transform: "scale(6)",
+                                        objectPosition: `${location?.x ?? 46}% ${location?.y ?? 60}%`,
+                                        transformOrigin: `${location?.x ?? 46}% ${location?.y ?? 60}%`,
+                                        transform: location ? "scale(6)" : "none",
 
                                     }}
                                 />

@@ -6,10 +6,11 @@ type AppSocket = Socket<ServerToClientEvents, ClientToServerEvents>
 let socket: AppSocket | null = null
 let socketToken: string | null = null
 
-export function connectSocket(token: string): AppSocket {
+export function connectSocket(token: string, autoConnect = true): AppSocket {
   const url = import.meta.env.VITE_API_BASE_URL ?? ""
 
   if (socket && socketToken === token) {
+    if (autoConnect) socket.connect()
     return socket
   }
   socketToken = token
@@ -17,11 +18,12 @@ export function connectSocket(token: string): AppSocket {
   if (socket) {
     socket.auth = { token }
     socket.disconnect()
-    socket.connect()
+    if (autoConnect) socket.connect()
     return socket
   }
 
   socket = io(url, {
+    autoConnect,
     auth: { token },
     transports: ["websocket"],
   }) as AppSocket
