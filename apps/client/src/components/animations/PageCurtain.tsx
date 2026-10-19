@@ -47,7 +47,8 @@ export default function PageCurtain({ target, displayed, onCovered, ready }: Pag
     if (target === displayed) return
     const from = normalize(displayed.pathname)
     const to = normalize(target.pathname)
-    const shouldAnimate = (from === "/" && isBattle(to)) || (isBattle(from) && to === "/")
+    const isLocationTravel = from === "/map" && to === "/" && target.state?.transition === "location"
+    const shouldAnimate = (from === "/" && isBattle(to)) || (isBattle(from) && to === "/") || isLocationTravel
 
     if (reducedMotion || !shouldAnimate || !panel.current) {
       setPhase("idle")

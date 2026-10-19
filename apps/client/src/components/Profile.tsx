@@ -43,7 +43,7 @@ export default function Profile({ player,locationState,setShowModal,setTypeShowI
                 </EnterAnimation>
                 <EnterAnimation>
                     <ButtonAnimation className="w-full h-full" >
-                        <Card variant="classic">
+                        <Card className="w-full h-full" variant="classic">
                             <div onClick={()=>{setShowModal(true),setTypeShowIsModal(TypeModal.SkillPoints)}}>
                                 <Text as="div" size="2" weight="bold">
                                     Уровень {player?.level}

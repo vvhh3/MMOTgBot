@@ -143,8 +143,7 @@ export default function GameMap({ token,player,onLocationState,onPlayer }:MapePr
       const res = await enterLocation(token, loc.id)
       onLocationState?.(res.state)
       onPlayer(res.player)
-      closeLocation()
-      navigate("/")
+      navigate("/", { state: { transition: "location" } })
     } catch (e) {
       setError(e instanceof Error ? e.message : "Не удалось перейти");
       // Правила могли измениться после загрузки карты.
