@@ -23,6 +23,7 @@ import { getLocationImage } from "../utils/getLocationImage";
 import ActionCards from "./ui/ActionCards.tsx";
 import map from '/mapMat.png'
 import { TypeModal } from "./ui/Modal/Modal.tsx";
+import EnterAnimation from "./animations/EnterAnimation.tsx";
 
 type HomeProps = {
   token: string | null;
@@ -121,33 +122,35 @@ export default function Home({
           <ActionCards setInfoMessages={setInfoMessages} setTypeShowIsModal={setTypeShowIsModal} onPlayer={onPlayer} onError={onError} onState={onState} showIsModal={showIsModal} setShowModal={setShowModal}  token={token} locationState={locationState} player={player} location={location}/>
         </Grid>
         :
-        <Box className="w-[70%] p-2.5">
-          <Link to="/Map">
-              <Card size="2" >
-                  <Inset  side="top" pb="current" style={{ borderBottom: "solid 2px",paddingBottom:"0px" }} >
-                      <img
-                          src={map}
-                          alt="Bold typography"
-                          style={{
-                              display: "block",
-                              objectFit: "cover",
-                              width: "100%",
-                              height: 140,
-                              backgroundColor: "var(--gray-5)",
-                              objectPosition: "46% 60%",
-                              transformOrigin: `${35}% ${45}%`,
-                          }}
-                      />
-                  </Inset>
-                  <Text as="div" size="2" weight="bold">
-                      Выбери локацию
-                  </Text>
-                  <Text as="div" color="gray" size="1">
-                      Нажми чтоб посмотреть карту
-                  </Text>
-              </Card>
-          </Link>
-        </Box>
+        <EnterAnimation className="w-full flex justify-center items-center">
+          <Box className="w-[70%] p-2.5">
+            <Link to="/Map">
+                <Card size="2" >
+                    <Inset  side="top" pb="current" style={{ borderBottom: "solid 2px",paddingBottom:"0px" }} >
+                        <img
+                            src={map}
+                            alt="Bold typography"
+                            style={{
+                                display: "block",
+                                objectFit: "cover",
+                                width: "100%",
+                                height: 140,
+                                backgroundColor: "var(--gray-5)",
+                                objectPosition: "46% 60%",
+                                transformOrigin: `${35}% ${45}%`,
+                            }}
+                        />
+                    </Inset>
+                    <Text as="div" size="2" weight="bold">
+                        Выбери локацию
+                    </Text>
+                    <Text as="div" color="gray" size="1">
+                        Нажми чтоб посмотреть карту
+                    </Text>
+                </Card>
+            </Link>
+          </Box>
+        </EnterAnimation>
       }
     </div>
   );

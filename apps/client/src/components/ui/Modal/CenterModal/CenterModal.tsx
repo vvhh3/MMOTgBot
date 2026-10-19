@@ -1,4 +1,5 @@
 import React from "react";
+import EnterAnimation from "../../../animations/EnterAnimation";
 
 type CenterModalProps = {
   onClose?: () => void;
@@ -12,7 +13,8 @@ export default function CenterModal({ onClose, title, children }: CenterModalPro
     <div className="fixed inset-0 z-50 flex items-center justify-center p-8">
       {/* Клик по затемнению закрывает окно */}
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className="relative w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl">
+      <EnterAnimation className="flex justify-center w-full">
+        <div className="relative w-full max-w-sm rounded-2xl bg-white p-5 shadow-xl">
         {onClose !=undefined ? 
         <button
           onClick={onClose}
@@ -25,6 +27,9 @@ export default function CenterModal({ onClose, title, children }: CenterModalPro
           {children}
         </div>
       </div>
+      </EnterAnimation>
+      
+
     </div>
   );
 }

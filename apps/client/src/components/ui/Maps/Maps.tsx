@@ -10,6 +10,7 @@ import { enterLocation, getLocations } from "../../../api";
 import { useNavigate } from "react-router-dom";
 import { getLocationImage } from "../../../utils/getLocationImage";
 import { preloadImage } from "../../../utils/preloadImage";
+import EnterAnimation from "../../animations/EnterAnimation";
 const IMG_W = 1622;
 const IMG_H = 970;
 
@@ -228,67 +229,57 @@ export default function GameMap({ token,player,onLocationState,onPlayer }:MapePr
       )}
 
       {selectedLocation && (
+        <EnterAnimation       className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-[20px] rounded-[20px] z-[1000] w-[min(340px,calc(100vw-24px))] max-h-[calc(100dvh-32px)] overflow-y-auto">
+            <Card
+            role="dialog"
+            aria-label={selectedLocation.name}>
+            <Inset>
+              <img src={getLocationImage(selectedLocation.homeImg)} alt={selectedLocation.name} style={{ padding: "10px", borderRadius: "16px", filter: selectedAccess === "available" ? undefined : "grayscale(1)" }}
+              />
+            </Inset>
 
-        <Card
-          role="dialog"
-          aria-label={selectedLocation.name}
-          style={{
-            position: "fixed",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            padding: 20,
-            borderRadius: 20,
-            zIndex: 1000,
-            width: "min(340px, calc(100vw - 24px))",
-            maxHeight: "calc(100dvh - 32px)",
-            overflowY: "auto",
-          }}>
-          <Inset>
-            <img src={getLocationImage(selectedLocation.homeImg)} alt={selectedLocation.name} style={{ padding: "10px", borderRadius: "16px", filter: selectedAccess === "available" ? undefined : "grayscale(1)" }}
-            />
-          </Inset>
-
-          <h2 className="text-xl font-bold">
-            {selectedLocation.name}
-          </h2>
+            <h2 className="text-xl font-bold">
+              {selectedLocation.name}
+            </h2>
 
 
-          <p>
-            {selectedLocation.description}
-          </p>
+            <p>
+              {selectedLocation.description}
+            </p>
 
-          <div className={`mt-3 rounded-lg p-3 text-sm ${selectedAccess === "level_required" ? "bg-amber-100 text-amber-950" : "bg-slate-100 text-slate-800"}`}>
-            <p className="font-semibold">{statusLabel(selectedLocation)}</p>
-            {!selectedLocation.isOpen && <p className="mt-1">Локация ещё в разработке. Она появится в одном из следующих обновлений.</p>}
-            {selectedLocation.minLevel > 1 && <p className="mt-1">{!selectedLocation.isOpen ? `После открытия — с ${selectedLocation.minLevel} уровня. ` : ""}Ваш уровень: {player?.level ?? "—"}.</p>}
-            {canBypassRestrictions && (!selectedLocation.isOpen || (player?.level ?? 0) < selectedLocation.minLevel) && (
-              <p className="mt-2 font-medium text-indigo-700">Доступна для тестирования: ограничения сняты для администраторов и dev-стенда.</p>
-            )}
-          </div>
-          {error && <p role="alert" className="mt-3 text-sm text-red-700">{error}</p>}
-
-
-          <div className="flex flex-row gap-2">
-
-            <button
-              onClick={closeLocation}
-              disabled={moving}
-              className=" mt-4 bg-red-400 text-white px-4 py-2 rounded">
-              Закрыть
-            </button>
+            <div className={`mt-3 rounded-lg p-3 text-sm ${selectedAccess === "level_required" ? "bg-amber-100 text-amber-950" : "bg-slate-100 text-slate-800"}`}>
+              <p className="font-semibold">{statusLabel(selectedLocation)}</p>
+              {!selectedLocation.isOpen && <p className="mt-1">Локация ещё в разработке. Она появится в одном из следующих обновлений.</p>}
+              {selectedLocation.minLevel > 1 && <p className="mt-1">{!selectedLocation.isOpen ? `После открытия — с ${selectedLocation.minLevel} уровня. ` : ""}Ваш уровень: {player?.level ?? "—"}.</p>}
+              {canBypassRestrictions && (!selectedLocation.isOpen || (player?.level ?? 0) < selectedLocation.minLevel) && (
+                <p className="mt-2 font-medium text-indigo-700">Доступна для тестирования: ограничения сняты для администраторов и dev-стенда.</p>
+              )}
+            </div>
+            {error && <p role="alert" className="mt-3 text-sm text-red-700">{error}</p>}
 
 
-            <button
-              onClick={() => travelTo(selectedLocation)}
-              disabled={moving || loading || !player || selectedAccess !== "available"}
-              className="mt-4 rounded bg-green-600 px-4 py-2 text-white disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600">
-              {moving ? "Переход..." : selectedAccess === "coming_soon" ? "Скоро появится" : selectedAccess === "level_required" ? `С ${selectedLocation.minLevel} уровня` : "Перейти"}
-            </button>
+            <div className="flex flex-row gap-2">
 
-          </div>
+              <button
+                onClick={closeLocation}
+                disabled={moving}
+                className=" mt-4 bg-red-400 text-white px-4 py-2 rounded">
+                Закрыть
+              </button>
 
-        </Card>
+
+              <button
+                onClick={() => travelTo(selectedLocation)}
+                disabled={moving || loading || !player || selectedAccess !== "available"}
+                className="mt-4 rounded bg-green-600 px-4 py-2 text-white disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600">
+                {moving ? "Переход..." : selectedAccess === "coming_soon" ? "Скоро появится" : selectedAccess === "level_required" ? `С ${selectedLocation.minLevel} уровня` : "Перейти"}
+              </button>
+
+            </div>
+
+          </Card>
+        </EnterAnimation>
+        
 
       )}
 

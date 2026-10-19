@@ -8,6 +8,8 @@ import BlackjackCard from "../../actionLocation/BlackjackCard";
 import LadderCard from "../../actionLocation/LadderCard";
 import { LocationDto, LocationStateResponse, PlayerDto ,CombatStateResponse} from "@mmobot/shared";
 import { TypeModal } from "./Modal/Modal";
+import EnterAnimation from "../animations/EnterAnimation";
+import ButtonAnimation from "../animations/ButtonAnimation";
 const cards = {
   exchange: ExchangeCard,
   fight: FightCard,
@@ -42,9 +44,11 @@ export default function ActionCards({setInfoMessages,token,player,onPlayer,locat
         }
 
         return (
-          <div key={action} className="min-h-23 w-full md:max-h-24">
-            <CardComponent setInfoMessages={setInfoMessages} setTypeShowIsModal={setTypeShowIsModal} location={location} onPlayer={onPlayer} onError={onError} onState={onState} showIsModal={showIsModal} setShowModal={setShowModal} token={token} locationState={locationState} player={player}/>
-          </div>
+          <EnterAnimation key={action} className="min-h-23 w-full md:max-h-24">
+            <ButtonAnimation className="w-full h-full" >
+              <CardComponent setInfoMessages={setInfoMessages} setTypeShowIsModal={setTypeShowIsModal} location={location} onPlayer={onPlayer} onError={onError} onState={onState} showIsModal={showIsModal} setShowModal={setShowModal} token={token} locationState={locationState} player={player}/>
+            </ButtonAnimation>
+          </EnterAnimation>
         );
       })}
     </>

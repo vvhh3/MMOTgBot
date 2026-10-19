@@ -1,5 +1,6 @@
 import { StrictMode, useEffect, useState } from "react"
 import { createRoot } from "react-dom/client"
+import { MotionConfig } from "motion/react"
 import "@radix-ui/themes/styles.css"
 import "./styles.css"
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
@@ -34,9 +35,9 @@ import { TypeModal } from "./components/ui/Modal/Modal";
 import MinesGame from "./components/MinesGame";
 import BlackjackGame from "./components/BlackjackGame";
 import LadderGame from "./components/LadderGame";
+import PageCurtain from "./components/animations/PageCurtain";
 
-export default function ScrollToTop() {
-  const { pathname } = useLocation();
+export default function ScrollToTop({ pathname }: { pathname: string }) {
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -46,7 +47,9 @@ export default function ScrollToTop() {
 }
 
 function App() {
-  const { pathname } = useLocation()
+  const routeLocation = useLocation()
+  const { pathname } = routeLocation
+  const [displayedLocation, setDisplayedLocation] = useState(routeLocation)
   const [player, setPlayer] = useState<PlayerDto | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [inventory, setInventory] = useState<InventoryItemDto[]>([])
@@ -67,7 +70,7 @@ function App() {
   const [loadingProgress, setLoadingProgress] = useState(0)
   const [infoMessages, setInfoMessages] = useState({ title: "", info: "" })
   const navigate = useNavigate()
-  const screenPath = pathname.toLowerCase().replace(/\/+$/, "") || "/"
+  const screenPath = displayedLocation.pathname.toLowerCase().replace(/\/+$/, "") || "/"
 
   const backgroundUrl = !player?.isCreated || !currentLocation.ready ? null
     : screenPath === "/" ? (locationState ? getLocationImage(locationState.location.homeImg) : mapImage)
@@ -302,12 +305,12 @@ function App() {
   return (
     <>
       <Theme>
-        <ScrollToTop />
+        <ScrollToTop pathname={displayedLocation.pathname} />
         {screenReady ? (
           player && !player.isCreated ? (
             <CharacterCreation token={token} player={player} onCreated={setPlayer} />
           ) :
-          <Routes>
+          <Routes location={displayedLocation}>
             <Route path="" element={<MainLayout infoMessages={infoMessages} setPvpState={setPvpState} setTradeState={setTradeState} setTypeShowIsModal={setTypeShowIsModal} setShowModal={setShowModal} showIsModal={showIsModal} typeShowIsModal={typeShowIsModal} player={player} token={token} error={error} onError={setError} onPlayer={setPlayer} pvpState={pvpState} tradeState={tradeState} />}>
               <Route path="/" element={<Home setInfoMessages={setInfoMessages} typeShowIsModal={typeShowIsModal} setTypeShowIsModal={setTypeShowIsModal} setShowModal={setShowModal} showIsModal={showIsModal} onError={setError} onState={setState} onPlayer={setPlayer} token={token} player={player} locationState={locationState} friendsOverview={friendsOverview} pvpState={pvpState} tradeState={tradeState} />} />
               <Route path="Map" element={<Map token={token} player={player} onLocationState={setLocationState} onPlayer={setPlayer} />} />
@@ -334,14 +337,17 @@ function App() {
           />
         )}
       </Theme>
+      <PageCurtain target={routeLocation} displayed={displayedLocation} onCovered={setDisplayedLocation} ready={screenReady || !!loadingError} />
     </>
   );
 }
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <MotionConfig reducedMotion="user">
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </MotionConfig>
   </StrictMode>
 );
