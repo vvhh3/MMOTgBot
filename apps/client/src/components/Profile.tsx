@@ -16,12 +16,12 @@ type ProfileProps = {
 export default function Profile({ player,locationState,setShowModal,setTypeShowIsModal }: ProfileProps) {
     const location = locationState?.location;
     return (
-        <div className='flex flex-col items-center h-full ' >
-            <div className='flex flex-col justify-center items-center '>
+        <div className='flex min-h-full w-full flex-col items-center' >
+            <div className='flex shrink-0 flex-col justify-center items-center'>
                 <p className='font-bold'>{player?.name}</p>
                 <img className='h-50' src={getSkins(player?.avatar)} />
             </div>
-            <Grid columns="2" gap="3" style={{ padding: "20px" }}>
+            <Grid columns="2" gap="3" style={{ padding: "20px", flexShrink: 0 }}>
                 <EnterAnimation>
                     <ButtonAnimation className="w-full h-full" >
                         <Card variant="surface"  >
