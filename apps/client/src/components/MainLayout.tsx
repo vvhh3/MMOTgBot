@@ -70,6 +70,18 @@ type LayoutProps = {
 
 export default function MainLayout({ infoMessages,player, setTypeShowIsModal,token, error,onError, onPlayer, pvpState, tradeState,showIsModal,setShowModal,typeShowIsModal,setTradeState,setPvpState }: LayoutProps) {
     const notifRef = useRef<HTMLDivElement | null>(null) // ссылка на панель уведомлений
+    const topBarRef = useRef<HTMLDivElement | null>(null);
+    const [topBarHeight, setTopBarHeight] = useState(62);
+
+    useEffect(() => {
+        const topBar = topBarRef.current;
+        if (!topBar) return;
+        const updateHeight = () => setTopBarHeight(topBar.getBoundingClientRect().height);
+        updateHeight();
+        const observer = new ResizeObserver(updateHeight);
+        observer.observe(topBar);
+        return () => observer.disconnect();
+    }, []);
     const pvpIncoiming = pvpState?.status === "pending" && pvpState.direction === "incoming"
     const tradeIncoiming = tradeState?.status === "pending" && tradeState.direction === "incoming"
     useEffect(() => {
@@ -84,17 +96,17 @@ export default function MainLayout({ infoMessages,player, setTypeShowIsModal,tok
     const isAdmin = (import.meta.env.VITE_ADMIN_PANEL == "true" ? true :  (ids.map(Number).filter(Boolean).includes(player?.id ?? -1) ? true : false ))
     
     return (
-        <div className="flex flex-col w-full overflow-hidden" style={{ height: "var(--tg-viewport-stable-height, 100dvh)", }}>
-            <div className="flex justify-between items-center p-1 shrink-0 border-b-2" style={{ paddingTop: "calc(var(--tg-safe-area-inset-top, 0px) + var(--tg-content-safe-area-inset-top, 0px) + 4px)", }}>
-                <Link to="/">
-                    <header className="font-bold pl-3 w-fit">MMONSK</header>
+        <div className="flex flex-col w-full overflow-hidden" style={{ height: "var(--tg-viewport-stable-height, 100dvh)", "--top-panel-offset": `calc(var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)) + var(--tg-content-safe-area-inset-top, 0px) + ${topBarHeight + 20}px)` } as React.CSSProperties}>
+            <div ref={topBarRef} className="pointer-events-none fixed inset-x-0 z-30 px-3" style={{ top: "calc(var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)) + var(--tg-content-safe-area-inset-top, 0px) + 8px)", }}>
+              <div className="top-bar pointer-events-auto mx-auto flex w-full max-w-[600px] flex-wrap items-center justify-between gap-2 rounded-[28px] p-2">
+                <Link to="/" className="px-3 text-[13px] font-bold tracking-wide" aria-label="MMONSK — главная">
+                    MMONSK
                 </Link>
-                <p className="text-red-500 w-full">{error}</p>
-                <div className="flex flex-row items-center gap-2">
+                <div className="ml-auto flex flex-row flex-wrap items-center justify-end gap-1.5">
                    
                     {import.meta.env.VITE_DEV_MODE === "true" && (
                         <button
-                            className="text-[11px] leading-none text-[#E8603C] border border-[#E8603C] rounded px-1.5 py-1"
+                            className=" px-2 text-[10px] text-[#D94E2B]"
                             title="DEV: заново открыть конструктор персонажа"
                             onClick={async () => {
                                 if (!token) return;
@@ -109,21 +121,22 @@ export default function MainLayout({ infoMessages,player, setTypeShowIsModal,tok
                             Перс
                         </button>
                     )}
-                    <NotificationButton incoming={pvpState || tradeState ?  true : false} setTypeShowIsModal={setTypeShowIsModal} setShowModal={setShowModal} showIsModal={showIsModal} notifRef={notifRef} />
-                    <div className="flex flex-row items-center gap-2">
-                        <button onClick={()=>{setShowModal(true),setTypeShowIsModal(TypeModal.SkillPoints)}}>
-                            <div className="w-10 text-[#E8603C] ">
-                                <p className="text-[13px]">Lv {player?.level}</p>
-                            </div>
+                    <NotificationButton incoming={pvpIncoiming || tradeIncoiming} setTypeShowIsModal={setTypeShowIsModal} setShowModal={setShowModal} showIsModal={showIsModal && typeShowIsModal === TypeModal.Notification} notifRef={notifRef} />
+                    <div className="flex flex-row items-center gap-1.5">
+                        <button className=" gap-1 px-3 text-[#D94E2B]" aria-label={`Уровень ${player?.level ?? 0} — очки навыков`} aria-haspopup="dialog" aria-expanded={showIsModal && typeShowIsModal === TypeModal.SkillPoints} onClick={()=>{setShowModal(true),setTypeShowIsModal(TypeModal.SkillPoints)}}>
+                            <span className="text-[11px] font-semibold opacity-70 text-[#D94E2B]">Lv</span>
+                            <span className="text-[13px] font-semibold text-[#D94E2B]">{player?.level ?? 0}</span>
                         </button>
-                        <Link to="/Profile">
-                            <Avatar radius="full" fallback={`${player ? player.name[0] : "А"}`} color="green" size="4" ></Avatar>
-                        </Link>
+                        <NavLink to="/Profile" className="  w-11" aria-label="Профиль">
+                            <Avatar radius="full" fallback={player?.name?.[0] ?? "А"} color="orange" size="2" />
+                        </NavLink>
                     </div>
                 </div>
+              </div>
+              {error && <p role="alert" className="top-bar pointer-events-auto mx-auto mt-2 max-w-[600px] rounded-2xl px-3 py-2 text-xs text-red-500">{error}</p>}
             </div>
             
-            <div className="relative w-full min-h-0 flex-1 overflow-y-auto overflow-x-hidden" style={{ paddingBottom: "calc(108px + max(var(--tg-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)), var(--tg-content-safe-area-inset-bottom, 0px)))" }}>
+            <div className="relative w-full min-h-0 flex-1 overflow-y-auto overflow-x-hidden" style={{ paddingTop: `calc(var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)) + var(--tg-content-safe-area-inset-top, 0px) + ${topBarHeight + 20}px)`, paddingBottom: "calc(108px + max(var(--tg-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)), var(--tg-content-safe-area-inset-bottom, 0px)))" }}>
                 {/* Выпадающая панель уведомлений */}
                 <Modal infoMessages={infoMessages} setPvpState={setPvpState}  setTradeState={setTradeState} typeModal={typeShowIsModal} token={token} pvpState={pvpState} tradeState={tradeState}  showIsModal={showIsModal} tradeIncoiming={tradeIncoiming} pvpIncoiming={pvpIncoiming} notifRef={notifRef}  onError={onError}  setShowModal={setShowModal} player={player}  onPlayer={onPlayer} />
                 <Outlet></Outlet>

@@ -82,7 +82,7 @@ export default function Modal({
   infoMessages,
   state
 }: CardProps) {
-    if (showIsModal == false){
+    if (showIsModal == false && typeModal !== TypeModal.Notification){
         
         return null;
     }

@@ -8,8 +8,8 @@ export default function ButtonAnimation({
 }: ButtonAnimationProps) {
   return (
     <motion.div
-      whileHover={{ scale: 2 }}
-      whileTap={{ scale: 0.8 }}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
       {...props}
     >
       {children}

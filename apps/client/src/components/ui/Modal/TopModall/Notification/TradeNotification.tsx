@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { TradeStateDto } from "@mmobot/shared";
 import { acceptTrade, cancelTrade } from "../../../../../api";
@@ -16,29 +17,36 @@ export default function TradeNotification({
   setTradeState
 }: TradeNotificationProps) {
   const navigate = useNavigate();
+  const [pending, setPending] = useState(false);
 
   const handleAccept = async () => {
-    if (!token || !tradeState) return;
+    if (!token || !tradeState || pending) return;
+    setPending(true);
     try {
       await acceptTrade(token, tradeState.id);
       navigate("/Exchange");
     } catch (e) {
       onError(e instanceof Error ? e.message : "Ошибка принятия обмена");
+    } finally {
+      setPending(false);
     }
   };
 
   const handleDecline = async () => {
-    if (!token || !tradeState) return;
+    if (!token || !tradeState || pending) return;
+    setPending(true);
     try {
       await cancelTrade(token, tradeState.id);
       await setTradeState(null);
     } catch (e) {
       onError(e instanceof Error ? e.message : "Ошибка отклонения обмена");
+    } finally {
+      setPending(false);
     }
   };
 
   return (
-    <div className="flex flex-col gap-2 border-b pb-2">
+    <div className="flex flex-col gap-3">
       <div className="flex w-full items-center gap-2">
         <svg height="20" width="20" viewBox="0 0 24 24" fill="none">
           <path
@@ -49,20 +57,22 @@ export default function TradeNotification({
             strokeLinejoin="round"
           />
         </svg>
-        <p className="text-sm">{tradeState?.partnerName} предлагает вам обмен</p>
+        <p className="text-xs leading-relaxed text-[#594F43]">{tradeState?.partnerName} предлагает вам обмен</p>
       </div>
       <div className="flex gap-2">
         <button
+          disabled={pending || !token}
           onClick={handleAccept}
-          className="flex-1 p-2 bg-green-600 text-white rounded-lg"
+          className="top-glass-button notification-accept flex-1 px-4 text-[11px]"
         >
           Принять
         </button>
         <button
+          disabled={pending || !token}
           onClick={handleDecline}
-          className="flex-1 p-2 bg-red-500 text-white rounded-lg"
+          className="top-glass-button flex-1 px-4 text-[11px]"
         >
-          Отклонить
+          Отменить
         </button>
       </div>
     </div>

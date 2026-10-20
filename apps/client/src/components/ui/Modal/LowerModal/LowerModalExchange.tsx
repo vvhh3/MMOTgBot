@@ -81,10 +81,10 @@ export default function LowerModalExchange({
     >
       {isWaiting && tradeState ? (
         <>
-          <p className="text-black text-lg">Ожидаем ответ соперника.....</p>
+          <p className="px-2 text-xs leading-relaxed text-[#756B5C]">Ожидаем ответ соперника.....</p>
           <button
             onClick={() => handleCancel(tradeState.id)}
-            className="w-full p-3 bg-red-500 text-2xl text-white rounded-2xl"
+            className="top-glass-button w-full px-4 text-xs"
           >
             Отмена
           </button>
@@ -101,9 +101,9 @@ export default function LowerModalExchange({
           {onlinePlayers.map((player) => (
             <Card
               key={player.id}
-              className="flex flex-row items-center justify-between"
+              className="flex flex-row flex-wrap items-center justify-between gap-2"
             >
-              <div className="flex flex-row gap-1 ml-1">
+              <div className="flex min-w-0 flex-wrap items-center gap-2">
                 <Text size="2" weight="bold">
                   {player.name}
                 </Text>
@@ -115,7 +115,7 @@ export default function LowerModalExchange({
                 <Button
                   disabled={loading}
                   onClick={() => handlePvp(player.id)}
-                  style={{ background: "#E8603C", borderRadius: "16px" }}
+                  className="top-glass-button notification-accept px-4 text-[11px]"
                 >
                   {"Обмен"}
                 </Button>

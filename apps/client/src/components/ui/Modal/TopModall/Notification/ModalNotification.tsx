@@ -1,4 +1,5 @@
 import React from "react";
+import { AnimatePresence } from "motion/react";
 import { PvpStateDto, TradeStateDto } from "@mmobot/shared";
 import TopModal from "../TopModal";
 import PvpNotification from "./PvpNotification";
@@ -29,18 +30,20 @@ export function ModalNotification({
   setPvpState,
   setTradeState
 }: ModalNotificationProps) {
-  if (!showIsModal) return null;
-
   return (
+    <AnimatePresence>
+    {showIsModal && (
     <TopModal
+      key="notifications"
       notifRef={notifRef}
       isEmpty={!incomingPvp && !incomingTrade}
     >
       {incomingPvp && (
-        <PvpNotification setPvpState={setPvpState} token={token} pvpState={pvpState} onError={onError} />
+        <PvpNotification key="pvp" setPvpState={setPvpState} token={token} pvpState={pvpState} onError={onError} />
       )}
       {incomingTrade && (
         <TradeNotification
+          key="trade"
           setTradeState={setTradeState}
           token={token}
           tradeState={tradeState}
@@ -48,5 +51,7 @@ export function ModalNotification({
         />
       )}
     </TopModal>
+    )}
+    </AnimatePresence>
   );
 }
