@@ -97,12 +97,12 @@ export default function MainLayout({ infoMessages,player, setTypeShowIsModal,tok
     
     return (
         <div className="flex flex-col w-full overflow-hidden" style={{ height: "var(--tg-viewport-stable-height, 100dvh)", "--top-panel-offset": `calc(var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)) + var(--tg-content-safe-area-inset-top, 0px) + ${topBarHeight + 20}px)` } as React.CSSProperties}>
-            <div ref={topBarRef} className="pointer-events-none fixed inset-x-0 z-30 px-3" style={{ top: "calc(var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)) + var(--tg-content-safe-area-inset-top, 0px) + 8px)", }}>
-              <div className="top-bar pointer-events-auto mx-auto flex w-full max-w-[600px] flex-wrap items-center justify-between gap-2 rounded-[28px] p-2">
-                <Link to="/" className="px-3 text-[13px] font-bold tracking-wide" aria-label="MMONSK — главная">
-                    MMONSK
-                </Link>
-                <div className="ml-auto flex flex-row flex-wrap items-center justify-end gap-1.5">
+            <div  ref={topBarRef} className="pointer-events-none fixed inset-x-0 z-30 px-3 " style={{ top: "calc(var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)) + var(--tg-content-safe-area-inset-top, 0px) + 8px)", }}>
+              <div className="top-bar  pointer-events-auto mx-auto flex w-full max-w-[600px] flex-wrap items-center justify-between gap-2 rounded-[28px] p-2">
+                    <Link to="/" className="px-3 text-[13px] font-bold tracking-wide" aria-label="MMONSK — главная">
+                        MMONSK
+                    </Link>
+                    <div className="ml-auto flex flex-row flex-wrap items-center justify-end gap-1.5">
                    
                     {import.meta.env.VITE_DEV_MODE === "true" && (
                         <button
