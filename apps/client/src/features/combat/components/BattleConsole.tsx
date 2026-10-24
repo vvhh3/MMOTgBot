@@ -15,36 +15,14 @@ export default function BattleConsole({
     onSkip,
 }: BattleConsoleProps) {
     return (
-        <Flex direction="column" gap="2" className="h-full" aria-label="Сообщения боя">
-            <button
-                className="min-h-0 flex-1 overflow-y-auto text-left"
-                onClick={onNext}
-                aria-label={`${message.text}. Следующее сообщение`}
-            >
-                <Text as="p" size="2" className="whitespace-normal break-words" role="status">
-                    {message.text}
-                </Text>
-            </button>
-            <Grid columns="2" gap="2">
-                <Card>
-                    <button
-                        className="flex h-full w-full items-center justify-center"
-                        onClick={onNext}
-                    >
-                        <Text size="2">Далее ▸</Text>
-                    </button>
-                </Card>
-                <Card>
-                    <button
-                        className="flex h-full w-full items-center justify-center"
-                        onClick={onSkip}
-                    >
-                        <Text size="2">
-                            Пропустить{remainingMessages > 1 && ` (${remainingMessages})`}
-                        </Text>
-                    </button>
-                </Card>
-            </Grid>
-        </Flex>
+    <button
+        className="flex h-full w-full justify-end flex-col"
+        onClick={onNext}
+    >
+        <Text size="2">{message.text}</Text>
+        <div className="flex w-full justify-end-safe h-[40%] items-end">
+            <Text size="2">Далее ▸</Text>
+        </div>
+    </button>
     );
 }

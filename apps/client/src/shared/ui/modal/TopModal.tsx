@@ -33,7 +33,7 @@ export default function TopModal({ notifRef, isEmpty, children }: TopModalProps)
       transition={spring}
     >
       <div className="mb-3 flex min-h-8 items-center justify-between gap-2 px-1">
-        <p className="text-xs font-semibold text-[#756B5C]">Уведомления{cards.length > 0 && ` · ${cards.length}`}</p>
+        <p className="text-xs font-semibold ">Уведомления{cards.length > 0 && ` · ${cards.length}`}</p>
         {cards.length > 1 && (
           <button className="top-glass-button px-3 text-[10px]" aria-expanded={!stacked} onClick={() => setExpanded(!expanded)}>
             {stacked ? "Развернуть" : "Свернуть"}

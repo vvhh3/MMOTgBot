@@ -122,7 +122,7 @@ export default function Fight({
     }, [token, lastEventSequence, side]);
 
     const handleOpenInventory = async () => {
-        if (!token) return;
+        if (!token || !pvpState || pvpState.finished || pvpState.actionSubmitted || actionLocked.current || inventoryLoading || playback.busy) return;
 
         setShowInventory(true);
         setInventoryLoading(true);
@@ -280,7 +280,7 @@ export default function Fight({
                 },
                 inventory: {
                     label: "Инвентарь",
-                    disabled: pvpState.finished || pending || inventoryLoading,
+                    disabled: pvpState.finished || pending || inventoryLoading || pvpState.actionSubmitted,
                     onClick: () => { void handleOpenInventory(); },
                 },
                 leave: {

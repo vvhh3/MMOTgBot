@@ -71,7 +71,7 @@ export default function BattleScreen({
     return (
         <div className="flex">
             <div
-                className="flex w-full flex-col justify-end"
+                className="flex w-full flex-col justify-between"
                 style={{
                     backgroundImage: `url(${background})`,
                     backgroundSize: "cover",
@@ -81,10 +81,9 @@ export default function BattleScreen({
                 }}
             >
                 {round !== undefined && (
-                    <div className="battle-round-header">
-                        <div className="battle-round-marker" aria-label={`Раунд ${round}`}>
-                            <span>Раунд</span>
-                            <strong>{round}</strong>
+                    <div className="flex justify-center items-center">
+                        <div className="flex justify-center items-center border-3 rounded-4xl  w-12 h-12 bg-white border-[#D94E2B] " aria-label={`Раунд ${round}`}>
+                            <strong className="text-[#D94E2B]"> {round}</strong>
                         </div>
                         {showTimer && (
                             <span className="battle-last-seconds" role="status">
@@ -93,65 +92,67 @@ export default function BattleScreen({
                         )}
                     </div>
                 )}
-                <div className="grid w-full grid-cols-2 items-start gap-x-2 px-2">
-                    {error && (
-                        <Card className="col-span-2" role="alert">
-                            <Text size="2" color="red">{error}</Text>
-                        </Card>
-                    )}
-                    {fighters.map((fighter, index) => (
-                        <Card key={index} className="w-full min-w-0">
-                            <div className="flex min-w-0 items-start justify-between gap-1.5">
-                                <Text className="min-w-0 flex-1 whitespace-normal break-words">
-                                    {fighter.name}
-                                </Text>
-                                <Text size="1" className="shrink-0">
-                                    {fighter.hp}/{fighter.maxHp}
-                                </Text>
-                            </div>
-                            <Progress
-                                color={fighter.hp <= 0 ? "red" : "green"}
-                                value={healthPercent(fighter)}
-                            />
-                        </Card>
-                    ))}
-                    {fighters.map((fighter, index) => (
-                        <DamageEffect key={`${battleId}-${index}`} health={fighter.hp}>
-                            <img
-                                className="h-45 w-full object-contain"
-                                src={fighter.image}
-                                alt={fighter.name}
-                                style={{
-                                    transform: fighter.mirrored ? "scaleX(-1)" : undefined,
-                                    maxWidth: fighter.maxImageWidth,
-                                }}
-                            />
-                        </DamageEffect>
-                    ))}
-                </div>
-                {status && (
-                    <div className="mb-2 px-2">
-                        <Card>
-                            <Text as="p" size="2" align="center" role="status">{status}</Text>
-                        </Card>
+                <div>
+                    <div className="grid w-full grid-cols-2 items-start gap-x-2 px-2">
+                        {error && (
+                            <Card className="col-span-2" role="alert">
+                                <Text size="2" color="red">{error}</Text>
+                            </Card>
+                        )}
+                        {fighters.map((fighter, index) => (
+                            <Card key={index} className="w-full min-w-0">
+                                <div className="flex min-w-0 items-start justify-between gap-1.5">
+                                    <Text className="min-w-0 flex-1 whitespace-normal break-words">
+                                        {fighter.name}
+                                    </Text>
+                                    <Text size="1" className="shrink-0">
+                                        {fighter.hp}/{fighter.maxHp}
+                                    </Text>
+                                </div>
+                                <Progress
+                                    color={fighter.hp <= 0 ? "red" : "green"}
+                                    value={healthPercent(fighter)}
+                                />
+                            </Card>
+                        ))}
+                        {fighters.map((fighter, index) => (
+                            <DamageEffect key={`${battleId}-${index}`} health={fighter.hp}>
+                                <img
+                                    className="h-45 w-full object-contain"
+                                    src={fighter.image}
+                                    alt={fighter.name}
+                                    style={{
+                                        transform: fighter.mirrored ? "scaleX(-1)" : undefined,
+                                        maxWidth: fighter.maxImageWidth,
+                                    }}
+                                />
+                            </DamageEffect>
+                        ))}
                     </div>
-                )}
-                {/* Одна рамка и одинаковая высота для действий, приёмов и сообщений. */}
-                <div className="h-32.5">
-                    {(controls || actions) && (
-                        <Card className="h-full">
-                            {controls ?? (actions && (
-                                <Grid rows="2" columns="2" gap="2" className="h-full">
-                                    {renderAction(actions.attack)}
-                                    {renderAction(actions.inventory)}
-                                    {actions.extra
-                                        ? renderAction(actions.extra)
-                                        : <Card aria-hidden="true" />}
-                                    {renderAction(actions.leave)}
-                                </Grid>
-                            ))}
-                        </Card>
+                    {status && (
+                        <div className="mb-2 px-2">
+                            <Card>
+                                <Text as="p" size="2" align="center" role="status">{status}</Text>
+                            </Card>
+                        </div>
                     )}
+                    {/* Одна рамка и одинаковая высота для действий, приёмов и сообщений. */}
+                    <div className="h-32.5">
+                        {(controls || actions) && (
+                            <Card className="h-full">
+                                {controls ?? (actions && (
+                                    <Grid rows="2" columns="2" gap="2" className="h-full">
+                                        {renderAction(actions.attack)}
+                                        {renderAction(actions.inventory)}
+                                        {actions.extra
+                                            ? renderAction(actions.extra)
+                                            : <Card aria-hidden="true" />}
+                                        {renderAction(actions.leave)}
+                                    </Grid>
+                                ))}
+                            </Card>
+                        )}
+                    </div>
                 </div>
                 {children}
             </div>

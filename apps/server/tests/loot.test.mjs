@@ -133,6 +133,7 @@ test("HTTP result, socket, inventory and quests contain only actual drops; repea
     const result = request("post", "/combat/action", { playerId: p.id, body });
     assert.equal(result.status, 200);
     assert.deepEqual(result.body.state.droppedItems.map((item) => item.id), [1, 3]);
+    assert.ok(result.body.state.log.every((entry) => !entry.text.startsWith("Добыча:")));
     assert.deepEqual(result.body.state.mob.loot, target.loot);
     assert.deepEqual(result.body.inventory.map((entry) => entry.itemType).sort(), [1, 3]);
     assert.equal(result.body.inventory.find((entry) => entry.itemType === 1).weaponLevel, 1);
@@ -162,7 +163,7 @@ test("a win can drop nothing while still granting coins and kill progress", () =
     assert.deepEqual(inventory(p.id), []);
     assert.equal(playerById(p.id).money, 3);
     assert.equal(progress(q.id), 1);
-    assert.ok(result.log.some((entry) => entry.text === "Предметы не выпали"));
+    assert.ok(result.log.every((entry) => entry.text !== "Предметы не выпали"));
   } finally { rng.mock.restore(); }
 });
 

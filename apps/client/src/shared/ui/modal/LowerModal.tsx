@@ -49,7 +49,7 @@ export default function LowerModal({
       >
         <div aria-hidden="true" className="mx-auto mb-2 h-1 w-9 shrink-0 rounded-full bg-[#756B5C]/20" />
         <div className="flex shrink-0 items-center justify-between gap-3 pl-1">
-        <Text size="2" weight="bold" className="text-[#756B5C]">
+        <Text size="2" weight="bold" >
           {title}
         </Text>
         <button

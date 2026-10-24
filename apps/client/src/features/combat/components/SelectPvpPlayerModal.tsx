@@ -102,7 +102,7 @@ export default function LowerModalFight({
           {onlinePlayers.map((player) => (
             <Card
               key={player.id}
-              className="flex flex-row flex-wrap items-center justify-between gap-2"
+              className="flex ! flex-row flex-wrap items-center justify-between gap-2 bg-[none] rounded-[10px]!"
             >
               <div className="flex min-w-0 flex-wrap items-center gap-2">
                 <Text size="2" weight="bold">

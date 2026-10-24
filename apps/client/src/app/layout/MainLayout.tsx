@@ -16,7 +16,7 @@ function BottomNavItem({ to, children }: { to: string; children: ReactNode }) {
         <NavLink
             to={to}
             end={to === "/"}
-            className={({ isActive }) => `bottom-nav-item relative isolate flex min-w-0 flex-1 justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-[#E8603C] ${isActive ? "text-[#D94E2B]" : "text-[#756B5C]"}`}
+            className={({ isActive }) => `bottom-nav-item relative isolate flex min-w-0 flex-1 justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-[#E8603C] ${isActive ? "text-[#D94E2B]" : ""}`}
         >
             {({ isActive }) => (
                 <>

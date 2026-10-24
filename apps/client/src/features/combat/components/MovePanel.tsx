@@ -10,7 +10,7 @@ type MovePanelProps = {
 
 export default function MovePanel({ state, disabled, onMove, onBack }: MovePanelProps) {
     return (
-        <Grid columns="2" gap="2" className="h-full min-h-0 overflow-y-auto" aria-label="Выбор приёма">
+        <Grid columns="2" rows="2" gap="2" className="h-full min-h-0 overflow-y-auto" aria-label="Выбор приёма">
             {state.moves.map((move) => {
                 const cooldown = Math.max(0, move.availableFromRound - state.round);
                 const moveDisabled = disabled || state.actionSubmitted || cooldown > 0;
@@ -32,6 +32,9 @@ export default function MovePanel({ state, disabled, onMove, onBack }: MovePanel
                     </Card>
                 );
             })}
+            {Array.from({ length: Math.max(0, 3 - state.moves.length) }, (_, index) => (
+                <Card key={`empty-${index}`} aria-hidden="true" />
+            ))}
             <Card>
                 <button
                     className="flex h-full w-full items-center justify-center disabled:opacity-50"

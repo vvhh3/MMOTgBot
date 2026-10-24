@@ -101,8 +101,6 @@ export function moveCombatAction(player: PlayerRow, mob: MobRow, session: Combat
         if (status !== 'active') {
             clearCombatAction(player.id, current.id);
             next.droppedItems = endCombatSession(status, player, mob, current.id);
-            if (status === 'victory') event(next, current.roundNumber, 'finish', hp, now,
-                next.droppedItems.length ? `Добыча: ${next.droppedItems.map(i => i.name).join(', ')}` : 'Предметы не выпали');
             db.update(combatSessions).set({ battleState: next }).where(eq(combatSessions.id, current.id)).run();
         }
         changed = true;
