@@ -150,6 +150,7 @@ export const ITEM_PASSIVES = {
     describe: (p) => `Один раз за бой восстанавливает ${p.healingPercent}% максимального HP и снимает один случайный отрицательный эффект.`,
   },
 } satisfies Record<string, PassiveDefinition>;
+
 export type ItemPassiveId = keyof typeof ITEM_PASSIVES;
 export const ITEM_PASSIVE_IDS = Object.keys(ITEM_PASSIVES) as ItemPassiveId[];
 export function getPassiveDefinition(id: ItemPassiveId): PassiveDefinition { return ITEM_PASSIVES[id]; }

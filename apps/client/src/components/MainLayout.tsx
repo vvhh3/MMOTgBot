@@ -124,7 +124,7 @@ export default function MainLayout({ infoMessages,player, setTypeShowIsModal,tok
                     <NotificationButton incoming={pvpIncoiming || tradeIncoiming} setTypeShowIsModal={setTypeShowIsModal} setShowModal={setShowModal} showIsModal={showIsModal && typeShowIsModal === TypeModal.Notification} notifRef={notifRef} />
                     <div className="flex flex-row items-center gap-1.5">
                         <button className=" gap-1 px-3 text-[#D94E2B]" aria-label={`Уровень ${player?.level ?? 0} — очки навыков`} aria-haspopup="dialog" aria-expanded={showIsModal && typeShowIsModal === TypeModal.SkillPoints} onClick={()=>{setShowModal(true),setTypeShowIsModal(TypeModal.SkillPoints)}}>
-                            <span className="text-[11px] font-semibold opacity-70 text-[#D94E2B]">Lv</span>
+                            <span className="text-[11px] font-semibold text-[#D94E2B]">Lv</span>
                             <span className="text-[13px] font-semibold text-[#D94E2B]">{player?.level ?? 0}</span>
                         </button>
                         <NavLink to="/Profile" className="  w-11" aria-label="Профиль">

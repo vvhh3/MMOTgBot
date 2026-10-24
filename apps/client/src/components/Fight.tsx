@@ -1,46 +1,148 @@
 import { getSkins } from "../utils/skins";
-import { Button, Card, Progress, Text, Grid } from "@radix-ui/themes"
-import { LocationDto, LocationStateResponse, PlayerDto, PvpStateDto } from "@mmobot/shared";
-import { getLocationState, pvpAction } from "../api";
-import { useState, useEffect } from "react";
+import { Text } from "@radix-ui/themes"
+import { InventoryItemDto, PlayerDto, PvpStateDto } from "@mmobot/shared";
+import { cancelPvp, getMe, getPvpState, pvpAction } from "../api";
+import { useState, useEffect, useRef } from "react";
 import { getLocationImage } from "../utils/getLocationImage";
-import { replace, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import BattleScreen from "./BattleScreen";
+import CombatInventoryDialog from "./CombatInventoryDialog";
 
 type FightProps = {
     token: string | null
     player: PlayerDto | null
-    locationState: LocationStateResponse | null
     pvpState: PvpStateDto | null
+    inventory: InventoryItemDto[]
+    onPlayer: (player: PlayerDto) => void
+    onInventory: (inventory: InventoryItemDto[]) => void
+    onPvpState: (state: PvpStateDto | null) => void
 }
 
-export default function Fight({ token, player, pvpState,locationState}: FightProps) { // Сделать задний фон
-    const [location,setLocation] = useState<LocationDto>();
+export default function Fight({ token, player, pvpState, inventory, onPlayer, onInventory, onPvpState }: FightProps) {
+    const [showInventory, setShowInventory] = useState(false);
+    const [pending, setPending] = useState(false);
+    const [inventoryLoading, setInventoryLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const actionLocked = useRef(false);
+    const currentState = useRef(pvpState);
+    currentState.current = pvpState;
     const navigate= useNavigate()
-    useEffect(()=>{
-        if(locationState){
-            setLocation(locationState?.location)
-        }
-        
-    },[])
-    const doAction = async (action: "attack" | "flee") => {
-        if (!token || !pvpState) return
-        if(pvpState.finished){
-            navigate("/",{replace:true})
-        }
-        else{
+
+    useEffect(() => {
+        if (!token || !pvpState || pvpState.finished) return;
+        const id = pvpState.id;
+        let cancelled = false;
+        let refreshing = false;
+        const refresh = async () => {
+            if (refreshing) return;
+            refreshing = true;
+            const snapshot = currentState.current;
             try {
-             await pvpAction(token, pvpState.id, action)
-            } catch (e) {
-                alert(e instanceof Error ? e.message : "Ошибка действия")
+                const state = await getPvpState(token, id);
+                // Запоздалый HTTP-ответ не должен отменять более новое событие сокета.
+                if (!cancelled && currentState.current === snapshot) onPvpState(state);
+            } catch {
+                // При временной потере сети следующая проверка повторит чтение.
+            } finally {
+                refreshing = false;
             }
+        };
+        void refresh();
+        const timer = window.setInterval(() => { void refresh(); }, 10000);
+        window.addEventListener("focus", refresh);
+        window.addEventListener("online", refresh);
+        return () => {
+            cancelled = true;
+            window.clearInterval(timer);
+            window.removeEventListener("focus", refresh);
+            window.removeEventListener("online", refresh);
+        };
+    }, [token, pvpState?.id, pvpState?.finished, onPvpState]);
+    useEffect(() => {
+        if (!pvpState || pvpState.finished) {
+            setShowInventory(false);
+            return;
+        }
+    }, [pvpState?.finished]);
+
+    const doAction = async (action: "attack" | "flee" | "use", itemType?: number): Promise<boolean> => {
+        if (!token || !pvpState || actionLocked.current) return false;
+        if (pvpState.finished) {
+            navigate("/", { replace: true });
+            return false;
+        }
+        if (!pvpState.myTurn || pvpState.status !== "active") return false;
+        if (action === "use" && (inventoryLoading || pvpState.myHp >= pvpState.myMaxHp)) return false;
+        actionLocked.current = true;
+        setPending(true);
+        setError(null);
+        try {
+            const result = await pvpAction(token, pvpState.id, action, itemType);
+            if (currentState.current === pvpState) onPvpState(result.state);
+            if (action === "use") {
+                setShowInventory(false);
+                // HP дуэли приходит через сокет, остаток зелий перечитываем после списания.
+                try {
+                    const updated = await getMe(token);
+                    onInventory(updated.inventory);
+                } catch {
+                    setError("Зелье использовано, но не удалось обновить инвентарь. Откройте его ещё раз.");
+                }
+            }
+            return true;
+        } catch (e) {
+            setError(e instanceof Error ? e.message : "Ошибка действия");
+            const snapshot = currentState.current;
+            void getPvpState(token, pvpState.id).then((state) => {
+                if (currentState.current === snapshot) onPvpState(state);
+            }).catch(() => undefined);
+            if (action === "use") throw e;
+            return false;
+        } finally {
+            actionLocked.current = false;
+            setPending(false);
         }
     }
 
+    const endDuel = async () => {
+        if (!token || !pvpState || actionLocked.current) return;
+        actionLocked.current = true;
+        setPending(true);
+        setError(null);
+        try {
+            // Сдаться можно в любой ход; соперник получает победу.
+            const result = await cancelPvp(token, pvpState.id);
+            onPvpState(result.state);
+        } catch (e) {
+            setError(e instanceof Error ? e.message : "Не удалось завершить бой");
+        } finally {
+            actionLocked.current = false;
+            setPending(false);
+        }
+    };
+
+    const openInventory = async () => {
+        if (!token || pending || inventoryLoading || !pvpState || pvpState.finished) return;
+        setInventoryLoading(true);
+        setError(null);
+        setShowInventory(true);
+        // Повторное открытие восстанавливает актуальные остатки после ошибки сети.
+        try {
+            const updated = await getMe(token);
+            onInventory(updated.inventory);
+        } catch {
+            setError("Не удалось обновить инвентарь. Попробуйте открыть его ещё раз.");
+        } finally {
+            setInventoryLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (!pvpState) navigate("/", { replace: true });
+    }, [pvpState, navigate]);
+
     // Нет активного PvP — нечего показывать на этой странице
     if (!pvpState) {
-        useEffect(()=>{
-            navigate("/",{replace:true})
-        },[pvpState])
         return (
             <div className="flex items-center justify-center h-screen">
                 <Text size="3">Нет активного боя</Text>
@@ -48,88 +150,46 @@ export default function Fight({ token, player, pvpState,locationState}: FightPro
         )
     }
 
-    const isMyTurn = pvpState.myTurn
-    const finished = pvpState.finished
+    const isMyTurn = pvpState.myTurn;
+    const finished = pvpState.finished;
 
     return (
-        <div className="flex">
-            <div className="flex w-full flex-col justify-end" style={{
-                backgroundImage:`url(${getLocationImage('fonNetralitet.svg')})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
-                height: "100vh"
-            }}>
-                <div className="grid w-full grid-cols-2 items-start gap-x-2 px-2">
-                    <Card className="w-full min-w-0">
-                        <div className="min-w-0">
-                            <div className="flex min-w-0 flex-row items-start justify-between gap-1.5">
-                                <Text className="min-w-0 flex-1 whitespace-normal break-words">{player?.name}</Text>
-                                <div className="shrink-0">
-                                    <Text size="1">{pvpState.myHp}/{pvpState.myMaxHp}</Text>
-                                </div>
-                            </div>
-                            <Progress color={pvpState.myHp <= 0 ? "red" : "green"} value={pvpState.myMaxHp > 0 ? (pvpState.myHp / pvpState.myMaxHp) * 100 : 0}></Progress>
-                        </div>
-                    </Card>
-                    <Card className="w-full min-w-0">
-                        <div className="min-w-0">
-                            <div className="flex min-w-0 flex-row items-start justify-between gap-1.5">
-                                <Text className="min-w-0 flex-1 whitespace-normal break-words">{pvpState.partnerName}</Text>
-                                <div className="shrink-0">
-                                    <Text size="1">{pvpState.partnerHp}/{pvpState.partnerMaxHp}</Text>
-                                </div>
-                            </div>
-                            <Progress color={pvpState.partnerHp <= 0 ? "red" : "green"} value={pvpState.partnerMaxHp > 0 ? (pvpState.partnerHp / pvpState.partnerMaxHp) * 100 : 0}></Progress>
-                        </div>
-                    </Card>
-                    <div className="flex justify-center items-center">
-                        <img className="h-45 w-full max-w-[180px] object-contain" style={{ transform: 'scaleX(-1)' }} src={getSkins(player?.avatar)} />
-                    </div>
-                    <div className="flex justify-center items-center">
-                        <img className="h-45 w-full max-w-[180px] object-contain" style={{ transform: 'scaleX(-1)' }} src={getSkins(pvpState.partnerAvatar)} />
-                    </div>
-                </div>
-
-                <div className="mb-4 text-center">
-                    {finished && pvpState.isWon !== null ? (
-                        <Text size="4" weight="bold" style={{ color: pvpState.isWon ? "#22c55e" : "#ef4444" }}>
-                            {pvpState.isWon ? "Победа!" : "Поражение"}
-                        </Text>
-                    ) : finished ? (
-                        <Text size="4" weight="bold">Ничья</Text>
-                    ) : (
-                        <Text size="3" weight="bold">{isMyTurn ? "Ваш ход" : `Ход ${pvpState.partnerName}`}</Text>
-                    )}
-                </div>
-
-                <div>
-                    <Card className="h-32.5">
-                        <Grid rows="2" columns="2" gap="2">
-                            <Card>
-                                <button className="w-full h-full flex justify-center items-center" disabled={!isMyTurn || finished} onClick={() => doAction("attack")}>
-                                    <Text size="3">Битва</Text>
-                                </button>
-                            </Card>
-                            <Card>
-                                <div className="flex justify-center items-center">
-                                    <Text size="3">Инвентарь</Text>
-                                </div>
-                            </Card>
-                            <Card>
-                                <div className="flex justify-center items-center">
-                                    <Text size="3">хз</Text>
-                                </div>
-                            </Card>
-                            <Card>
-                                <button className="w-full h-full flex justify-center items-center"  onClick={() => doAction("flee")}>
-                                    {pvpState.finished ?<Text size="3">Выйти</Text> : <Text size="3">Сбежать</Text> }
-                                </button>
-                            </Card>
-                        </Grid>
-                    </Card>
-                </div>
-            </div>
-        </div>
-    )
+        <BattleScreen
+            battleId={`pvp-${pvpState.id}`}
+            background={getLocationImage("fonNetralitet.svg")}
+            player={{ name: player?.name ?? pvpState.myName, hp: pvpState.myHp, maxHp: pvpState.myMaxHp, image: getSkins(player?.avatar), mirrored: true, maxImageWidth: 180 }}
+            opponent={{ name: pvpState.partnerName, hp: pvpState.partnerHp, maxHp: pvpState.partnerMaxHp, image: getSkins(pvpState.partnerAvatar), mirrored: true, maxImageWidth: 180 }}
+            error={error}
+            status={finished ? (
+                <Text size="4" weight="bold" style={{ color: pvpState.isWon === null ? undefined : pvpState.isWon ? "#22c55e" : "#ef4444" }}>
+                    {pvpState.isWon === null ? "Бой отменён" : pvpState.isWon ? "Победа!" : "Поражение"}
+                </Text>
+            ) : (
+                <Text size="3" weight="bold">{isMyTurn ? "Ваш ход" : `Ход ${pvpState.partnerName}`}</Text>
+            )}
+            actions={{
+                attack: { label: "Битва", disabled: !isMyTurn || finished || pending, onClick: () => { void doAction("attack"); } },
+                inventory: { label: "Инвентарь", disabled: finished || pending, onClick: () => { void openInventory(); } },
+                leave: { label: finished ? "Выйти" : "Сбежать", disabled: pending || (!finished && !isMyTurn), onClick: () => { void doAction("flee"); } },
+                extra: { label: "Сдаться", disabled: finished || pending, onClick: () => { void endDuel(); } },
+            }}
+        >
+            {showInventory && !finished && (
+                <CombatInventoryDialog
+                    title="Инвентарь в дуэли"
+                    token={token}
+                    player={player ? { ...player, health: pvpState.myHp, maxHp: pvpState.myMaxHp } : null}
+                    inventory={inventory}
+                    onPlayer={onPlayer}
+                    onInventory={onInventory}
+                    onClose={() => { if (!actionLocked.current) setShowInventory(false); }}
+                    closeDisabled={pending}
+                    loading={inventoryLoading}
+                    error={error}
+                    message={isMyTurn ? "Использование зелья передаёт ход сопернику." : "Сейчас ход соперника. Зелье можно использовать в свой ход."}
+                    combat={{ onUsePotion: (itemType) => doAction("use", itemType), busy: pending || inventoryLoading || !isMyTurn, healthFull: pvpState.myHp >= pvpState.myMaxHp }}
+                />
+            )}
+        </BattleScreen>
+    );
 }

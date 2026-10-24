@@ -1,6 +1,6 @@
 import { TradeStateDto, PvpStateDto,CombatStateResponse, PlayerDto, ItemDto, InventoryItemDto } from "@mmobot/shared";
 import CenterModalSkillPoints from "./CenterModal/CenterModalSkillPoints";
-import CenterModalItem from "./CenterModal/CenterModalItem";
+import CenterModalItem, { type CombatInventoryActions } from "./CenterModal/CenterModalItem";
 import LowerModalExchange from "./LowerModal/LowerModalExchange";
 import LowerModalFight  from "./LowerModal/LowerModalFight";
 import CenterModalSelectOfItem from "./CenterModal/CenterModalSelectOfItem";
@@ -21,6 +21,7 @@ export enum TypeModal {
 }
 
 type CardProps = {
+  combat?: CombatInventoryActions;
   token?: string | null;
   typeModal: TypeModal | null;
   showIsModal?: boolean;
@@ -58,6 +59,7 @@ type CardProps = {
 };
 
 export default function Modal({
+  combat,
   token,
   typeModal,
   showIsModal,
@@ -90,6 +92,7 @@ export default function Modal({
     case TypeModal.Item:
       return (
         <CenterModalItem
+          combat={combat}
           token={token ?? null}
           item={item ?? null}
           equiped={equiped ?? false}

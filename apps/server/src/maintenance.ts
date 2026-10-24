@@ -17,6 +17,8 @@ export const TRADE_STALE_MINUTES = 10;
 
 // Как часто запускать обслуживание
 const MAINTENANCE_INTERVAL_MS = 60 * 60 * 1000; // 1 час
+// Тайм-аут дуэли проверяем отдельно, чтобы он не ожидал часовой уборки журнала.
+export const PVP_MAINTENANCE_INTERVAL_MS = 10 * 1000;
 
 export function cleanupOldEvents(): void {
   const cutoff = new Date(nowGameTimeMs() - EVENTS_RETENTION_DAYS * 24 * 60 * 60 * 1000).toISOString();
@@ -53,10 +55,17 @@ export function startMaintenance(): void {
 
   setInterval(() => {
     try {
+      expireStalePvpSessions();
+    } catch (error) {
+      console.error("[maintenance] pvp cleanup failed", error);
+    }
+  }, PVP_MAINTENANCE_INTERVAL_MS);
+
+  setInterval(() => {
+    try {
       cleanupOldEvents();
       cleanupStaleTrades();
       expireStaleCombatSessions();
-      expireStalePvpSessions();
     } catch (error) {
       console.error("[maintenance] failed", error);
     }
