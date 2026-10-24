@@ -104,20 +104,20 @@ export default function Team({ token, player,liveOverview }: TeamProps) {
       {error && <Text color="red" size="1" className="px-4 pt-2">{error}</Text>}
 
       {results.length > 0 && (
-        <div className="px-4 pt-3">
+        <div className="px-3 pt-3">
           <Text size="2" weight="bold">Результаты поиска</Text>
           <Grid columns="1" gap="2" className="mt-2">
             {results.map((p) => (
-              <Card key={p.id}>
+              <Card key={p.id} style={{ padding: "8px" }}>
                 <Flex justify="between" align="center">
-                  <Flex gap="3" align="center">
+                  <Flex gap="1" align="center" >
                     <Avatar radius="full" fallback={p.name[0] ?? "A"} color="green" size="2" />
                     <div className="flex flex-col">
                       <Text size="2">{p.name}</Text>
-                      <Badge color="orange">Lv.{p.level}</Badge>
+                      <span className="text-orange-500 text-[13px] font-bold" >Lv{p.level}</span>
                     </div>
                   </Flex>
-                  <button className="h-9 w-25 p-1 flex justify-center items-center text-white  bg-[#E85D2F] rounded-lg" onClick={() => addFriend(p.friendId)}>Добавить</button>
+                  <button className="h-9 w-27 px-2 p-1 flex justify-center items-center text-white  bg-[#E85D2F] rounded-lg" onClick={() => addFriend(p.friendId)}>Добавить</button>
                 </Flex>
               </Card>
             ))}
@@ -125,24 +125,24 @@ export default function Team({ token, player,liveOverview }: TeamProps) {
         </div>
       )}
 
-      <div className="px-4  flex justify-center flex flex-col items-center">
+      <div className="px-2  flex justify-center flex-col items-center">
         {incoming.length > 0 && (
-          <div className="w-[80%] max-w-200">
+          <div className="w-full max-w-200">
             <Text size="2" weight="bold">Входящие заявки</Text>
             <Grid columns="1" gap="2" className="mt-2">
               {incoming.map((r) => (
-                <Card key={r.id}>
-                  <Flex justify="between" align="center">
+                <Card key={r.id} style={{ padding: "8px" }}>
+                  <Flex justify="between" direction="column" gap="2" align="stretch">
                     <Flex gap="3" align="center">
                       <Avatar radius="full" fallback={r.name[0] ?? "A"} color="green" size="2" />
                       <div className="flex flex-col">
                         <Text size="2">{r.name}</Text>
-                        <Badge color="orange">Lv.{r.level}</Badge>
+                      <span className="text-orange-500 text-[13px] font-bold" >Lv{r.level}</span>
                       </div>
                     </Flex>
-                    <Flex gap="2">
-                      <button className="h-9 w-25 p-1 flex justify-center items-center text-white  bg-green-600 rounded-lg"  onClick={() => accept(r.id)}>Принять</button>
-                      <button className="h-9 w-25 p-1 flex justify-center items-center text-white  bg-red-600 rounded-lg"  onClick={() => decline(r.id)}>Отклонить</button>
+                    <Flex gap="2" width="100%">
+                      <button className="h-9 flex-1 p-1 flex justify-center items-center text-white  bg-green-600 rounded-lg"  onClick={() => accept(r.id)}>Принять</button>
+                      <button className="h-9 flex-1 p-1 flex justify-center items-center text-white  bg-red-600 rounded-lg"  onClick={() => decline(r.id)}>Отклонить</button>
                     </Flex>
                   </Flex>
                 </Card>
@@ -152,24 +152,24 @@ export default function Team({ token, player,liveOverview }: TeamProps) {
         )}
 
         {outgoing.length > 0 && (
-          <div className="w-[80%] max-w-200">
+          <div className="w-full max-w-200">
             <Text size="2" weight="bold" className="block mt-4">Исходящие заявки</Text>
             <Grid columns="1" gap="2" className="mt-2">
               {outgoing.map((r) => (
-                <Card key={r.id}>
-                  <Flex justify="between" align="center">
+                <Card key={r.id} style={{ padding: "8px" }}>
+                  <Flex justify="between" gap="2" align="center">
                     <Flex gap="3" align="center">
                       <Avatar radius="full" fallback={r.name[0] ?? "A"} color="green" size="2" />
                       <Text size="2">{r.name}</Text>
                     </Flex>
-                    <button className="h-9 w-25 p-1 flex justify-center items-center text-white  bg-[#E85D2F] rounded-lg" onClick={() => remove(r.id)}>Отменить</button>
+                    <button className="h-9 w-full px-2 flex justify-center items-center text-white  bg-[#E85D2F] rounded-lg" onClick={() => remove(r.id)}>Отменить</button>
                   </Flex>
                 </Card>
               ))}
             </Grid>
           </div>
         )}
-        <div className="w-[80%] max-w-200">
+        <div className="w-full max-w-200">
         <Grid columns="1" gap="2" className="mt-2">
           {/* Поправить тут проверку онлайн */}
           <div className="flex flex-col gap-1 justify-center w-full  ">
@@ -179,9 +179,9 @@ export default function Team({ token, player,liveOverview }: TeamProps) {
                 <Text size="1" color="gray">Пока нет друзей. Найдите игрока по коду выше</Text>
               </div>
             )}
-            <div className="flex justify-center items-center flex-col gap-1 ">
+            <div className="flex justify-center items-center flex-col gap-1 w-full">
               {overview.friends .map((f) => (
-                <Card key={f.id} className="w-full max-w-200 min-w-[370px]">
+                <Card key={f.id} className="w-full  flex" style={{ padding: "8px" }}> 
                   <Flex justify="between" align="center">
                     <Flex gap="3" align="center">
                       <div className="relative inline-block">
@@ -190,13 +190,13 @@ export default function Team({ token, player,liveOverview }: TeamProps) {
                       </div>
                       <div className="flex flex-col">
                         <Flex gap="3" align="center">
-                          <Text size="2">{f.name}</Text>
+                          <p className="text-[12px] font-bold max-w-39">{f.name}</p>
                           <Badge color="orange">Lv.{f.level}</Badge>
                         </Flex>
                         <Text size="1" color={f.online ? "green" : "gray"}>{f.online ? "В сети" : "Не в сети"}</Text>
                       </div>
                     </Flex>
-                    <button className="h-9 w-25 p-1 flex justify-center items-center text-white  bg-red-600 rounded-lg" onClick={() => remove(f.id)}>Удалить</button>
+                    <button className="h-9 w-25 mx-1 p-1 flex justify-center items-center text-white  bg-red-600 rounded-lg" onClick={() => remove(f.id)}>Удалить</button>
                   </Flex>
                 </Card>
               ))}

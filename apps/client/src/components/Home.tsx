@@ -93,7 +93,7 @@ export default function Home({
                 value={player && ((player?.health * 100)/player?.maxHp)}
               />
             </Box>
-            <img className="h-50 min-w-35" src={getSkins(player?.avatar)} />
+            <img className="h-50 min-w-35 object-cover" src={getSkins(player?.avatar)} />
           </div>
           <div className="flex flex-col justify-center items-center ">
             <button className="flex justify-center items-center rounded-4xl h-4 w-4 bg-[#E85D2F] text-amber-50 ">
