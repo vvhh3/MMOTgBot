@@ -5,6 +5,11 @@
 }
 .rt-Card {
     border: solid 2px;
+    --base-card-border-width: 2px;
+}
+
+.rt-Card::after {
+    box-shadow: none;
 }
 
 .bottom-nav,
@@ -47,6 +52,7 @@
     border-radius: 20px;
     box-shadow: inset 0 1px 0 white, 0 3px 12px rgba(87, 65, 40, 0.08);
     color: #594f43;
+    --base-card-border-width: 1px;
 }
 
 .lower-panel button:focus-visible {

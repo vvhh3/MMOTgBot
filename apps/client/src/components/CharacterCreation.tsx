@@ -72,7 +72,7 @@ export default function CharacterCreation({ token, player, onCreated }: Characte
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen gap-6 p-6">
-      <h1 className="text-2xl font-bold text-[#8A7A60]">Создание персонажа</h1>
+      <h1 className="text-xl font-bold  uppercase text-[#8A7A60]">Создание персонажа</h1>
 
       <div className="w-full max-w-sm rounded-2xl border-2 p-5 bg-white/70">
         <div className="flex flex-col items-center gap-4">
