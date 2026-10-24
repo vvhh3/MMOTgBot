@@ -4,8 +4,10 @@ import { useEffect, useState } from "react"
 import { getCatalog, spendStatPoint } from "../api"
 import { Tabs, Text, Box, Card, Progress, Badge, Grid } from "@radix-ui/themes"
 import Modal, { TypeModal } from "./ui/Modal/Modal"
+import type { CombatInventoryActions } from "./ui/Modal/CenterModal/CenterModalItem"
 
 type InventoryProps = {
+    combat?: CombatInventoryActions
     token: string | null
     player: PlayerDto | null
     inventory: InventoryItemDto[] | null
@@ -13,7 +15,7 @@ type InventoryProps = {
     onInventory: (value: InventoryItemDto[]) => void
 }
 
-export default function Inventory({ token, player, inventory,onPlayer,onInventory }: InventoryProps) {
+export default function Inventory({ token, player, inventory,onPlayer,onInventory, combat }: InventoryProps) {
 
     const [error, setError] = useState<string | null>(null)
 
@@ -150,7 +152,7 @@ export default function Inventory({ token, player, inventory,onPlayer,onInventor
                     </div>
                 </Card>
             </div>
-            <Tabs.Root defaultValue="All" className="flex flex-col w-full">
+            <Tabs.Root defaultValue={combat ? "Potions" : "All"} className="flex flex-col w-full">
                 <div className="w-full overflow-x-auto" style={{ scrollbarWidth: "none", msOverflowStyle: "none", }}>
                     <Tabs.List color="orange" size="2" className="flex w-max min-w-full justify-start" style={{ justifyContent: "center" }}>
                         <Tabs.Trigger className="shrink-0 px-6" value="All">
@@ -192,7 +194,7 @@ export default function Inventory({ token, player, inventory,onPlayer,onInventor
                     </Tabs.Content>
                 </Box>
             </Tabs.Root>
-            <Modal  showIsModal={true} typeModal={TypeModal.Item} item={selectedItem?.item ?? null} inventoryEntry={selectedItem?.inventoryEntry ?? null} equiped={selectedItem?.equiped ?? false} token={token} onItem={setSelectedItem} onPlayer={onPlayer} onInventory={onInventory}/>
+            <Modal combat={combat} showIsModal={true} typeModal={TypeModal.Item} item={selectedItem?.item ?? null} inventoryEntry={selectedItem?.inventoryEntry ?? null} equiped={selectedItem?.equiped ?? false} token={token} onItem={setSelectedItem} onPlayer={onPlayer} onInventory={onInventory}/>
         </div>
     )
 }

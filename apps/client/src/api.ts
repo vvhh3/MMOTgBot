@@ -30,6 +30,7 @@ import {
   type QuestsDto,
   type QuestsResponse,
   type PvpOverviewResponse,
+  type PvpStateDto,
   type TradesOverviewResponse
   , type CasinoGameType
   , type CasinoSessionResponse
@@ -56,7 +57,7 @@ export async function auth(initData: string): Promise<AuthResponse> {
 }
 
 export async function getMe(token: string): Promise<MeResponse> {
-  const response = await api.get<MeResponse>("/me", { headers: authHeader(token) });
+  const response = await api.get<MeResponse>("/me", { headers: authHeader(token), timeout: 15000 });
   return response.data;
 }
 
@@ -333,7 +334,13 @@ export async function acceptPvp(token: string, id: number) {
   await api.post(`/pvp/${id}/accept`, undefined, { headers: authHeader(token) })
 }
 export async function cancelPvp(token: string, id: number) {
-  await api.delete(`/pvp/${id}`, { headers: authHeader(token) })
+  const response = await api.delete<{ ok: boolean; state: PvpStateDto }>(`/pvp/${id}`, { headers: authHeader(token), timeout: 15000 })
+  return response.data
+}
+
+export async function getPvpState(token: string, id: number): Promise<PvpStateDto> {
+  const response = await api.get<PvpStateDto>(`/pvp/${id}`, { headers: authHeader(token), timeout: 15000 })
+  return response.data
 }
 export async function theLastAction(token: string,id: number) {
   const response = await api.post(`/theLastAction`,{id}, { headers: authHeader(token) })
@@ -342,7 +349,7 @@ export async function theLastAction(token: string,id: number) {
 
 // Сделать ход в активной дуэли: attack | flee | use(зелье)
 export async function pvpAction(token: string, id: number, action: "attack" | "flee" | "use", itemType?: number) {
-  const response = await api.post(`/pvp/${id}/action`, { action, itemType }, { headers: authHeader(token) })
+  const response = await api.post<{ ok: boolean; state: PvpStateDto }>(`/pvp/${id}/action`, { action, itemType }, { headers: authHeader(token), timeout: 15000 })
   return response.data
 }
 

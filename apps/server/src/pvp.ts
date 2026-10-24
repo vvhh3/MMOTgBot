@@ -28,7 +28,7 @@
 // Статусы сессии:
 //   pending  — вызов отправлен, ждёт ответа
 //   active   — бой идёт, участники ходят по очереди
-//   finished — бой завершён (победа/ничья/отмена); winnerId = null → ничья
+//   finished — бой завершён; winnerId = null только при отмене непринятого вызова
 
 import type { Express, Request, Response } from "express"
 import type { AuthedRequest } from "./auth.js"
@@ -37,40 +37,103 @@ import type { PvpSessionRow } from "./db/schema.js";
 import { emitToPlayer } from "./realTime.js";
 import { CombatLogEntry, PvpStateDto, PvpOverviewResponse } from "@mmobot/shared";
 import { db } from "./db.js";
-import { eq, sql, and, or, lt } from "drizzle-orm"
+import { eq, sql, and, or } from "drizzle-orm"
 import { notify } from "./notification.js";
 import { getPlayerStats } from "./combat.js";
 import { addXpForPlayer } from "./level.js";
 import { nowGameTime, nowGameTimeMs } from "./time.js";
 import { session } from "grammy";
 
-// дуэль считается заброшенной, если никто не ходил дольше этого времени (10 минут)
-export const STALE_PVP_MS = 10 * 60 * 1000;
+// Дуэль считается заброшенной после пяти минут без ходов; просмотр не продлевает срок.
+export const STALE_PVP_MS = 5 * 60 * 1000;
+
+// Очищаем только ссылку на эту дуэль: у игрока уже могло появиться другое занятие.
+function clearPvpLastAction(pvp: PvpSessionRow): void {
+    for (const id of [pvp.player1Id, pvp.player2Id]) {
+        const player = db.select().from(players).where(eq(players.id, id)).get();
+        if (player?.idTheLastAction?.type === "Fight" && player.idTheLastAction.id === pvp.id) {
+            db.update(players).set({ idTheLastAction: null }).where(eq(players.id, id)).run();
+        }
+    }
+}
 
 // лог дуэли по сессиям (хранится в памяти, в БД его нет —
 // как combatSessionsLogs в combat.ts; сбрасывается при перезапуске сервера)
 const combatSessionsLogs = new Map<number, CombatLogEntry[]>();
 
+// Фиксируем исход и награду одной транзакцией, независимо от причины завершения.
+// Повторный запрос возвращает прежний результат и не начисляет награду заново.
+function finishPvpSession(
+    sessionId: number,
+    winnerId: number | null,
+    health: Partial<Pick<PvpSessionRow, "player1Health" | "player2Health">> = {},
+): PvpSessionRow {
+    let changed = false;
+    const result = db.transaction(() => {
+        const current = db.select().from(pvpSessions).where(eq(pvpSessions.id, sessionId)).get();
+        if (!current) throw new Error("Дуэль не найдена");
+        if (current.status === "finished") {
+            clearPvpLastAction(current);
+            return current;
+        }
+
+        // Непринятое приглашение можно отменить без победителя и штрафов.
+        const winner = current.status === "active" ? winnerId : null;
+        if (current.status === "active" && winner !== current.player1Id && winner !== current.player2Id) {
+            throw new Error("Для завершённой дуэли нужен победитель");
+        }
+        const loser = winner === null ? null : winner === current.player1Id ? current.player2Id : current.player1Id;
+        const finished: PvpSessionRow = {
+            ...current,
+            ...health,
+            status: "finished",
+            winnerId: winner,
+            lastActionAt: nowGameTime(),
+        };
+        if (loser === current.player1Id) finished.player1Health = 0;
+        if (loser === current.player2Id) finished.player2Health = 0;
+
+        db.update(pvpSessions).set({
+            status: finished.status, winnerId: winner, lastActionAt: finished.lastActionAt,
+            player1Health: finished.player1Health, player2Health: finished.player2Health,
+        }).where(eq(pvpSessions.id, sessionId)).run();
+        clearPvpLastAction(current);
+        if (winner !== null) {
+            addXpForPlayer(winner, 10);
+            db.update(players).set({ points: sql`${players.points} + 10` }).where(eq(players.id, winner)).run();
+        }
+        if (loser !== null) {
+            // Одинаковые последствия поражения от удара, сдачи, побега и бездействия.
+            db.update(players).set({ health: 0 }).where(eq(players.id, loser)).run();
+        }
+        changed = true;
+        return finished;
+    });
+    if (changed) {
+        combatSessionsLogs.delete(sessionId);
+        notifyBoth(result);
+    }
+    return result;
+}
+
 // Завершает зависшие дуэли (игрок принял вызов и закрыл приложение / ушёл).
 // Без этого сессия навсегда блокирует обоим участникам новые дуэли
-// (см. hasActivePvp). winnerId = null → ничья, наказаний нет.
+// (см. hasActivePvp). Проигрывает игрок, не сделавший свой ход за пять минут.
 // Вызывается при старте сервера и по таймеру из maintenance.ts.
 export function expireStalePvpSessions(): void {
   const cutoff = new Date(nowGameTimeMs() - STALE_PVP_MS).toISOString();
   const stale = db.select().from(pvpSessions)
     .where(and(
       or(eq(pvpSessions.status, "pending"), eq(pvpSessions.status, "active")),
-      lt(pvpSessions.lastActionAt, cutoff)
+      sql`coalesce(${pvpSessions.lastActionAt}, ${pvpSessions.creadetAt}) <= ${cutoff}`
     ))
     .all();
 
   for (const session of stale) {
-    db.update(pvpSessions)
-      .set({ status: "finished", winnerId: null })
-      .where(eq(pvpSessions.id, session.id))
-      .run();
-    combatSessionsLogs.delete(session.id);
-    notifyBoth({ ...session, status: "finished", winnerId: null });
+    const winnerId = session.status === "active"
+      ? session.turn === "player1" ? session.player2Id : session.player1Id
+      : null;
+    finishPvpSession(session.id, winnerId);
   }
 
   if (stale.length > 0) {
@@ -112,7 +175,7 @@ const hasActivePvp = (playerId: number, excludePvpId?: number): boolean => {
 // В БД всё хранится по сторонам (player1Health/player2Health, turn),
 // но игроку удобнее думать "моё / его" — здесь мы переворачиваем данные.
 //
-// isWon: null = бой не завершён ИЛИ ничья; true/false — только для
+// isWon: null = бой не завершён или вызов отменён; true/false — только для
 // завершённой дуэли с определённым победителем.
 function buildPvpState(pvp: PvpSessionRow, playerId: number): PvpStateDto | null {
     const role = myRole(pvp, playerId);
@@ -145,6 +208,13 @@ function buildPvpState(pvp: PvpSessionRow, playerId: number): PvpStateDto | null
     }
 }
 
+// Единое представление состояния для сокета, HTTP и восстановления после перезагрузки.
+export function getPvpStateForPlayer(sessionId: number, playerId: number): PvpStateDto | null {
+    const pvp = db.select().from(pvpSessions).where(eq(pvpSessions.id, sessionId)).get();
+    if (!pvp || !myRole(pvp, playerId)) return null;
+    if (pvp.status === "finished") clearPvpLastAction(pvp);
+    return buildPvpState(pvp, playerId);
+}
 
 export const createPvpRoutes = (app: Express) => {
 
@@ -153,6 +223,13 @@ export const createPvpRoutes = (app: Express) => {
     // завалить жертву сотнями приглашений и уведомлений.
     const PVP_INVITE_COOLDOWN_MS = 15 * 1000;
     const lastInviteAt = new Map<number, number>();
+
+    app.get("/pvp/:id", (req: Request, res: Response) => {
+        expireStalePvpSessions();
+        const state = getPvpStateForPlayer(Number(req.params.id), (req as AuthedRequest).player.id);
+        if (!state) return res.status(404).json({ error: "Дуэль не найдена" });
+        return res.json(state);
+    });
 
     // --- СПИСОК: мои приглашения + активная дуэль ---
     // Разовый запрос (открытие экрана / реконнект). Живые обновления
@@ -258,19 +335,21 @@ export const createPvpRoutes = (app: Express) => {
         res.json({ ok: true });
     });
 
-    // --- Отклонить приглашение или отменить дуэль (любой участник) ---
+    // --- Отклонить приглашение или сдаться в дуэли (любой участник) ---
     // Работает и для pending (отказ от вызова), и для active (сдача).
-    // winnerId = null → в DTO обоих придёт isWon: null ("ничья").
+    // В активном бою вышедший проигрывает, соперник получает победу.
     app.delete("/pvp/:id", (req: Request, res: Response) => {
         const player = (req as AuthedRequest).player;
         const session = db.select().from(pvpSessions).where(eq(pvpSessions.id, Number(req.params.id))).get();
         if (!session || !myRole(session, player.id)) return res.status(404).json({ error: "Дуэль не найдена" });
-        if (session.status === "finished") return res.status(409).json({ error: "Дуэль уже завершена" });
+        if (session.status === "finished") {
+            clearPvpLastAction(session);
+            return res.json({ ok: true, state: buildPvpState(session, player.id) });
+        }
 
-        db.update(pvpSessions).set({ status: "finished", winnerId: null }).where(eq(pvpSessions.id, session.id)).run();
-        combatSessionsLogs.delete(session.id);
-        notifyBoth({ ...session, status: "finished", winnerId: null });
-        res.json({ ok: true });
+        const winnerId = player.id === session.player1Id ? session.player2Id : session.player1Id;
+        const finished = finishPvpSession(session.id, winnerId);
+        res.json({ ok: true, state: buildPvpState(finished, player.id) });
     })
 
     // --- ХОД: attack | flee | use (зелье) ---
@@ -316,10 +395,10 @@ export const createPvpRoutes = (app: Express) => {
                 log.push({ text: `${opp.name}: ${oppHp}/${opp.maxHealth} HP`, at: now });
             }
         } else if (action === "flee") {
-            // побег = 50/50: удалось → ничья; не удалось → пропущенный удар
+            // Побег = 50/50: удалось → поражение вышедшего; не удалось → ответный удар.
             if (Math.random() < 0.5) {
-                finished = true;                       // сбежал → ничья
-                winnerId = null;
+                finished = true;
+                winnerId = opp.id;
                 log.push({ text: "Вы убежали с дуэли", at: now });
             } else {
                 const oppStats = getPlayerStats(opp);
@@ -377,36 +456,11 @@ export const createPvpRoutes = (app: Express) => {
                 .where(eq(pvpSessions.id, session.id)).run();
             combatSessionsLogs.set(session.id, log);
             notifyBoth({ ...session, ...patch, turn: opponentRole });
-            return res.json({ ok: true });
+            return res.json({ ok: true, state: buildPvpState({ ...session, ...patch, turn: opponentRole }, player.id) });
         }
 
-        // === ДУЭЛЬ ЗАВЕРШЕНА ===
-        // winnerId: id победителя | null (ничья — оба сбежали/отменили)
-        db.update(pvpSessions)
-            .set({ ...patch, status: "finished", winnerId, lastActionAt: now})
-            .where(eq(pvpSessions.id, session.id)).run();
-
-        db.update(players).set({idTheLastAction:null}).where(eq(players.id,me.id)).run()
-        db.update(players).set({idTheLastAction:null}).where(eq(players.id,opp.id)).run()
-        // проигравший = тот из сторон БД, кто НЕ победитель (при ничьей его нет)
-        const loserId = winnerId === null ? null : (winnerId === session.player1Id ? session.player2Id : session.player1Id);
-
-        if (winnerId !== null) {
-            // награда победителю: +10 XP и +10 очков в лидерборд
-            addXpForPlayer(winnerId, 10);
-            db.update(players).set({ points: sql`${players.points} + 10` }).where(eq(players.id, winnerId)).run();
-        }
-        if (loserId !== null) {
-            // HP проигравшего = 0; дальше поднимется регенерацией (regen.ts).
-            // Телепорт на "square" НЕ делаем — отличие от PvE-поражения.
-            db.update(players).set({ health: 0 }).where(eq(players.id, loserId)).run();
-        }
-
-        notifyBoth({ ...session, ...patch, status: "finished", winnerId });
-        res.json({ ok: true, winnerId });
-
-        // лог больше не нужен — освобождаем память
-        combatSessionsLogs.delete(session.id);
+        const result = finishPvpSession(session.id, winnerId, patch);
+        res.json({ ok: true, winnerId: result.winnerId, state: buildPvpState(result, player.id) });
     })
     
 }

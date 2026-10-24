@@ -8,7 +8,14 @@ import {
 } from "../../../../api";
 import CenterModal from "./CenterModal";
 
+export type CombatInventoryActions = {
+  onUsePotion: (itemType: number) => Promise<boolean>;
+  busy: boolean;
+  healthFull: boolean;
+};
+
 type CenterModalItemProps = {
+  combat?: CombatInventoryActions;
   token: string | null;
   item: ItemDto | null;
   equiped: boolean;
@@ -34,6 +41,7 @@ export default function CenterModalItem({
   onItem,
   onPlayer,
   onInventory,
+  combat,
 }: CenterModalItemProps) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,11 +54,17 @@ export default function CenterModalItem({
   };
 
   const handleUse = async () => {
-    if (!token || !inventoryEntry || busy) return;
+    if (!token || !inventoryEntry || busy || combat?.busy) return;
+    if (combat && (item.type !== "potion" || combat.healthFull)) return;
     setBusy(true);
     try {
       let res;
       if (item.type === "potion") {
+        // В бою лечим HP боевой сессии через обработчик экрана боя.
+        if (combat) {
+          if (await combat.onUsePotion(item.id)) onItem(null);
+          return;
+        }
         res = await inventoryUsePotion(token, item.id);
       } else if (item.type === "armor" || item.type === "weapon") {
         res = equiped
@@ -122,10 +136,10 @@ export default function CenterModalItem({
         <div className="flex justify-center">
           <button
             className="p-3 bg-green-500 rounded-2xl m-4 text-white disabled:opacity-50"
-            disabled={busy || item.healAmount <= 0}
+            disabled={busy || combat?.busy || combat?.healthFull || item.healAmount <= 0}
             onClick={handleUse}
           >
-            {item.healAmount > 0 ? "Использовать" : "Эффект появится позже"}
+            {item.healAmount <= 0 ? "Эффект появится позже" : combat?.healthFull ? "Здоровье полное" : busy ? "Использование…" : "Использовать"}
           </button>
         </div>
       )}
@@ -133,12 +147,12 @@ export default function CenterModalItem({
       {(item.type === "armor" || item.type === "weapon") && (
         <div className="flex justify-center">
           <button
-            className="p-3 rounded-2xl m-4 text-white"
+            className="p-3 rounded-2xl m-4 text-white disabled:opacity-50"
             style={{ backgroundColor: equiped ? "#E85D2F" : "#22c55e" }}
-            disabled={busy}
+            disabled={busy || !!combat}
             onClick={handleUse}
           >
-            {equiped ? "Снять" : "Надеть"}
+            {combat ? "Смена экипировки доступна вне боя" : equiped ? "Снять" : "Надеть"}
           </button>
         </div>
       )}

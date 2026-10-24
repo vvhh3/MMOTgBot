@@ -1,4 +1,4 @@
-import { StrictMode, useEffect, useState } from "react"
+import { StrictMode, useCallback, useEffect, useRef, useState } from "react"
 import { createRoot } from "react-dom/client"
 import { MotionConfig } from "motion/react"
 import "@radix-ui/themes/styles.css"
@@ -24,7 +24,7 @@ import Tasks from "./components/Tasks";
 import Leaderboard from "./components/Leaderboard";
 import { useLocation } from "react-router-dom";
 import Team from "./components/Team";
-import TakeAWalk from "./components/TakeAWalk";
+import PveFight from "./components/PveFight";
 import Inventory from "./components/Inventory";
 import Fight from "./components/Fight";
 import Exchange from "./components/Exchange"
@@ -59,6 +59,11 @@ function App() {
   const [error, setError] = useState<string | null>(null)
   const [friendsOverview, setFriendsOverview] = useState<FriendsOverviewResponse | null>(null)
   const [pvpState, setPvpState] = useState<PvpStateDto | null>(null)
+  const pvpUpdateVersion = useRef(0)
+  const updatePvpState = useCallback((next: PvpStateDto | null) => {
+    pvpUpdateVersion.current += 1
+    setPvpState(next)
+  }, [])
   const [tradeState, setTradeState] = useState<TradeStateDto | null>(null)
   const [showIsModal, setShowModal] = useState(false)
   const [typeShowIsModal, setTypeShowIsModal] = useState<TypeModal | null>(null)
@@ -198,7 +203,7 @@ function App() {
     const onInventory = (nextInventory: InventoryItemDto[]) => setInventory(nextInventory);
     const onCombatState = (combatState: CombatStateResponse) => setCombat(combatState);
     const onFriendsUpdate = (friendState: FriendsOverviewResponse) => setFriendsOverview(friendState)
-    const onPvpState = (pvpStateValue: PvpStateDto | null) => setPvpState(pvpStateValue)
+    const onPvpState = updatePvpState
     const onTradeState = (tradeState: TradeStateDto | null) => setTradeState(tradeState)
 
     socket.on("connect_error", onConnectError);
@@ -223,33 +228,32 @@ function App() {
       socket.off("tradeUpdate", onTradeState)
     }
 
-  }, [token, setLocationState])
+  }, [token, setLocationState, updatePvpState])
   useEffect(() => {
     if (!player) return
     if (player.idTheLastAction == null) return
     if (player.idTheLastAction.type == "Fight") {
+      if (!token) return;
+      let cancelled = false;
+      const version = pvpUpdateVersion.current;
+      const sessionId = player.idTheLastAction.id;
       const loadPvp = async () => {
-        if (!token) return
-        if (player.idTheLastAction == null) return
-        const session = await theLastAction(token, player.id)
-        setPvpState({
-          id: session.info.id,
-          status: session.info.status,
-          direction: session.info.direction,
-          myName: session.info.myName,
-          partnerName: session.info.partnerName,
-          partnerAvatar: session.info.partnerAvatar,
-          myHp: session.info.myHp,
-          myMaxHp: session.info.myMaxHp,
-          partnerHp: session.info.partnerHp,
-          partnerMaxHp: session.info.partnerMaxHp,
-          myTurn: session.info.myTurn,
-          finished: session.info.finished,
-          isWon: session.info.isWon,
-        })
-        navigate("/Fight", { replace: true })
-      }
-      loadPvp()
+        const session = await theLastAction(token, player.id);
+        // Восстановление не перезаписывает ход, уже полученный через сокет или действие.
+        if (cancelled || version !== pvpUpdateVersion.current) return;
+        updatePvpState(session.info);
+        if (!session.info || session.info.finished) {
+          setPlayer((current) => current?.idTheLastAction?.type === "Fight" && current.idTheLastAction.id === sessionId
+            ? { ...current, idTheLastAction: null }
+            : current);
+          return;
+        }
+        navigate("/Fight", { replace: true });
+      };
+      loadPvp().catch((e) => {
+        if (!cancelled) setError(e instanceof Error ? e.message : "Не удалось восстановить дуэль");
+      });
+      return () => { cancelled = true; };
     }
     else if (player.idTheLastAction.type == "TakeAWalk") {
       if (!token) return
@@ -301,7 +305,7 @@ function App() {
       loadCasinoSession().catch(() => undefined)
     }
 
-  }, [player, pathname, token, navigate])
+  }, [player?.id, player?.idTheLastAction?.id, player?.idTheLastAction?.type, pathname, token, navigate, updatePvpState])
   return (
     <>
       <Theme>
@@ -326,8 +330,8 @@ function App() {
               <Route path="Casino/Blackjack" element={<BlackjackGame token={token} player={player} onPlayer={setPlayer} />} />
               <Route path="Casino/Ladder" element={<LadderGame token={token} player={player} onPlayer={setPlayer} />} />
             </Route>
-            <Route path="/TakeAWalk" element={<TakeAWalk token={token} player={player} onPlayer={setPlayer} onInventory={setInventory} locationState={locationState} onError={setError} error={error} onState={setState} state={state} />} />
-            <Route path="/Fight" element={<Fight token={token} player={player} locationState={locationState} pvpState={pvpState} />} />
+            <Route path="/TakeAWalk" element={<PveFight token={token} player={player} inventory={inventory} onPlayer={setPlayer} onInventory={setInventory} locationState={locationState} onError={setError} error={error} onState={setState} state={state} />} />
+            <Route path="/Fight" element={<Fight token={token} player={player} inventory={inventory} onPlayer={setPlayer} onInventory={setInventory} pvpState={pvpState} onPvpState={updatePvpState} />} />
           </Routes>
         ) : (
           <Loading
