@@ -1,159 +1,259 @@
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import type {
+    BattleRequest,
+    CombatStateResponse,
+    InventoryItemDto,
+    LocationStateResponse,
+    PlayerDto,
+} from "@mmobot/shared";
+import { combatAction, getCombatState, getMe } from "../api";
+import { useBattlePlayback } from "../hooks/useBattlePlayback";
 import { getCharacterImage, getSkins } from "../utils/skins";
-import { Text } from "@radix-ui/themes"
-import { useNavigate } from "react-router-dom"
-import { CombatStateResponse, InventoryItemDto, PlayerDto,LocationStateResponse } from "@mmobot/shared"
-import { useEffect, useRef, useState } from "react"
-import { combatAction } from "../api"
-import { getLocationImage } from "../utils/getLocationImage"
-import Modal, { TypeModal } from "./ui/Modal/Modal"
-import { HIT_ANIMATION_MS, MOB_COUNTERATTACK_DELAY_MS } from "./animations/DamageEffect"
-import BattleScreen from "./BattleScreen"
-import CombatInventoryDialog from "./CombatInventoryDialog"
+import { getLocationImage } from "../utils/getLocationImage";
+import BattleScreen from "./BattleScreen";
+import CombatInventoryDialog from "./CombatInventoryDialog";
+import BattleConsole from "./ui/BattleConsole";
+import MovePanel from "./ui/MovePanel";
+import Modal, { TypeModal } from "./ui/Modal/Modal";
 
 type PveFightProps = {
-    token: string | null
-    player: PlayerDto | null
-    inventory: InventoryItemDto[]
-    onPlayer: (state: PlayerDto) => void
-    onInventory: (state: InventoryItemDto[]) => void
-    locationState: LocationStateResponse|null
-    onError:(value:string)=>void
-    onState:(state: CombatStateResponse) => void
-    state:CombatStateResponse | undefined
-    error:string | null
-}
+    token: string | null;
+    player: PlayerDto | null;
+    inventory: InventoryItemDto[];
+    onPlayer: (player: PlayerDto) => void;
+    onInventory: (inventory: InventoryItemDto[]) => void;
+    locationState: LocationStateResponse | null;
+    onError: (message: string) => void;
+    onState: (state: CombatStateResponse) => void;
+    state: CombatStateResponse | undefined;
+    error: string | null;
+};
 
-export default function PveFight({ token, player,inventory,onPlayer,onInventory,locationState,onState,state,onError,error}: PveFightProps) {
-    const location = locationState?.location
-    const [showResult, setShowResult] = useState(state?.status === "victory" || state?.status === "defeat")
-    const [displayedPlayerHp, setDisplayedPlayerHp] = useState(state?.playerHp)
-    const previousHealth = useRef({ mobId: state?.mob.id, hp: state?.playerHp })
-    const [turnPending, setTurnPending] = useState(false)
-    const turnLocked = useRef(false)
-    const unlockTimer = useRef<number | null>(null)
-    const mounted = useRef(true)
-    const [showInventory, setShowInventory] = useState(false)
+type PendingCombatRequest = {
+    key: string;
+    request: BattleRequest;
+};
 
-    useEffect(() => {
-        if (state?.status !== "active") {
-            setShowInventory(false)
-            return
-        }
-    }, [state?.status])
+export default function PveFight({
+    token,
+    player,
+    inventory,
+    onPlayer,
+    onInventory,
+    locationState,
+    onError,
+    onState,
+    state,
+    error,
+}: PveFightProps) {
+    const navigate = useNavigate();
+    const [pending, setPending] = useState(false);
+    const [showMoves, setShowMoves] = useState(false);
+    const [showInventory, setShowInventory] = useState(false);
+    const actionLocked = useRef(false);
+    const retryRequest = useRef<PendingCombatRequest | null>(null);
+    const currentState = useRef(state);
+    currentState.current = state;
 
-    useEffect(() => {
-        mounted.current = true
-        return () => {
-            mounted.current = false
-            if (unlockTimer.current !== null) window.clearTimeout(unlockTimer.current)
-        }
-    }, [])
-
-    useEffect(() => {
-        const previous = previousHealth.current
-        const hp = state?.playerHp
-        previousHealth.current = { mobId: state?.mob.id, hp }
-        if (previous.mobId === state?.mob.id && previous.hp !== undefined && hp !== undefined && hp < previous.hp) {
-            // Оба удара приходят вместе; показываем ответ моба с задержкой после удара игрока.
-            const timeout = window.setTimeout(() => setDisplayedPlayerHp(hp), MOB_COUNTERATTACK_DELAY_MS)
-            return () => window.clearTimeout(timeout)
-        }
-        setDisplayedPlayerHp(hp)
-    }, [state?.playerHp, state?.mob.id])
-
-    const playerHp = displayedPlayerHp ?? state?.playerHp ?? 0
-    const counterattackPending = state !== undefined && playerHp > state.playerHp
-
-    const navigate = useNavigate()
-    useEffect(() => {
-        if (!state) navigate("/", { replace: true })
-    }, [state, navigate])
+    const lastEventSequence = state?.events.at(-1)?.sequence;
+    const playback = useBattlePlayback(
+        `pve-${state?.id}`,
+        [state?.playerHp ?? 0, state?.mobHp ?? 0],
+        state?.events ?? [],
+    );
 
     useEffect(() => {
-        if (state?.status !== "victory" && state?.status !== "defeat") {
-            setShowResult(false)
-            return
-        }
-        // При поражении ждём ответного удара моба и завершения анимации урона.
-        if (counterattackPending) return
-        const timeout = window.setTimeout(() => setShowResult(true), HIT_ANIMATION_MS)
-        return () => window.clearTimeout(timeout)
-    }, [state?.status, counterattackPending])
+        if (!state) navigate("/", { replace: true });
+    }, [state, navigate]);
 
-    const actionCombat = async (action: "attack" | "flee" | "use", itemType?: number): Promise<boolean> => {
-        if (!token || !state || state.status !== "active" || turnLocked.current || counterattackPending) return false
-        if (action === "use" && state.playerHp >= state.playerMaxHp) return false
-        turnLocked.current = true
-        setTurnPending(true)
-        onError("")
-        let animationDuration = 0
-        try {
-            const res = await combatAction(token, action, itemType)
-            if (!mounted.current) return false
-            const receivedDamage = res.state.playerHp < state.playerHp
-            const dealtDamage = res.state.mobHp < state.mobHp
-            animationDuration = receivedDamage
-                ? MOB_COUNTERATTACK_DELAY_MS + HIT_ANIMATION_MS
-                : dealtDamage ? HIT_ANIMATION_MS : 0
-            onState(res.state)
-            onPlayer(res.player)
-            onInventory(res.inventory)
-            if (action === "use") setShowInventory(false)
-            if (res.state.status === "fled")navigate("/")
-            return true
-        } catch (e) {
-            if (mounted.current) onError(e instanceof Error ? e.message : 'Ошибка запроса, попробуйте попозже')
-            // Ошибку использования показываем прямо в открытой карточке зелья.
-            if (action === "use") throw e
-            return false
-        } finally {
-            if (mounted.current) {
-                unlockTimer.current = window.setTimeout(() => {
-                    turnLocked.current = false
-                    setTurnPending(false)
-                    unlockTimer.current = null
-                }, animationDuration)
+    useEffect(() => {
+        if (!token || !state || state.status !== "active") return;
+
+        let cancelled = false;
+        const sessionId = state.id;
+        const refresh = async () => {
+            try {
+                const updated = await getCombatState(token, sessionId);
+                if (!cancelled && updated.id === sessionId) onState(updated);
+            } catch {
+                // После временной ошибки сети следующий запрос повторит чтение.
             }
+        };
+
+        const timer = window.setInterval(() => { void refresh(); }, 10000);
+        window.addEventListener("online", refresh);
+        window.addEventListener("focus", refresh);
+
+        return () => {
+            cancelled = true;
+            window.clearInterval(timer);
+            window.removeEventListener("online", refresh);
+            window.removeEventListener("focus", refresh);
+        };
+    }, [token, state?.id, state?.status, onState]);
+
+    useEffect(() => {
+        setShowMoves(false);
+        if (state?.status !== "active") setShowInventory(false);
+    }, [lastEventSequence, state?.status]);
+
+    const handleAction = async (
+        action: "attack" | "flee" | "use",
+        moveId?: string,
+        itemType?: number,
+    ): Promise<boolean> => {
+        if (!token || !state || state.status !== "active" || actionLocked.current || playback.busy) {
+            return false;
         }
-    }
-    if (!state) {
-        return (
-            <div className="flex items-center justify-center h-screen">
-                <Text size="3">Нет активного боя</Text>
-            </div>
-        )
-    }
-    const actionsDisabled = turnPending || counterattackPending;
+
+        actionLocked.current = true;
+        setPending(true);
+        onError("");
+
+        const key = `${state.id}:${state.round}:${action}:${moveId ?? itemType ?? ""}`;
+        const request = retryRequest.current?.key === key
+            ? retryRequest.current.request
+            : {
+                sessionId: state.id,
+                round: state.round,
+                expectedVersion: state.stateVersion,
+                requestId: crypto.randomUUID(),
+                moveId,
+                itemType,
+            };
+        retryRequest.current = { key, request };
+
+        try {
+            const result = await combatAction(token, action, request);
+            if (currentState.current?.id === state.id) {
+                onState(result.state);
+                onPlayer(result.player);
+                onInventory(result.inventory);
+            }
+            retryRequest.current = null;
+            setShowMoves(false);
+            if (action === "use") setShowInventory(false);
+            return true;
+        } catch (error) {
+            onError(error instanceof Error ? error.message : "Не удалось выполнить действие");
+            try {
+                const updated = await getCombatState(token, state.id);
+                if (updated.id === state.id) {
+                    onState(updated);
+                    if (updated.status !== "active") {
+                        const me = await getMe(token);
+                        onPlayer(me.player);
+                        onInventory(me.inventory);
+                    }
+                }
+            } catch {
+                // Сохраняем ID команды, чтобы повтор не выполнил действие второй раз.
+            }
+            if (action === "use") throw error;
+            return false;
+        } finally {
+            actionLocked.current = false;
+            setPending(false);
+        }
+    };
+
+    const handleCloseInventory = () => {
+        if (!actionLocked.current) setShowInventory(false);
+    };
+
+    if (!state) return null;
+
+    const finished = state.status !== "active";
+    let statusMessage = `Что предпримет ${player?.name ?? "ваш персонаж"}?`;
+    if (pending) statusMessage = "Действие…";
+    if (finished) statusMessage = state.status === "fled" ? "Вы покинули поле боя" : "Бой завершён";
+
+    const renderControls = () => {
+        if (playback.message) {
+            return (
+                <BattleConsole
+                    message={playback.message}
+                    remainingMessages={playback.remainingMessages}
+                    onNext={playback.next}
+                    onSkip={playback.skip}
+                />
+            );
+        }
+        if (showMoves && !finished) {
+            return (
+                <MovePanel
+                    state={state}
+                    disabled={pending}
+                    onMove={(moveId) => { void handleAction("attack", moveId); }}
+                    onBack={() => setShowMoves(false)}
+                />
+            );
+        }
+        return undefined;
+    };
 
     return (
         <BattleScreen
-            battleId={`pve-${state.mob.id}`}
-            background={getLocationImage(location?.fightImg ?? "fonNetralitet.svg")}
-            player={{ name: player?.name ?? "", hp: playerHp, maxHp: state.playerMaxHp, image: getSkins(player?.avatar), mirrored: true, maxImageWidth: 180 }}
-            opponent={{ name: state.mob.name, hp: state.mobHp, maxHp: state.mobMaxHp, image: getCharacterImage("/character-images/monstr.svg") }}
+            battleId={`pve-${state.id}`}
+            background={getLocationImage(locationState?.location.fightImg ?? "fonNetralitet.svg")}
+            player={{
+                name: player?.name ?? "",
+                hp: playback.hp[0],
+                maxHp: state.playerMaxHp,
+                image: getSkins(player?.avatar),
+                mirrored: true,
+                maxImageWidth: 180,
+            }}
+            opponent={{
+                name: state.mob.name,
+                hp: playback.hp[1],
+                maxHp: state.mobMaxHp,
+                image: getCharacterImage("/character-images/monstr.svg"),
+            }}
             error={error}
-            actions={state.status === "active" ? {
-                attack: { label: counterattackPending ? "Ответный удар…" : turnPending ? "Ход…" : "Битва", disabled: actionsDisabled, onClick: () => { void actionCombat("attack"); } },
-                inventory: { label: "Инвентарь", disabled: actionsDisabled, onClick: () => setShowInventory(true) },
-                leave: { label: "Сбежать", disabled: actionsDisabled, onClick: () => { void actionCombat("flee"); } },
-            } : null}
+            round={state.round}
+            status={playback.busy ? undefined : statusMessage}
+            actions={{
+                attack: {
+                    label: "Битва",
+                    disabled: finished || pending,
+                    onClick: () => setShowMoves(true),
+                },
+                inventory: {
+                    label: "Инвентарь",
+                    disabled: finished || pending,
+                    onClick: () => setShowInventory(true),
+                },
+                leave: {
+                    label: finished ? "Выйти" : "Сбежать",
+                    disabled: pending,
+                    onClick: () => finished ? navigate("/") : void handleAction("flee"),
+                },
+            }}
+            controls={renderControls()}
         >
-            {showResult && (state.status === "victory" || state.status === "defeat") && (
-                <Modal typeModal={TypeModal.ResultFight} state={state} />
-            )}
-            {showInventory && state.status === "active" && (
+            {showInventory && !finished && (
                 <CombatInventoryDialog
                     title="Инвентарь в бою"
                     token={token}
-                    player={player ? { ...player, health: playerHp, maxHp: state.playerMaxHp } : null}
+                    player={player ? { ...player, health: state.playerHp, maxHp: state.playerMaxHp } : null}
                     inventory={inventory}
                     onPlayer={onPlayer}
                     onInventory={onInventory}
-                    onClose={() => { if (!turnLocked.current) setShowInventory(false); }}
-                    closeDisabled={turnPending}
+                    onClose={handleCloseInventory}
+                    closeDisabled={pending}
                     error={error}
-                    combat={{ onUsePotion: (itemType) => actionCombat("use", itemType), busy: actionsDisabled, healthFull: state.playerHp >= state.playerMaxHp }}
+                    message="Лечебный предмет занимает действие текущего раунда."
+                    combat={{
+                        onUsePotion: (itemType) => handleAction("use", undefined, itemType),
+                        busy: pending || playback.busy,
+                        healthFull: state.playerHp >= state.playerMaxHp,
+                    }}
                 />
+            )}
+            {finished && !playback.busy && (state.status === "victory" || state.status === "defeat") && (
+                <Modal typeModal={TypeModal.ResultFight} state={state} />
             )}
         </BattleScreen>
     );

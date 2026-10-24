@@ -1,3 +1,5 @@
+import { BattleError, parseBattleRequest } from "./battle/state.js";
+import { assertOutsideCombat } from "./inventoryStore.js";
 import { grantItems } from "./inventoryStore.js";
 import { and, asc, desc, eq, like, ne, sql } from "drizzle-orm";
 import cors from "cors";
@@ -25,7 +27,7 @@ import type {
   SpendStatPointRequest
 } from "@mmobot/shared"
 import { createSessionToken, requireAdmin, requireAuth, validateTelegramInitData, type AuthedRequest } from "./auth.js";
-import { getCombatState, isMobAlive, moveCombatAction, startCombat, usePotion } from "./combat.js";
+import { expireStaleCombatSessions, getCombatState, isMobAlive, moveCombatAction, startCombat } from "./combat.js";
 import { config } from "./config.js";
 import { db, initializeDatabase, toEventDto, toInventoryItemDto, toLocationDto, toPlayerDto, toMobDto, toPlayerDtoEquipped } from "./db.js";
 import { characterSkins, combatSessions, events, inventoryItems, locations, players, mobs, items } from "./db/schema.js";
@@ -270,6 +272,9 @@ export function createApp(): express.Express {
   app.post("/me/stats", requireAuth, (req, res) => {
     const player = (req as AuthedRequest).player;
     const body = req.body as SpendStatPointRequest;
+    try { assertOutsideCombat(db, player.id); } catch { return res.status(409).json({ error: 'Дождитесь окончания боя' }); }
+    if (!body || typeof body !== 'object' || Array.isArray(body) || Object.entries(body).some(([k, v]) =>
+      !Object.hasOwn(STAT_GAIN, k) || !Number.isSafeInteger(v) || v < 0)) return res.status(400).json({ error: 'Некорректные очки характеристик' });
     // 1. Есть что тратить? (перечитываем из БД — req.player мог устареть)
     const fresh = db.select().from(players).where(eq(players.id, player.id)).get()!;
     if (fresh.statPoints < 1) {
@@ -282,7 +287,7 @@ export function createApp(): express.Express {
     const totalPoints = Object.values(body).reduce((a, b) => a + b, 0);
 
     if (totalPoints > fresh.statPoints) {
-      throw new Error("Not enough stat points");
+      return res.status(400).json({ error: "Недостаточно очков" });
     }
 
     const next = {
@@ -647,10 +652,9 @@ export function createApp(): express.Express {
     }
 
     // 6. Начинаем бой
-    const state = startCombat(player, mob)
-    const idSessionCombat =db.select().from(combatSessions).where(eq(combatSessions.playerId,player.id)).get()
-    if(!idSessionCombat) return;
-    db.update(players).set({idTheLastAction:{id:idSessionCombat.id,type:"TakeAWalk"}}).where(eq(players.id,player.id)).run()
+    let state;
+    try { state = startCombat(player, mob); }
+    catch (error) { return res.status(409).json({ error: (error as Error).message }); }
     emitToPlayer(player.id, "combatState", state)
 
     res.json(state)
@@ -659,38 +663,20 @@ export function createApp(): express.Express {
   // СДЕЛАТЬ ХОД: POST /combat/action  (action: "attack" | "flee" | "use")
   app.post("/combat/action", requireAuth, (req, res) => {
     const player = (req as AuthedRequest).player;
-    const body = req.body as CombatActionRequest;
-
-    // 1. Есть ли активная сессия боя у игрока?
-    const session = db
-      .select()
-      .from(combatSessions)
-      .where(and(
-        eq(combatSessions.playerId, player.id),
-        eq(combatSessions.status, "active")))
-      .get()
-
-    if (!session) {
-      res.status(409).json({ error: "No active combat" });
-      return;
-    }
-
-    // 2. Берём моба из сессии
+    expireStaleCombatSessions();
+    let request;
+    try { request = parseBattleRequest(req.body); }
+    catch (error) { return res.status(400).json({ error: (error as Error).message }); }
+    if (req.body.action !== 'attack' && req.body.action !== 'flee' && req.body.action !== 'use') return res.status(400).json({ error: 'Неизвестное действие боя' });
+    const session = db.select().from(combatSessions).where(and(eq(combatSessions.id, request.sessionId), eq(combatSessions.playerId, player.id))).get();
+    if (!session) return res.status(404).json({ error: 'Бой не найден' });
     const mob = db.select().from(mobs).where(eq(mobs.id, session.mobId)).get();
-    if (!mob) {
-      res.status(404).json({ error: "Mob not found" });
-      return;
-    }
-
-    // 3. Совершаем ход: внутри обновляются HP, инвентарь, очки и события
-    //    use — выпить зелье в бою, остальное — обычные ходы
-    const state = body.action === "use"
-      ? usePotion(player, Number(body.itemType), session, mob)
-      : moveCombatAction(player, mob, session, body.action);
-
-    if (!state) {
-      res.status(400).json({ error: "Нет такого зелья в инвентаре" });
-      return;
+    if (!mob) return res.status(404).json({ error: 'Моб не найден' });
+    let state;
+    try { state = moveCombatAction(player, mob, session, req.body.action, request); }
+    catch (error) {
+      if (error instanceof BattleError) return res.status(error.status).json({ error: error.message });
+      throw error;
     }
 
     // 4. Перечитываем игрока и инвентарь из БД — они могли измениться после боя
@@ -722,18 +708,12 @@ export function createApp(): express.Express {
   app.get("/combat/state", requireAuth, (req, res) => {
     const player = (req as AuthedRequest).player;
 
-    // 1. Есть ли активная сессия?
-    const session = db
-      .select()
-      .from(combatSessions)
-      .where(and(
-        eq(combatSessions.playerId, player.id),
-        eq(combatSessions.status, "active")))
-      .get()
-    if (!session || session.status !== "active") {
-      res.status(404).json({ error: "No active combat" });
-      return;
-    }
+    expireStaleCombatSessions();
+    const requestedId = req.query?.sessionId === undefined ? null : Number(req.query.sessionId);
+    if (requestedId !== null && (!Number.isSafeInteger(requestedId) || requestedId < 1)) return res.status(400).json({ error: 'Некорректный ID боя' });
+    const session = db.select().from(combatSessions).where(and(eq(combatSessions.playerId, player.id),
+      requestedId === null ? eq(combatSessions.status, 'active') : eq(combatSessions.id, requestedId))).get();
+    if (!session) return res.status(404).json({ error: 'Бой не найден' });
 
     // 2. Берём моба и возвращаем текущее состояние
     const mob = db.select().from(mobs).where(eq(mobs.id, session.mobId)).get()!;

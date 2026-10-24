@@ -1,48 +1,20 @@
-// ============================================================================
-// PVP — ДУЭЛИ МЕЖДУ ИГРОКАМИ (поочерёдные ходы)
-// ============================================================================
-//
-// Флоу дуэли:
-//
-//   1. POST   /pvp            — игрок A вызывает игрока B на дуэль
-//   2. POST   /pvp/:id/accept — B принимает → бой активен, ход у A (player1)
-//   3. POST   /pvp/:id/action — участники бьют по очереди: attack | flee
-//   *  DELETE /pvp/:id        — отклонить приглашение / сдаться на любом шаге
-//
-// Роли в сессии:
-//
-//   player1 — тот, кто КИНУЛ вызов (ходит первым)
-//   player2 — тот, кто вызов ПОЛУЧИЛ и принял
-//
-// Ключевые принципы безопасности:
-//
-//   - Один активный PvP-контент на игрока (hasActivePvp): нельзя драться
-//     в двух дуэлях одновременно.
-//   - Ходить может ТОЛЬКО тот, чей ход (поле turn в БД) — проверяется
-//     перед каждым действием.
-//   - Урон считается через getPlayerStats() — учитывается экипировка.
-//   - HP обоих бойцов фиксируется в момент ПРИНЯТИЯ дуэли (accept),
-//     чтобы нельзя было "подлечиться" посреди чужого хода.
-//   - Зависшие дуэли (нет ходов дольше STALE_PVP_MS) чистит maintenance.ts.
-//
-// Статусы сессии:
-//   pending  — вызов отправлен, ждёт ответа
-//   active   — бой идёт, участники ходят по очереди
-//   finished — бой завершён; winnerId = null только при отмене непринятого вызова
-
+import { preparePotion, consumePotion } from './battle/potions.js';
 import type { Express, Request, Response } from "express"
 import type { AuthedRequest } from "./auth.js"
-import { inventoryItems, items, players, pvpSessions,combatSessions, mobs, trades } from "./db/schema.js";
+import { players, pvpSessions, combatSessions } from "./db/schema.js";
 import type { PvpSessionRow } from "./db/schema.js";
 import { emitToPlayer } from "./realTime.js";
-import { CombatLogEntry, PvpStateDto, PvpOverviewResponse } from "@mmobot/shared";
+import { PvpStateDto, PvpOverviewResponse } from "@mmobot/shared";
 import { db } from "./db.js";
 import { eq, sql, and, or } from "drizzle-orm"
 import { notify } from "./notification.js";
-import { getPlayerStats } from "./combat.js";
 import { addXpForPlayer } from "./level.js";
 import { nowGameTime, nowGameTimeMs } from "./time.js";
-import { session } from "grammy";
+import type { BattleSide, BattleFinishReason } from '@mmobot/shared';
+import { createBattle, event, availableMove, resolveRound } from './battle/engine.js';
+import { playerFighter } from './battle/stats.js';
+import { BattleError, parseBattleRequest, checkRequest, rememberRequest, publicBattle } from './battle/state.js';
+import { assertOutsideCombat } from './inventoryStore.js';
 
 // Дуэль считается заброшенной после пяти минут без ходов; просмотр не продлевает срок.
 export const STALE_PVP_MS = 5 * 60 * 1000;
@@ -57,88 +29,53 @@ function clearPvpLastAction(pvp: PvpSessionRow): void {
     }
 }
 
-// лог дуэли по сессиям (хранится в памяти, в БД его нет —
-// как combatSessionsLogs в combat.ts; сбрасывается при перезапуске сервера)
-const combatSessionsLogs = new Map<number, CombatLogEntry[]>();
-
-// Фиксируем исход и награду одной транзакцией, независимо от причины завершения.
-// Повторный запрос возвращает прежний результат и не начисляет награду заново.
-function finishPvpSession(
-    sessionId: number,
-    winnerId: number | null,
-    health: Partial<Pick<PvpSessionRow, "player1Health" | "player2Health">> = {},
-): PvpSessionRow {
-    let changed = false;
-    const result = db.transaction(() => {
+// Reward/progress rules are unchanged; callers publish only after the transaction commits.
+function finishPvpSession(sessionId: number, winnerId: number | null, reason: BattleFinishReason = 'knockout'): PvpSessionRow {
+    return db.transaction(() => {
         const current = db.select().from(pvpSessions).where(eq(pvpSessions.id, sessionId)).get();
-        if (!current) throw new Error("Дуэль не найдена");
-        if (current.status === "finished") {
-            clearPvpLastAction(current);
-            return current;
+        if (!current) throw new BattleError('Дуэль не найдена', 404);
+        if (current.status === 'finished') return current;
+        const winner = current.status === 'active' ? winnerId : null;
+        if (winner !== null && winner !== current.player1Id && winner !== current.player2Id) throw new BattleError('Неверный победитель');
+        const state = current.battleState;
+        const finished = { ...current, status: 'finished' as const, winnerId: winner, battleState: state,
+            stateVersion: current.stateVersion + 1, lastActionAt: nowGameTime() };
+        if (winner === current.player1Id) finished.player2Health = 0;
+        if (winner === current.player2Id) finished.player1Health = 0;
+        if (state) {
+            state.finishReason = reason;
+            event(state, current.roundNumber, 'finish', [finished.player1Health, finished.player2Health], nowGameTime(),
+                reason === 'mutual_exit' ? 'Бой завершён по согласию обоих' : reason === 'inactivity' ? 'Бой завершён: оба участника бездействовали' : reason === 'timeout' ? 'Поражение за бездействие' : 'Бой завершён');
         }
-
-        // Непринятое приглашение можно отменить без победителя и штрафов.
-        const winner = current.status === "active" ? winnerId : null;
-        if (current.status === "active" && winner !== current.player1Id && winner !== current.player2Id) {
-            throw new Error("Для завершённой дуэли нужен победитель");
-        }
-        const loser = winner === null ? null : winner === current.player1Id ? current.player2Id : current.player1Id;
-        const finished: PvpSessionRow = {
-            ...current,
-            ...health,
-            status: "finished",
-            winnerId: winner,
-            lastActionAt: nowGameTime(),
-        };
-        if (loser === current.player1Id) finished.player1Health = 0;
-        if (loser === current.player2Id) finished.player2Health = 0;
-
-        db.update(pvpSessions).set({
-            status: finished.status, winnerId: winner, lastActionAt: finished.lastActionAt,
-            player1Health: finished.player1Health, player2Health: finished.player2Health,
-        }).where(eq(pvpSessions.id, sessionId)).run();
+        db.update(pvpSessions).set(finished).where(eq(pvpSessions.id, sessionId)).run();
         clearPvpLastAction(current);
+        if (current.status === 'active') {
+            for (const [id, health] of [[current.player1Id, finished.player1Health], [current.player2Id, finished.player2Health]])
+                db.update(players).set({ health, lastRegenTime: nowGameTime() }).where(eq(players.id, id)).run();
+        }
         if (winner !== null) {
             addXpForPlayer(winner, 10);
             db.update(players).set({ points: sql`${players.points} + 10` }).where(eq(players.id, winner)).run();
         }
-        if (loser !== null) {
-            // Одинаковые последствия поражения от удара, сдачи, побега и бездействия.
-            db.update(players).set({ health: 0 }).where(eq(players.id, loser)).run();
-        }
-        changed = true;
         return finished;
     });
-    if (changed) {
-        combatSessionsLogs.delete(sessionId);
-        notifyBoth(result);
-    }
-    return result;
 }
-
-// Завершает зависшие дуэли (игрок принял вызов и закрыл приложение / ушёл).
-// Без этого сессия навсегда блокирует обоим участникам новые дуэли
-// (см. hasActivePvp). Проигрывает игрок, не сделавший свой ход за пять минут.
-// Вызывается при старте сервера и по таймеру из maintenance.ts.
 export function expireStalePvpSessions(): void {
-  const cutoff = new Date(nowGameTimeMs() - STALE_PVP_MS).toISOString();
-  const stale = db.select().from(pvpSessions)
-    .where(and(
-      or(eq(pvpSessions.status, "pending"), eq(pvpSessions.status, "active")),
-      sql`coalesce(${pvpSessions.lastActionAt}, ${pvpSessions.creadetAt}) <= ${cutoff}`
-    ))
-    .all();
-
-  for (const session of stale) {
-    const winnerId = session.status === "active"
-      ? session.turn === "player1" ? session.player2Id : session.player1Id
-      : null;
-    finishPvpSession(session.id, winnerId);
-  }
-
-  if (stale.length > 0) {
-    console.log(`[pvp] expired ${stale.length} stale session(s)`);
-  }
+    const cutoff = new Date(nowGameTimeMs() - STALE_PVP_MS).toISOString();
+    const stale = db.select().from(pvpSessions).where(and(
+        or(eq(pvpSessions.status, 'pending'), eq(pvpSessions.status, 'active')),
+        sql`coalesce(${pvpSessions.roundStartedAt}, ${pvpSessions.lastActionAt}, ${pvpSessions.creadetAt}) <= ${cutoff}`
+    )).all();
+    for (const candidate of stale) {
+        const result = db.transaction(() => {
+            const row = db.select().from(pvpSessions).where(eq(pvpSessions.id, candidate.id)).get();
+            if (!row || row.status === 'finished' || (row.roundStartedAt ?? row.lastActionAt ?? row.creadetAt) > cutoff) return null;
+            const choices = row.battleState?.choices ?? [null, null];
+            const winner = row.status === 'active' ? choices[0] ? row.player1Id : choices[1] ? row.player2Id : null : null;
+            return finishPvpSession(row.id, winner, winner === null ? 'inactivity' : 'timeout');
+        });
+        if (result) notifyBoth(result);
+    }
 }
 
 // Отправляет обоим участникам свежее состояние их дуэли через сокет
@@ -171,8 +108,8 @@ const hasActivePvp = (playerId: number, excludePvpId?: number): boolean => {
 }
 
 // Собирает состояние дуэли С ТОЧКИ ЗРЕНИЯ КОНКРЕТНОГО игрока:
-// myHp/partnerHp/myTurn — всё перевёрнуто под роль смотрящего.
-// В БД всё хранится по сторонам (player1Health/player2Health, turn),
+// HP, доступность действия и журнал выдаются с учётом стороны смотрящего.
+// HP в БД хранятся по сторонам (player1Health/player2Health),
 // но игроку удобнее думать "моё / его" — здесь мы переворачиваем данные.
 //
 // isWon: null = бой не завершён или вызов отменён; true/false — только для
@@ -190,7 +127,11 @@ function buildPvpState(pvp: PvpSessionRow, playerId: number): PvpStateDto | null
 
     if (!im || !partner) return null
 
+    const side: BattleSide = role === 'player1' ? 0 : 1;
     return {
+        ...publicBattle(pvp.battleState, pvp.roundNumber, pvp.stateVersion, pvp.roundStartedAt, side),
+        exitRequested: pvp.battleState?.exitRequested[side] ?? false,
+        partnerExitRequested: pvp.battleState?.exitRequested[side === 0 ? 1 : 0] ?? false,
         id: pvp.id,
         status: pvp.status,
         // player1 — тот, кто кинул вызов (outgoing); player2 — получатель (incoming)
@@ -199,10 +140,10 @@ function buildPvpState(pvp: PvpSessionRow, playerId: number): PvpStateDto | null
         partnerName: partner.name,
         partnerAvatar: partner.avatar,
         myHp: role === "player1" ? pvp.player1Health : pvp.player2Health,
-        myMaxHp: im.maxHealth,
-        partnerMaxHp: partner.maxHealth,
+        myMaxHp: pvp.battleState?.fighters[side].maxHp ?? im.maxHealth,
+        partnerMaxHp: pvp.battleState?.fighters[side === 0 ? 1 : 0].maxHp ?? partner.maxHealth,
         partnerHp: role === "player1" ? pvp.player2Health : pvp.player1Health,
-        myTurn: pvp.turn === role,
+        myTurn: pvp.status === "active" && !pvp.battleState?.choices[side],
         finished: pvp.status === "finished",
         isWon: pvp.status !== "finished" || pvp.winnerId === null ? null : pvp.winnerId === myId
     }
@@ -235,6 +176,7 @@ export const createPvpRoutes = (app: Express) => {
     // Разовый запрос (открытие экрана / реконнект). Живые обновления
     // приходят через socket-событие "pvpState".
     app.get("/pvp", (req: Request, res: Response) => {
+        expireStalePvpSessions();
         const player = (req as AuthedRequest).player
 
         // все незавершённые сессии с моим участием (и приглашения, и активный бой)
@@ -277,7 +219,8 @@ export const createPvpRoutes = (app: Express) => {
         // оба должны быть живы (после поражения HP = 0, пока регенерация не поднимет)
         if (player.health <= 0 || target.health <= 0) return res.status(409).json({ error: "Один из игроков мёртв" })
 
-        if (hasActivePvp(player.id) || hasActivePvp(toPlayerId)) return res.status(409).json({ error: "Один из игроков уже в бою" })
+        const inPve = db.select().from(combatSessions).where(and(eq(combatSessions.status, 'active'), or(eq(combatSessions.playerId, player.id), eq(combatSessions.playerId, toPlayerId)))).get();
+        if (inPve || hasActivePvp(player.id) || hasActivePvp(toPlayerId)) return res.status(409).json({ error: "Один из игроков уже в бою" })
 
         // кулдаун: не чаще одного вызова в PVP_INVITE_COOLDOWN_MS
         const nowMs = Date.now();
@@ -317,151 +260,89 @@ export const createPvpRoutes = (app: Express) => {
         const p1 = db.select().from(players).where(eq(players.id, session.player1Id)).get()!;
         if (p1.health <= 0 || player.health <= 0) return res.status(409).json({ error: "Один из игроков мёртв" });
 
-        // HP фиксируем на момент старта боя
-        const updated: PvpSessionRow = {
-            ...session,
-            status: "active",
-            player1Health: p1.health,
-            player2Health: player.health,
-            turn: "player1",
-            lastActionAt: nowGameTime()
-        };
-        db.update(pvpSessions)
-            .set({ status: "active", player1Health: p1.health, player2Health: player.health, turn: "player1", lastActionAt: updated.lastActionAt,})
-            .where(eq(pvpSessions.id, session.id)).run();
-        notifyBoth(updated);
-        db.update(players).set({idTheLastAction:{id:session.id,type:'Fight'}}).where(eq(players.id,p1.id)).run()
-        db.update(players).set({idTheLastAction:{id:session.id,type:'Fight'}}).where(eq(players.id,player.id)).run()
-        res.json({ ok: true });
+        try {
+            const updated = db.transaction(() => {
+                assertOutsideCombat(db, p1.id); assertOutsideCombat(db, player.id);
+                if (hasActivePvp(p1.id, session.id) || hasActivePvp(player.id, session.id)) throw new BattleError('Игрок уже занят');
+                const now = nowGameTime();
+                const row = { ...session, status: 'active' as const, player1Health: p1.health, player2Health: player.health,
+                    roundStartedAt: now, lastActionAt: now, stateVersion: session.stateVersion + 1,
+                    battleState: createBattle([playerFighter(p1), playerFighter(player)]) };
+                db.update(pvpSessions).set(row).where(eq(pvpSessions.id, session.id)).run();
+                for (const id of [p1.id, player.id]) db.update(players).set({ idTheLastAction: { id: session.id, type: 'Fight' } }).where(eq(players.id, id)).run();
+                return row;
+            });
+            notifyBoth(updated);
+            res.json({ ok: true, state: buildPvpState(updated, player.id) });
+        } catch (error) { if (error instanceof Error) return res.status(409).json({ error: error.message }); throw error; }
     });
 
-    // --- Отклонить приглашение или сдаться в дуэли (любой участник) ---
-    // Работает и для pending (отказ от вызова), и для active (сдача).
-    // В активном бою вышедший проигрывает, соперник получает победу.
-    app.delete("/pvp/:id", (req: Request, res: Response) => {
+    // Pending invitations can be cancelled; active battles require mutual exit consent.
+    app.delete('/pvp/:id', (req: Request, res: Response) => {
+        expireStalePvpSessions();
         const player = (req as AuthedRequest).player;
-        const session = db.select().from(pvpSessions).where(eq(pvpSessions.id, Number(req.params.id))).get();
-        if (!session || !myRole(session, player.id)) return res.status(404).json({ error: "Дуэль не найдена" });
-        if (session.status === "finished") {
-            clearPvpLastAction(session);
-            return res.json({ ok: true, state: buildPvpState(session, player.id) });
-        }
+        const row = db.select().from(pvpSessions).where(eq(pvpSessions.id, Number(req.params.id))).get();
+        if (!row || !myRole(row, player.id)) return res.status(404).json({ error: 'Дуэль не найдена' });
+        if (row.status === 'active') return res.status(409).json({ error: 'Выход из дуэли требует согласия обоих игроков' });
+        const result = row.status === 'pending' ? finishPvpSession(row.id, null, 'aborted') : row;
+        notifyBoth(result);
+        res.json({ ok: true, state: buildPvpState(result, player.id) });
+    });
 
-        const winnerId = player.id === session.player1Id ? session.player2Id : session.player1Id;
-        const finished = finishPvpSession(session.id, winnerId);
-        res.json({ ok: true, state: buildPvpState(finished, player.id) });
-    })
-
-    // --- ХОД: attack | flee | use (зелье) ---
-    // Главная проверка перед действием: session.status === "active"
-    // и turn === моя роль. Без этого можно было бы бить вне очереди.
-    app.post("/pvp/:id/action", (req: Request, res: Response) => {
+    function act(req: Request, res: Response, exit: boolean) {
+        expireStalePvpSessions();
         const player = (req as AuthedRequest).player;
-        const action: "attack" | "flee" | "use" = req.body?.action;
-
-        const session = db.select().from(pvpSessions).where(eq(pvpSessions.id, Number(req.params.id))).get();
-        const role = session ? myRole(session, player.id) : null;
-        if (!session || !role || session.status !== "active") {
-            return res.status(404).json({ error: "Активная дуэль не найдена" });
+        try {
+            const request = parseBattleRequest(req.body);
+            if (request.sessionId !== Number(req.params.id)) throw new BattleError('Неверная сессия', 400);
+            if (!exit && req.body.action !== 'attack' && req.body.action !== 'use') throw new BattleError('Предметы и случайный побег в дуэли недоступны', 400);
+            if (exit && typeof req.body.requested !== 'boolean') throw new BattleError('Нужно указать согласие на выход', 400);
+            const result = db.transaction(() => {
+                const row = db.select().from(pvpSessions).where(eq(pvpSessions.id, request.sessionId)).get();
+                const role = row && myRole(row, player.id);
+                if (!row || !role) throw new BattleError('Дуэль не найдена', 404);
+                const side: BattleSide = role === 'player1' ? 0 : 1;
+                const state = structuredClone(row.battleState);
+                if (!state) throw new BattleError('Обновите бой');
+                const command = exit ? `exit:${req.body.requested}` : req.body.action === 'use' ? `use:${request.itemType}` : request.moveId ?? state.fighters[side].moves[0].id;
+                if (checkRequest(state, player.id, request, command, row.roundNumber, row.stateVersion)) return row;
+                if (row.status !== 'active') throw new BattleError('Бой завершён');
+                if (exit) state.exitRequested[side] = req.body.requested;
+                else {
+                    if (state.choices[side]) throw new BattleError('Действие уже выбрано');
+                    const selected = req.body.action === 'use' ? preparePotion(state, side, player.id, request.itemType, side === 0 ? row.player1Health : row.player2Health) : command;
+                    const move = availableMove(state, side, selected, row.roundNumber);
+                    if (req.body.action === 'attack' && move.itemType !== undefined) throw new BattleError('Используйте предмет через инвентарь', 400);
+                    state.choices[side] = selected;
+                }
+                rememberRequest(state, player.id, request, command);
+                let patch = { ...row, battleState: state, stateVersion: row.stateVersion + 1 };
+                if (!exit) patch.lastActionAt = nowGameTime();
+                if (state.exitRequested.every(Boolean)) {
+                    db.update(pvpSessions).set(patch).where(eq(pvpSessions.id, row.id)).run();
+                    return finishPvpSession(row.id, null, 'mutual_exit');
+                }
+                if (state.choices.every(Boolean)) {
+                    const resolved = resolveRound(state, [row.player1Health, row.player2Health], row.roundNumber, nowGameTime());
+                    for (const consumed of resolved.consumedItems) consumePotion(consumed.side === 0 ? row.player1Id : row.player2Id, consumed.itemType);
+                    patch = { ...patch, battleState: resolved.state, player1Health: resolved.hp[0], player2Health: resolved.hp[1] };
+                    if (resolved.finished) {
+                        db.update(pvpSessions).set(patch).where(eq(pvpSessions.id, row.id)).run();
+                        return finishPvpSession(row.id, resolved.winner === null ? null : resolved.winner === 0 ? row.player1Id : row.player2Id);
+                    }
+                    patch.roundNumber++;
+                    patch.roundStartedAt = nowGameTime();
+                }
+                db.update(pvpSessions).set(patch).where(eq(pvpSessions.id, row.id)).run();
+                return patch;
+            });
+            notifyBoth(result);
+            res.json({ ok: true, state: buildPvpState(result, player.id) });
+        } catch (error) {
+            if (error instanceof BattleError) return res.status(error.status).json({ error: error.message });
+            throw error;
         }
-        if (session.turn !== role) return res.status(409).json({ error: "Сейчас не ваш ход" });
-
-        const now = nowGameTime();
-        const log = combatSessionsLogs.get(session.id) ?? [];
-        const opponentRole = role === "player1" ? "player2" : "player1";
-        const me = db.select().from(players).where(eq(players.id, role === "player1" ? session.player1Id : session.player2Id)).get()!;
-        const opp = db.select().from(players).where(eq(players.id, opponentRole === "player1" ? session.player1Id : session.player2Id)).get()!;
-
-        let myHp = role === "player1" ? session.player1Health : session.player2Health;
-        let oppHp = role === "player1" ? session.player2Health : session.player1Health;
-        let finished = false, winnerId: number | null = null;
-
-        if (action === "attack") {
-            // урон считается так же, как в PvE (combat.ts), НО через
-            // getPlayerStats — учитываются надетые оружие/броня обоих бойцов.
-            // Формула: strength + rand(0..strength) - defense, минимум 1.
-            const myStats = getPlayerStats(me);
-            const oppStats = getPlayerStats(opp);
-
-            const dmg = Math.max(1, myStats.strength + Math.floor(Math.random() * (myStats.strength + 1)) - oppStats.defense);
-            oppHp = Math.max(0, oppHp - dmg);
-            log.push({ text: `Вы нанесли ${dmg} урона ${opp.name}`, at: now });
-
-            if (oppHp <= 0) {
-                // HP противника упало до нуля → я победил
-                finished = true
-                winnerId = me.id
-            } else {
-                log.push({ text: `${opp.name}: ${oppHp}/${opp.maxHealth} HP`, at: now });
-            }
-        } else if (action === "flee") {
-            // Побег = 50/50: удалось → поражение вышедшего; не удалось → ответный удар.
-            if (Math.random() < 0.5) {
-                finished = true;
-                winnerId = opp.id;
-                log.push({ text: "Вы убежали с дуэли", at: now });
-            } else {
-                const oppStats = getPlayerStats(opp);
-                const dmg = Math.max(1, oppStats.strength - getPlayerStats(me).defense);
-                myHp = Math.max(0, myHp - dmg);
-                log.push({ text: `Побег не удался, вы получили ${dmg} урона`, at: now });
-                if (myHp <= 0) { finished = true; winnerId = opp.id; }
-            }
-        } else if (action === "use") {
-            // ЗЕЛЬЕ. Важно: выпить можно ТОЛЬКО в свой ход, и зелье
-            // СЖИГАЕТ ход (ниже turn уйдёт сопернику) — иначе можно было бы
-            // безнаказанно отхиливаться до бесконечности.
-            const itemType = Number(req.body?.itemType);
-            if (!Number.isInteger(itemType)) return res.status(400).json({ error: "itemType обязателен" });
-
-            // стек предмета в инвентаре (у игрока максимум один стек на тип)
-            const invRow = db.select().from(inventoryItems)
-                .where(and(eq(inventoryItems.playerId, me.id), eq(inventoryItems.itemType, itemType)))
-                .get();
-            if (!invRow || invRow.quantity < 1) return res.status(400).json({ error: "Зелья нет в инвентаре" });
-
-            const potion = db.select().from(items).where(eq(items.id, itemType)).get();
-            if (!potion || potion.type !== "potion" || potion.healAmount <= 0) {
-                return res.status(400).json({ error: "Это не зелье" });
-            }
-
-            // лечим HP СЕССИИ, а не players.health: во время дуэли источник
-            // правды — сессия (HP зафиксирован при accept). Лечит и выше
-            // максимума нельзя.
-            const healed = Math.min(potion.healAmount, me.maxHealth - myHp);
-            myHp = Math.min(me.maxHealth, myHp + potion.healAmount);
-            log.push({ text: `Вы выпили ${potion.name}: +${healed} HP (${myHp}/${me.maxHealth})`, at: now });
-
-            // списываем одну единицу (как usePotion в combat.ts)
-            if (invRow.quantity - 1 <= 0) {
-                db.delete(inventoryItems).where(eq(inventoryItems.id, invRow.id)).run();
-            } else {
-                db.update(inventoryItems)
-                    .set({ quantity: invRow.quantity - 1 })
-                    .where(eq(inventoryItems.id, invRow.id)).run();
-            }
-        } else {
-            return res.status(400).json({ error: "action должен быть attack, flee или use" });
-        }
-
-        // собираем обновления по сторонам БД (player1/player2), а не "я/он"
-        const patch = role === "player1"
-            ? { player1Health: myHp, player2Health: oppHp }
-            : { player1Health: oppHp, player2Health: myHp };
-
-        if (!finished) {
-            // ход переходит к противнику
-            db.update(pvpSessions)
-                .set({ ...patch, turn: opponentRole, lastActionAt: now,})
-                .where(eq(pvpSessions.id, session.id)).run();
-            combatSessionsLogs.set(session.id, log);
-            notifyBoth({ ...session, ...patch, turn: opponentRole });
-            return res.json({ ok: true, state: buildPvpState({ ...session, ...patch, turn: opponentRole }, player.id) });
-        }
-
-        const result = finishPvpSession(session.id, winnerId, patch);
-        res.json({ ok: true, winnerId: result.winnerId, state: buildPvpState(result, player.id) });
-    })
-    
+    }
+    app.post('/pvp/:id/action', (req, res) => act(req, res, false));
+    app.post('/pvp/:id/exit-request', (req, res) => act(req, res, true));
 }
-

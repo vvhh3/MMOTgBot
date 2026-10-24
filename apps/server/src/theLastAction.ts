@@ -1,3 +1,4 @@
+import { getCombatState } from "./combat.js";
 import type { Express, Request, Response } from "express"
 import { inventoryItems, items, players, pvpSessions,combatSessions, mobs, trades } from "./db/schema.js";
 import { db } from "./db.js";
@@ -24,24 +25,13 @@ export const receivingTheLastAction =(app: Express) => {
                     return res.json({ info });
                 }
                 else if (player1.idTheLastAction.type=="TakeAWalk"){
-                    const session = db.select().from(combatSessions).where(eq(combatSessions.playerId,player1.id)).get();
-                    if(session == null){
-                        db.update(players).set({idTheLastAction:null}).where(eq(players.id,player1.id)).run()
+                    const session = db.select().from(combatSessions).where(and(eq(combatSessions.id, player1.idTheLastAction.id), eq(combatSessions.playerId, player1.id))).get();
+                    const mob = session && db.select().from(mobs).where(eq(mobs.id, session.mobId)).get();
+                    if (!session || !mob || session.status !== 'active') {
+                        db.update(players).set({ idTheLastAction: null }).where(eq(players.id, player1.id)).run();
+                        return res.json({ info: null });
                     }
-                    else if (session != null){
-                        const mobInfo =db.select().from(mobs).where(eq(mobs.id,session.mobId)).get();
-                        const now = nowGameTime();
-                        const info = {
-                            mob: mobInfo,
-                            playerHp: session.playerHealth,
-                            playerMaxHp: player1.maxHealth,
-                            mobHp: session.mobHealth,
-                            mobMaxHp: mobInfo?.maxHealth,
-                            status:"active",
-                            log: { text: `Ваш ход ${player1.name}`, at: now }
-                        }
-                        res.json({info})
-                    }
+                    return res.json({ info: getCombatState(player1, session, mob) });
                 }
                 else if(player1.idTheLastAction.type=="Trade"){
                     const session = db.select().from(trades).where(eq(trades.id,player1.idTheLastAction.id)).get()

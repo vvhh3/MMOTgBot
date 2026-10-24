@@ -197,6 +197,13 @@
       "when": 1792180477640,
       "tag": "0027_loot_chances",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "6",
+      "when": 1792870024718,
+      "tag": "0028_round_combat",
+      "breakpoints": true
     }
   ]
 }

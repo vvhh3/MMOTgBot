@@ -90,6 +90,8 @@ export const InventoryRoutes = (app: Express) => {
     //Использование предмета(Использование зелек типо) хз робит или нет честно
     app.post("/inventory/use", (req: Request, res: Response) => {
         const player = (req as AuthedRequest).player
+        try { assertOutsideCombat(db, player.id); }
+        catch { return res.status(409).json({ error: 'Предметы в бою пока недоступны' }); }
 
         const itemType = parseItemType(req.body);
         if (itemType === null) {

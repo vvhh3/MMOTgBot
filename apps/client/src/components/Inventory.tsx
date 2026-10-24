@@ -49,7 +49,7 @@ export default function Inventory({ token, player, inventory,onPlayer,onInventor
     }))
 
     const renderGrid = (type?: ItemDto["type"] | "other") => {
-        const visibleItems = list.filter(({ item }) => item && (
+        const visibleItems = list.filter(({ item }) => item && (!combat || item.type === "potion") && (
             !type || (type === "other" ? (item.type === "other" || item.type === "material") : item.type === type)
         ))
 
@@ -152,7 +152,14 @@ export default function Inventory({ token, player, inventory,onPlayer,onInventor
                     </div>
                 </Card>
             </div>
-            <Tabs.Root defaultValue={combat ? "Potions" : "All"} className="flex flex-col w-full">
+            {combat ? (
+                <section aria-label="Расходники">
+                    <Text as="p" size="2" weight="bold" className="px-3">Расходники</Text>
+                    {inventoryItems.length > 0 && !list.some(({ item }) => item?.type === "potion")
+                        ? <Text as="p" size="2" color="gray" className="p-3">В инвентаре нет расходников.</Text>
+                        : renderGrid("potion")}
+                </section>
+            ) : <Tabs.Root defaultValue="All" className="flex flex-col w-full">
                 <div className="w-full overflow-x-auto" style={{ scrollbarWidth: "none", msOverflowStyle: "none", }}>
                     <Tabs.List color="orange" size="2" className="flex w-max min-w-full justify-start" style={{ justifyContent: "center" }}>
                         <Tabs.Trigger className="shrink-0 px-6" value="All">
@@ -193,7 +200,7 @@ export default function Inventory({ token, player, inventory,onPlayer,onInventor
                         {renderGrid("other")}
                     </Tabs.Content>
                 </Box>
-            </Tabs.Root>
+            </Tabs.Root>}
             <Modal combat={combat} showIsModal={true} typeModal={TypeModal.Item} item={selectedItem?.item ?? null} inventoryEntry={selectedItem?.inventoryEntry ?? null} equiped={selectedItem?.equiped ?? false} token={token} onItem={setSelectedItem} onPlayer={onPlayer} onInventory={onInventory}/>
         </div>
     )

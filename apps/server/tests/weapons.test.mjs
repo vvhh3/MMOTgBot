@@ -217,7 +217,7 @@ test("food restores current flat HP and unfinished coffee cannot be consumed in 
   const mob = db.select().from(mobs).where(eq(mobs.id, 0)).get();
   startCombat(getPlayer(p.id), mob);
   const session = db.select().from(combatSessions).where(eq(combatSessions.playerId, p.id)).get();
-  assert.equal(usePotion(getPlayer(p.id), coffee.id, session, mob), null);
+  assert.throws(() => usePotion(getPlayer(p.id), coffee.id, session, mob), /недоступны/);
   assert.equal(getInventory(p.id).find((row) => row.itemType === coffee.id).quantity, 2);
   db.delete(combatSessions).where(eq(combatSessions.id, session.id)).run();
 });
@@ -357,8 +357,8 @@ test("repeated combat loot creates separate weapons and keeps potion loot stacke
   const mob = db.insert(mobs).values({ name: "Тестовый моб", description: "Лут", level: 1, maxHealth: 1, strength: 1, defense: 0, loot: [{ itemType: weapon.id, chancePercent: 100 }, { itemType: 3, chancePercent: 100 }], pointsReward: 1, locationId: "square", respawnSeconds: 1 }).returning().get();
   for (let i = 0; i < 2; i++) {
     const current = getPlayer(p.id);
-    startCombat(current, mob);
-    const session = db.select().from(combatSessions).where(eq(combatSessions.playerId, p.id)).get();
+    const started = startCombat(current, mob);
+    const session = db.select().from(combatSessions).where(eq(combatSessions.id, started.id)).get();
     assert.equal(moveCombatAction(current, mob, session, "attack").status, "victory");
   }
   const inventory = getInventory(p.id);

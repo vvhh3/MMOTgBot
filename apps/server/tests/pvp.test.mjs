@@ -22,6 +22,7 @@ const { players, pvpSessions } = await import("../dist/db/schema.js");
 const { createPvpRoutes, expireStalePvpSessions, STALE_PVP_MS } = await import("../dist/pvp.js");
 const { receivingTheLastAction } = await import("../dist/theLastAction.js");
 const { startMaintenance, PVP_MAINTENANCE_INTERVAL_MS } = await import("../dist/maintenance.js");
+const { createBattle, basicAttack } = await import("../dist/battle/engine.js");
 const { nowGameTime, nowGameTimeMs } = await import("../dist/time.js");
 initializeDatabase();
 const app = express();
@@ -47,6 +48,8 @@ function duel(overrides = {}) {
   const session = db.insert(pvpSessions).values({
     player1Id: a.id, player2Id: b.id, player1Health: 80, player2Health: 35,
     status: "active", turn: "player1", creadetAt: nowGameTime(), lastActionAt: nowGameTime(),
+    roundStartedAt: overrides.lastActionAt ?? nowGameTime(),
+    battleState: createBattle([a, b].map(p => ({ name: p.name, strength: 10, defense: 5, maxHp: 100, moves: [basicAttack(false)] }))),
     ...overrides,
   }).returning().get();
   for (const p of [a, b]) db.update(players).set({ idTheLastAction: { type: "Fight", id: session.id } }).where(eq(players.id, p.id)).run();
@@ -69,185 +72,226 @@ function request(method, routePath, playerId, id, body = {}) {
   return result;
 }
 
-test("тайм-аут засчитывает поражение ожидаемому игроку и награждает соперника один раз", () => {
-  assert.equal(STALE_PVP_MS, 5 * 60 * 1000);
-  const { a, b, session } = duel({ lastActionAt: new Date(nowGameTimeMs() - STALE_PVP_MS - 1).toISOString() });
-  expireStalePvpSessions();
-  assert.equal(getSession(session.id).status, "finished");
-  assert.equal(getSession(session.id).winnerId, b.id);
-  assert.equal(getSession(session.id).player1Health, 0);
-  for (const p of [a, b]) {
-    assert.equal(getPlayer(p.id).idTheLastAction, null);
-    assert.equal(getPlayer(p.id).health, p.id === a.id ? 0 : p.health);
-    assert.equal(getPlayer(p.id).points, p.points + (p.id === b.id ? 10 : 0));
-    assert.equal(getPlayer(p.id).xp, p.xp + (p.id === b.id ? 10 : 0));
-    const event = emitted.mock.calls.findLast(({ arguments: args }) => args[0] === p.id && args[1] === "pvpState");
-    assert.equal(event.arguments[2].finished, true);
-    assert.equal(event.arguments[2].isWon, p.id === b.id);
-  }
-  const count = emitted.mock.callCount();
-  expireStalePvpSessions();
-  assert.equal(emitted.mock.callCount(), count);
-  assert.equal(getPlayer(b.id).points, b.points + 10);
-});
 
-test("приглашение без lastActionAt тоже истекает, свежая дуэль продолжает работать", () => {
-  const old = duel({ status: "pending", lastActionAt: null, creadetAt: new Date(nowGameTimeMs() - STALE_PVP_MS - 1000).toISOString() });
-  const fresh = duel();
-  expireStalePvpSessions();
-  assert.equal(getSession(old.session.id).status, "finished");
-  assert.equal(getSession(old.session.id).winnerId, null);
-  assert.equal(getPlayer(old.a.id).health, old.a.health);
-  assert.equal(getPlayer(old.b.id).points, old.b.points);
-  assert.equal(getSession(fresh.session.id).status, "active");
-});
-
-test("второй игрок восстанавливает свои HP и реальный результат завершённой дуэли", () => {
-  const { a, b, session } = duel();
-  const active = request("post", "/theLastAction", b.id, session.id).body.info;
-  assert.equal(active.myHp, 35);
-  assert.equal(active.partnerHp, 80);
-  assert.equal(active.myTurn, false);
-  db.update(pvpSessions).set({ status: "finished", winnerId: a.id }).where(eq(pvpSessions.id, session.id)).run();
-  const finished = request("post", "/theLastAction", b.id, session.id).body.info;
-  assert.equal(finished.finished, true);
-  assert.equal(finished.isWon, false);
-  assert.equal(getPlayer(b.id).idTheLastAction, null);
-});
-
-test("восстановление истёкшей дуэли не выдаёт повторных наград и отвечает на запрос", () => {
-  const { a, b, session } = duel({ lastActionAt: new Date(nowGameTimeMs() - STALE_PVP_MS - 1000).toISOString() });
-  assert.equal(request("post", "/theLastAction", a.id, session.id).body.info.finished, true);
-  assert.equal(request("post", "/theLastAction", a.id, session.id).body.info, null);
-  assert.equal(getPlayer(a.id).points, a.points);
-  assert.equal(getPlayer(a.id).health, 0);
-  assert.equal(getPlayer(b.id).points, b.points + 10);
-  assert.equal(getPlayer(b.id).xp, b.xp + 10);
-  assert.equal(getPlayer(b.id).health, b.health);
-});
-
-test("сдача в чужой ход приносит поражение, повторный запрос не меняет победителя", () => {
-  const { a, b, session } = duel();
-  const stranger = player();
-  assert.equal(request("delete", "/pvp/:id", stranger.id, session.id).status, 404);
-  assert.equal(request("get", "/pvp/:id", stranger.id, session.id).status, 404);
-  const cancelled = request("delete", "/pvp/:id", b.id, session.id);
-  assert.equal(cancelled.body.state.finished, true);
-  assert.equal(cancelled.body.state.isWon, false);
-  assert.equal(cancelled.body.state.myHp, 0);
-  assert.equal(getSession(session.id).winnerId, a.id);
-  assert.equal(getPlayer(b.id).health, 0);
-  assert.equal(getPlayer(a.id).idTheLastAction, null);
-  assert.equal(request("delete", "/pvp/:id", b.id, session.id).status, 200);
-  assert.equal(request("delete", "/pvp/:id", a.id, session.id).body.state.isWon, true);
-  assert.equal(getPlayer(a.id).points, a.points + 10);
-  assert.equal(getPlayer(a.id).xp, a.xp + 10);
-});
-
-test("очистка старой дуэли не стирает ссылку на новое занятие игрока", () => {
-  const { a, session } = duel({ lastActionAt: new Date(nowGameTimeMs() - STALE_PVP_MS - 1000).toISOString() });
-  db.update(players).set({ idTheLastAction: { type: "Trade", id: 123 } }).where(eq(players.id, a.id)).run();
-  expireStalePvpSessions();
-  assert.deepEqual(getPlayer(a.id).idTheLastAction, { type: "Trade", id: 123 });
-  assert.equal(getSession(session.id).status, "finished");
-});
-
-test("HTTP-ответ хода позволяет восстановить очередь без доставки сокета", () => {
-  const { a, b, session } = duel();
-  assert.equal(request("post", "/pvp/:id/action", b.id, session.id, { action: "attack" }).status, 409);
-  const result = request("post", "/pvp/:id/action", a.id, session.id, { action: "attack" });
-  assert.equal(result.status, 200);
-  assert.equal(result.body.state.myTurn, false);
-  assert.equal(result.body.state.myHp, 80);
-  assert.ok(result.body.state.partnerHp < 35);
-  const opponent = request("get", "/pvp/:id", b.id, session.id).body;
-  assert.equal(opponent.myTurn, true);
-  assert.equal(opponent.myHp, result.body.state.partnerHp);
-});
-
-test("обслуживание завершает просроченный PvP через 10 секунд, не через час", (t) => {
-  t.mock.timers.enable({ apis: ["setInterval"] });
-  startMaintenance();
-  const { session } = duel({ lastActionAt: new Date(nowGameTimeMs() - STALE_PVP_MS - 1000).toISOString() });
-  t.mock.timers.tick(PVP_MAINTENANCE_INTERVAL_MS - 1);
-  assert.equal(getSession(session.id).status, "active");
-  t.mock.timers.tick(1);
-  assert.equal(getSession(session.id).status, "finished");
-});
-
-test("при тайм-ауте второго игрока выигрывает первый", () => {
-  const { a, b, session } = duel({ turn: "player2", lastActionAt: new Date(nowGameTimeMs() - STALE_PVP_MS - 1).toISOString() });
-  expireStalePvpSessions();
-  assert.equal(getSession(session.id).winnerId, a.id);
-  assert.equal(getSession(session.id).player2Health, 0);
-  assert.equal(getPlayer(b.id).health, 0);
-  assert.equal(getPlayer(a.id).points, a.points + 10);
-});
-
-test("отказ от непринятого приглашения не создаёт победу или поражение", () => {
-  const { a, b, session } = duel({ status: "pending", lastActionAt: null });
-  assert.equal(request("delete", "/pvp/:id", b.id, session.id).body.state.isWon, null);
-  assert.equal(getSession(session.id).winnerId, null);
-  for (const p of [a, b]) {
-    assert.equal(getPlayer(p.id).health, p.health);
-    assert.equal(getPlayer(p.id).xp, p.xp);
-    assert.equal(getPlayer(p.id).points, p.points);
-  }
-});
-
-for (const turn of ["player1", "player2"]) {
-  test(`успешный побег ${turn} засчитывает ему поражение`, (t) => {
-    t.mock.method(Math, "random", () => 0);
-    const { a, b, session } = duel({ turn });
-    const loser = turn === "player1" ? a : b;
-    const winner = turn === "player1" ? b : a;
-    const result = request("post", "/pvp/:id/action", loser.id, session.id, { action: "flee" });
-    assert.equal(result.body.state.finished, true);
-    assert.equal(result.body.state.isWon, false);
-    assert.equal(result.body.state.myHp, 0);
-    assert.equal(getSession(session.id).winnerId, winner.id);
-    assert.equal(getPlayer(loser.id).health, 0);
-    assert.equal(getPlayer(winner.id).xp, winner.xp + 10);
-    assert.equal(getPlayer(winner.id).points, winner.points + 10);
-    assert.equal(request("get", "/pvp/:id", winner.id, session.id).body.isWon, true);
-  });
+let commandId = 0;
+function command(session, extra = {}) {
+  return { sessionId: session.id, round: session.roundNumber, expectedVersion: session.stateVersion,
+    requestId: `request-${++commandId}`, action: 'attack', moveId: 'unarmed_strike', ...extra };
+}
+function choose(p, session, body = command(session)) { return request('post', '/pvp/:id/action', p.id, session.id, body); }
+function exit(p, session, requested = true, body = command(session, { requested })) {
+  return request('post', '/pvp/:id/exit-request', p.id, session.id, body);
 }
 
-test("неудачный побег оставляет бой активным и не выдаёт награду", (t) => {
-  t.mock.method(Math, "random", () => 0.9);
+test('both choices from the same snapshot resolve one hidden round; duplicates never reroll', () => {
   const { a, b, session } = duel();
-  const result = request("post", "/pvp/:id/action", a.id, session.id, { action: "flee" });
-  assert.equal(result.body.state.finished, false);
-  assert.equal(result.body.state.myTurn, false);
-  assert.ok(result.body.state.myHp < 80);
-  assert.equal(getPlayer(b.id).points, b.points);
+  const first = command(session), second = command(session);
+  const waiting = choose(a, session, first);
+  assert.equal(waiting.status, 200);
+  assert.equal(waiting.body.state.actionSubmitted, true);
+  assert.equal(waiting.body.state.myHp, 80);
+  const partner = request('get', '/pvp/:id', b.id, session.id).body;
+  assert.equal(partner.actionSubmitted, false);
+  assert.equal(partner.events.length, 0);
+  assert.equal(JSON.stringify(partner).includes('processedRequests'), false);
+  assert.equal(JSON.stringify(partner).includes('choices'), false);
+  assert.equal(choose(a, getSession(session.id)).status, 409);
+  const resolved = choose(b, session, second);
+  assert.equal(resolved.status, 200);
+  assert.equal(resolved.body.state.round, 2);
+  const saved = getSession(session.id);
+  assert.ok(saved.player1Health < 80 && saved.player2Health < 35);
+  assert.equal(choose(b, session, second).status, 200);
+  assert.deepEqual(getSession(session.id), saved);
+  assert.equal(choose(b, session, { ...second, moveId: 'other' }).status, 409);
 });
 
-test("смертельный удар и последующая сдача выдают только одну награду", () => {
-  const { a, b, session } = duel({ player2Health: 1 });
-  const result = request("post", "/pvp/:id/action", a.id, session.id, { action: "attack" });
-  assert.equal(result.body.state.isWon, true);
-  assert.equal(result.body.state.partnerHp, 0);
-  assert.equal(request("delete", "/pvp/:id", a.id, session.id).body.state.isWon, true);
+test('one missing choice times out after five minutes and rewards only once', () => {
+  const { a, b, session } = duel();
+  choose(a, session);
+  const past = new Date(nowGameTimeMs() - STALE_PVP_MS - 1).toISOString();
+  db.update(pvpSessions).set({ roundStartedAt: past }).where(eq(pvpSessions.id, session.id)).run();
+  expireStalePvpSessions();
+  assert.equal(getSession(session.id).winnerId, a.id);
+  assert.equal(getPlayer(a.id).health, 80);
   assert.equal(getPlayer(b.id).health, 0);
-  assert.equal(getPlayer(a.id).points, a.points + 10);
-  assert.equal(getPlayer(a.id).xp, a.xp + 10);
+  assert.equal(getPlayer(a.id).xp, 10);
+  assert.equal(getPlayer(a.id).points, 10);
+  expireStalePvpSessions();
+  assert.equal(getPlayer(a.id).xp, 10);
+  assert.equal(getPlayer(a.id).idTheLastAction, null);
 });
 
-test("ошибка выдачи награды откатывает весь результат дуэли", () => {
+test('both missing choices finish without winner, rewards or lost HP', () => {
+  const { a, b, session } = duel({ lastActionAt: new Date(nowGameTimeMs() - STALE_PVP_MS - 1).toISOString() });
+  expireStalePvpSessions();
+  assert.equal(getSession(session.id).status, 'finished');
+  assert.equal(getSession(session.id).winnerId, null);
+  assert.equal(getSession(session.id).battleState.finishReason, 'inactivity');
+  assert.equal(getPlayer(a.id).health, 80);
+  assert.equal(getPlayer(b.id).health, 35);
+  assert.equal(getPlayer(a.id).xp, 0);
+  assert.equal(getPlayer(b.id).xp, 0);
+});
+
+test('exit request does not occupy the action or extend the deadline; mutual exit preserves HP', () => {
   const { a, b, session } = duel();
-  const beforeA = getPlayer(a.id);
-  const beforeB = getPlayer(b.id);
-  const eventCount = emitted.mock.callCount();
-  db.$client.exec(`CREATE TRIGGER fail_pvp_reward BEFORE UPDATE OF points ON players
-    WHEN NEW.id = ${a.id} BEGIN SELECT RAISE(ABORT, 'test reward failure'); END;`);
+  assert.equal(exit(a, session).status, 200);
+  const waiting = getSession(session.id);
+  assert.equal(waiting.lastActionAt, session.lastActionAt);
+  assert.equal(waiting.roundStartedAt, session.roundStartedAt);
+  assert.equal(waiting.battleState.choices[0], null);
+  assert.equal(choose(a, waiting).status, 200);
+  const result = exit(b, getSession(session.id));
+  assert.equal(result.body.state.finished, true);
+  assert.equal(result.body.state.finishReason, 'mutual_exit');
+  assert.equal(result.body.state.isWon, null);
+  assert.equal(getPlayer(a.id).health, 80);
+  assert.equal(getPlayer(b.id).health, 35);
+  assert.equal(getPlayer(a.id).points, 0);
+  assert.equal(getPlayer(b.id).points, 0);
+});
+
+test('an exit request can be withdrawn, and old unilateral escape routes are blocked', () => {
+  const { a, b, session } = duel();
+  assert.equal(request('delete', '/pvp/:id', a.id, session.id).status, 409);
+  assert.equal(choose(a, session, command(session, { action: 'flee' })).status, 400);
+  exit(a, session);
+  exit(a, getSession(session.id), false);
+  exit(b, getSession(session.id));
+  assert.equal(getSession(session.id).status, 'active');
+  assert.deepEqual(getSession(session.id).battleState.exitRequested, [false, true]);
+});
+
+test('late action and exit cannot undo timeout or award a second reward', () => {
+  const { a, b, session } = duel();
+  choose(a, session);
+  const body = command(getSession(session.id));
+  db.update(pvpSessions).set({ roundStartedAt: new Date(nowGameTimeMs() - STALE_PVP_MS - 1).toISOString() }).where(eq(pvpSessions.id, session.id)).run();
+  assert.equal(exit(b, session, true, { ...body, requested: true }).status, 409);
+  assert.equal(getSession(session.id).winnerId, a.id);
+  assert.equal(choose(b, session, body).status, 409);
+  assert.equal(getPlayer(a.id).xp, 10);
+});
+
+test('knockout and reward are atomic; retry of the final action is harmless', () => {
+  const { a, b, session } = duel({ player2Health: 1 });
+  choose(a, session);
+  const last = command(getSession(session.id));
+  db.$client.exec(`CREATE TRIGGER fail_round_reward BEFORE UPDATE OF points ON players WHEN NEW.id = ${a.id} BEGIN SELECT RAISE(ABORT, 'reward failure'); END;`);
+  const before = getSession(session.id), beforeA = getPlayer(a.id), beforeB = getPlayer(b.id);
   try {
-    assert.throws(() => request("delete", "/pvp/:id", b.id, session.id), /test reward failure/);
-    assert.equal(getSession(session.id).status, "active");
+    assert.throws(() => choose(b, session, last), /reward failure/);
+    assert.deepEqual(getSession(session.id), before);
     assert.deepEqual(getPlayer(a.id), beforeA);
     assert.deepEqual(getPlayer(b.id), beforeB);
-    assert.equal(emitted.mock.callCount(), eventCount);
-  } finally {
-    db.$client.exec("DROP TRIGGER fail_pvp_reward");
-  }
+  } finally { db.$client.exec('DROP TRIGGER fail_round_reward'); }
+  assert.equal(choose(b, session, last).body.state.finished, true);
+  assert.equal(getPlayer(a.id).xp, 10);
+  const final = getSession(session.id);
+  assert.equal(choose(b, session, last).status, 200);
+  assert.deepEqual(getSession(session.id), final);
+});
+
+test('stored requests and choices survive re-reading and restoring the battle', () => {
+  const { a, b, session } = duel();
+  const body = command(session);
+  choose(b, session, body);
+  const restored = request('post', '/theLastAction', b.id, session.id).body.info;
+  assert.equal(restored.myHp, 35);
+  assert.equal(restored.actionSubmitted, true);
+  assert.equal(restored.myTurn, false);
+  assert.equal(choose(b, session, body).status, 200);
+  assert.equal(choose(a, getSession(session.id)).status, 200);
+});
+
+test('pending invitation expiry and cancellation have no rewards or HP changes', () => {
+  const { a, b, session } = duel({ status: 'pending', lastActionAt: null, roundStartedAt: null,
+    creadetAt: new Date(nowGameTimeMs() - STALE_PVP_MS - 1).toISOString() });
+  expireStalePvpSessions();
+  assert.equal(getSession(session.id).status, 'finished');
+  assert.equal(getPlayer(a.id).health, 100);
+  assert.equal(getPlayer(b.id).health, 100);
+  const pending = duel({ status: 'pending' });
+  assert.equal(request('delete', '/pvp/:id', pending.a.id, pending.session.id).status, 200);
+  assert.equal(getPlayer(pending.a.id).xp, 0);
+});
+
+test('outsiders and malformed or unavailable actions cannot mutate a session', () => {
+  const { a, session } = duel(), outsider = player();
+  assert.equal(choose(outsider, session).status, 404);
+  assert.equal(choose(a, session, {}).status, 400);
+  assert.equal(choose(a, session, command(session, { moveId: 'unknown' })).status, 409);
+  assert.equal(choose(a, session, command(session, { action: 'use' })).status, 400);
+  assert.deepEqual(getSession(session.id), session);
+});
+
+test('maintenance retains the existing ten-second PvP timer', () => {
+  assert.equal(PVP_MAINTENANCE_INTERVAL_MS, 10000);
+  assert.equal(STALE_PVP_MS, 300000);
+  const intervals = [];
+  const timer = mock.method(global, 'setInterval', (fn, ms) => { intervals.push({ fn, ms }); return { unref() {} }; });
+  try { startMaintenance(); } finally { timer.mock.restore(); }
+  assert.ok(intervals.some(i => i.ms === 10000));
+});
+
+test('accepted choice and replay receipt survive an actual fresh process', async () => {
+  const { execFileSync } = await import('node:child_process');
+  const { a, session } = duel();
+  choose(a, session);
+  const code = `const { getPvpStateForPlayer } = await import('./dist/pvp.js');
+    const state = getPvpStateForPlayer(${session.id}, ${a.id});
+    process.stdout.write(JSON.stringify(state));`;
+  const restored = JSON.parse(execFileSync(process.execPath, ['--input-type=module', '-e', code], { cwd: process.cwd(), env: process.env, encoding: 'utf8' }));
+  assert.equal(restored.actionSubmitted, true);
+  assert.equal(restored.myHp, 80);
+  assert.equal(restored.round, 1);
+  assert.equal(getSession(session.id).battleState.processedRequests.length, 1);
+});
+
+test('an active PvE prevents accepting a duel, without changing the invitation', async () => {
+  const { combatSessions } = await import('../dist/db/schema.js');
+  const { a, b, session } = duel({ status: 'pending', battleState: null });
+  const pve = db.insert(combatSessions).values({ playerId: a.id, mobId: 0, playerHealth: 100, mobHealth: 10,
+    status: 'active', startedAt: nowGameTime(), lastActionAt: nowGameTime() }).returning().get();
+  assert.equal(request('post', '/pvp/:id/accept', b.id, session.id).status, 409);
+  assert.equal(getSession(session.id).status, 'pending');
+  db.delete(combatSessions).where(eq(combatSessions.id, pve.id)).run();
+});
+
+test('PvP healing stays hidden until both choices, then heals before attack and consumes once', async () => {
+  const { inventoryItems } = await import('../dist/db/schema.js');
+  const { a, b, session } = duel();
+  db.insert(inventoryItems).values({ playerId: a.id, itemType: 3, quantity: 2, acquiredAt: nowGameTime() }).run();
+  const body = command(session, { action: 'use', itemType: 3 });
+  const first = choose(a, session, body);
+  assert.equal(first.status, 200);
+  assert.equal(first.body.state.myHp, 80);
+  assert.equal(db.select().from(inventoryItems).where(eq(inventoryItems.playerId, a.id)).get().quantity, 2);
+  assert.ok(first.body.state.moves.every(m => m.itemType === undefined));
+  const partner = request('get', '/pvp/:id', b.id, session.id).body;
+  assert.equal(partner.events.length, 0);
+  const random = mock.method(Math, 'random', () => 0);
+  try { assert.equal(choose(b, getSession(session.id)).status, 200); } finally { random.mock.restore(); }
+  const saved = getSession(session.id);
+  assert.equal(saved.player1Health, 85);
+  assert.equal(saved.battleState.events[0].type, 'heal');
+  assert.equal(saved.battleState.events.filter(e => e.type === 'attack').length, 1);
+  assert.equal(saved.player2Health, 35);
+  assert.equal(db.select().from(inventoryItems).where(eq(inventoryItems.playerId, a.id)).get().quantity, 1);
+  assert.equal(choose(a, session, body).status, 200);
+  assert.deepEqual(getSession(session.id), saved);
+  assert.equal(db.select().from(inventoryItems).where(eq(inventoryItems.playerId, a.id)).get().quantity, 1);
+});
+
+test('mutual exit does not consume a queued healing item', async () => {
+  const { inventoryItems } = await import('../dist/db/schema.js');
+  const { a, b, session } = duel();
+  db.insert(inventoryItems).values({ playerId: a.id, itemType: 3, quantity: 1, acquiredAt: nowGameTime() }).run();
+  choose(a, session, command(session, { action: 'use', itemType: 3 }));
+  exit(a, getSession(session.id));
+  exit(b, getSession(session.id));
+  assert.equal(getSession(session.id).status, 'finished');
+  assert.equal(getPlayer(a.id).health, 80);
+  assert.equal(db.select().from(inventoryItems).where(eq(inventoryItems.playerId, a.id)).get().quantity, 1);
 });

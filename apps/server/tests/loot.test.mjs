@@ -126,10 +126,11 @@ test("HTTP result, socket, inventory and quests contain only actual drops; repea
   const collected = quest(p.id, "collect"), looted = quest(p.id, "loot"), missed = quest(p.id, "loot", "4"), killed = quest(p.id, "kill", String(target.id));
   const started = request("post", "/combat/start", { playerId: p.id, body: { mobId: target.id } });
   assert.deepEqual(started.body.droppedItems, []);
-  const draws = [0, 0.1, 0.9]; // attack, potion succeeds, scrap fails
+  const draws = [0, 0, 0.1, 0.9]; // order, attack, potion succeeds, scrap fails
   const rng = mock.method(Math, "random", () => { assert.ok(draws.length > 0, "unexpected reroll"); return draws.shift(); });
   try {
-    const result = request("post", "/combat/action", { playerId: p.id, body: { action: "attack" } });
+    const body = { action: 'attack', sessionId: started.body.id, round: started.body.round, expectedVersion: started.body.stateVersion, requestId: 'loot-win' };
+    const result = request("post", "/combat/action", { playerId: p.id, body });
     assert.equal(result.status, 200);
     assert.deepEqual(result.body.state.droppedItems.map((item) => item.id), [1, 3]);
     assert.deepEqual(result.body.state.mob.loot, target.loot);
@@ -141,8 +142,9 @@ test("HTTP result, socket, inventory and quests contain only actual drops; repea
     assert.equal(playerById(p.id).xp, 10);
     const socketState = emit.mock.calls.filter((call) => call.arguments[0] === p.id && call.arguments[1] === "combatState").at(-1).arguments[2];
     assert.deepEqual(socketState.droppedItems.map((item) => item.id), [1, 3]);
-    assert.equal(request("post", "/combat/action", { playerId: p.id, body: { action: "attack" } }).status, 409);
-    assert.equal(rng.mock.callCount(), 3);
+    assert.equal(request("post", "/combat/action", { playerId: p.id, body }).status, 200);
+    assert.equal(request("post", "/combat/action", { playerId: p.id, body: { ...body, requestId: 'new-after-end' } }).status, 409);
+    assert.equal(rng.mock.callCount(), 4);
     assert.equal(inventory(p.id).length, 2);
   } finally { rng.mock.restore(); }
 });
@@ -202,4 +204,70 @@ test("failed reward writes roll back the whole turn and never leave partial loot
   assert.equal(moveCombatAction(p, target, session, "attack").droppedItems.length, 2);
   assert.throws(() => moveCombatAction(p, target, session, "attack"), /завершён/);
   assert.equal(inventory(p.id).length, 2);
+});
+
+test('combat prevents external healing, stat changes and regeneration; other players are isolated', async () => {
+  const { RegenHealth } = await import('../dist/regen.js');
+  const p = player({ health: 40, statPoints: 2 });
+  const other = player({ health: 30, lastRegenTime: new Date(Date.parse(nowGameTime()) - 100000).toISOString() });
+  const target = mob([], { maxHealth: 500 });
+  db.insert(inventoryItems).values({ playerId: p.id, itemType: 3, quantity: 2, acquiredAt: nowGameTime() }).run();
+  const started = startCombat(p, target);
+  assert.equal(started.moves[0].id, 'unarmed_strike');
+  assert.equal(request('post', '/inventory/use', { playerId: p.id, body: { itemType: 3 } }).status, 409);
+  assert.equal(request('post', '/me/stats', { playerId: p.id, body: { maxHealth: 1 } }).status, 409);
+  db.update(players).set({ lastRegenTime: new Date(Date.parse(nowGameTime()) - 100000).toISOString() }).where(eq(players.id, p.id)).run();
+  assert.equal(RegenHealth(p.id), 40);
+  assert.equal(playerById(other.id).health, 30);
+  assert.equal(RegenHealth(other.id), 40);
+  assert.equal(playerById(p.id).health, 40);
+  assert.equal(inventory(p.id)[0].quantity, 2);
+});
+
+test('saved final PvE result remains readable without repeating loot, and ownership is checked', () => {
+  const p = player(), outsider = player(), target = mob([{ itemType: 3, chancePercent: 100 }]);
+  const started = startCombat(p, target);
+  const body = { action: 'attack', sessionId: started.id, round: 1, expectedVersion: 0, requestId: 'final-read' };
+  const result = request('post', '/combat/action', { playerId: p.id, body });
+  assert.equal(result.body.state.status, 'victory');
+  assert.equal(request('post', '/combat/action', { playerId: outsider.id, body }).status, 404);
+  assert.deepEqual(db.select().from(combatSessions).where(eq(combatSessions.id, started.id)).get().battleState.droppedItems.map(i => i.id), [3]);
+  assert.equal(inventory(p.id)[0].quantity, 1);
+  const second = startCombat(playerById(p.id), mob([]));
+  assert.notEqual(second.id, started.id);
+  assert.equal(request('post', '/combat/action', { playerId: p.id, body }).status, 200);
+  assert.equal(inventory(p.id)[0].quantity, 1);
+});
+
+test('PvE potion heals before the mob, spends one action and one item, and survives retries', () => {
+  const p = player({ health: 40, defense: 0 }), target = mob([], { maxHealth: 500, strength: 2 });
+  db.insert(inventoryItems).values({ playerId: p.id, itemType: 3, quantity: 2, acquiredAt: nowGameTime() }).run();
+  const started = startCombat(p, target);
+  const body = { action: 'use', itemType: 3, sessionId: started.id, round: 1, expectedVersion: 0, requestId: 'heal-once' };
+  const random = mock.method(Math, 'random', () => 0);
+  try {
+    const result = request('post', '/combat/action', { playerId: p.id, body });
+    assert.equal(result.status, 200);
+    assert.equal(result.body.state.playerHp, 48);
+    assert.equal(result.body.state.mobHp, 500);
+    assert.equal(result.body.state.round, 2);
+    assert.equal(result.body.inventory.find(i => i.itemType === 3).quantity, 1);
+    assert.equal(result.body.state.events[0].type, 'heal');
+    assert.equal(result.body.state.events[1].type, 'attack');
+    const saved = db.select().from(combatSessions).where(eq(combatSessions.id, started.id)).get();
+    assert.equal(request('post', '/combat/action', { playerId: p.id, body }).status, 200);
+    assert.deepEqual(db.select().from(combatSessions).where(eq(combatSessions.id, started.id)).get(), saved);
+    assert.equal(inventory(p.id).find(i => i.itemType === 3).quantity, 1);
+  } finally { random.mock.restore(); }
+});
+
+test('invalid or full-health healing cannot spend a potion or advance PvE', () => {
+  const p = player(), target = mob([], { maxHealth: 500 });
+  db.insert(inventoryItems).values({ playerId: p.id, itemType: 3, quantity: 2, acquiredAt: nowGameTime() }).run();
+  const started = startCombat(p, target);
+  for (const itemType of [3, 4, 999999]) {
+    assert.equal(request('post', '/combat/action', { playerId: p.id, body: { action: 'use', itemType, sessionId: started.id, round: 1, expectedVersion: 0, requestId: `invalid-heal-${itemType}` } }).status, 400);
+  }
+  assert.equal(inventory(p.id).find(i => i.itemType === 3).quantity, 2);
+  assert.equal(db.select().from(combatSessions).where(eq(combatSessions.id, started.id)).get().roundNumber, 1);
 });

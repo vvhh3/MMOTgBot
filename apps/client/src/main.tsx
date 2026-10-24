@@ -55,19 +55,22 @@ function App() {
   const [inventory, setInventory] = useState<InventoryItemDto[]>([])
   const currentLocation = useCurrentLocation(token, player?.currentLocationId ?? null)
   const { state: locationState, onState: setLocationState } = currentLocation
-  const [combat, setCombat] = useState<CombatStateResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [friendsOverview, setFriendsOverview] = useState<FriendsOverviewResponse | null>(null)
   const [pvpState, setPvpState] = useState<PvpStateDto | null>(null)
   const pvpUpdateVersion = useRef(0)
   const updatePvpState = useCallback((next: PvpStateDto | null) => {
     pvpUpdateVersion.current += 1
-    setPvpState(next)
+    setPvpState(previous => previous && next && (previous.id > next.id ||
+      (previous.id === next.id && previous.stateVersion > next.stateVersion)) ? previous : next)
   }, [])
   const [tradeState, setTradeState] = useState<TradeStateDto | null>(null)
   const [showIsModal, setShowModal] = useState(false)
   const [typeShowIsModal, setTypeShowIsModal] = useState<TypeModal | null>(null)
   const [state, setState] = useState<CombatStateResponse>()
+  const updateCombatState = useCallback((next: CombatStateResponse) => {
+    setState(previous => previous && (previous.id > next.id || (previous.id === next.id && previous.stateVersion > next.stateVersion)) ? previous : next);
+  }, []);
   // Session data, location data and the visible background must all be ready.
   const [ready, setReady] = useState(false)
   const [startupError, setStartupError] = useState<string | null>(null)
@@ -123,6 +126,8 @@ function App() {
         const incomingPvp = pvpOverview?.invites.find((i) => i.direction === "incoming");
         if (incomingPvp) {
           setPvpState({
+            round: 1, stateVersion: 0, roundStartedAt: null, events: [], moves: [], actionSubmitted: false,
+            exitRequested: false, partnerExitRequested: false,
             id: incomingPvp.id,
             status: "pending",
             direction: "incoming",
@@ -201,7 +206,7 @@ function App() {
     const onLocationState = (nextState: LocationStateResponse) => setLocationState(nextState);
     const onPlayer = (nextPlayer: PlayerDto) => setPlayer(nextPlayer);
     const onInventory = (nextInventory: InventoryItemDto[]) => setInventory(nextInventory);
-    const onCombatState = (combatState: CombatStateResponse) => setCombat(combatState);
+    const onCombatState = (combatState: CombatStateResponse) => updateCombatState(combatState);
     const onFriendsUpdate = (friendState: FriendsOverviewResponse) => setFriendsOverview(friendState)
     const onPvpState = updatePvpState
     const onTradeState = (tradeState: TradeStateDto | null) => setTradeState(tradeState)
@@ -228,7 +233,7 @@ function App() {
       socket.off("tradeUpdate", onTradeState)
     }
 
-  }, [token, setLocationState, updatePvpState])
+  }, [token, setLocationState, updatePvpState, updateCombatState])
   useEffect(() => {
     if (!player) return
     if (player.idTheLastAction == null) return
@@ -259,16 +264,8 @@ function App() {
       if (!token) return
       const loadTakeAWalk = async () => {
         const session = await theLastAction(token, player.id)
-        setState({
-          mob: session.info.mob,
-          droppedItems: session.info.droppedItems ?? [],
-          playerHp: session.info.playerHp,
-          playerMaxHp: session.info.playerMaxHp,
-          mobHp: session.info.mobHp,
-          mobMaxHp: session.info.mobMaxHp,
-          status: session.info.status,
-          log: session.info.log
-        })
+        if (!session.info) return;
+        updateCombatState(session.info);
         navigate("/TakeAWalk", { replace: true })
 
       }
@@ -316,7 +313,7 @@ function App() {
           ) :
           <Routes location={displayedLocation}>
             <Route path="" element={<MainLayout infoMessages={infoMessages} setPvpState={setPvpState} setTradeState={setTradeState} setTypeShowIsModal={setTypeShowIsModal} setShowModal={setShowModal} showIsModal={showIsModal} typeShowIsModal={typeShowIsModal} player={player} token={token} error={error} onError={setError} onPlayer={setPlayer} pvpState={pvpState} tradeState={tradeState} />}>
-              <Route path="/" element={<Home setInfoMessages={setInfoMessages} typeShowIsModal={typeShowIsModal} setTypeShowIsModal={setTypeShowIsModal} setShowModal={setShowModal} showIsModal={showIsModal} onError={setError} onState={setState} onPlayer={setPlayer} token={token} player={player} locationState={locationState} friendsOverview={friendsOverview} pvpState={pvpState} tradeState={tradeState} />} />
+              <Route path="/" element={<Home setInfoMessages={setInfoMessages} typeShowIsModal={typeShowIsModal} setTypeShowIsModal={setTypeShowIsModal} setShowModal={setShowModal} showIsModal={showIsModal} onError={setError} onState={updateCombatState} onPlayer={setPlayer} token={token} player={player} locationState={locationState} friendsOverview={friendsOverview} pvpState={pvpState} tradeState={tradeState} />} />
               <Route path="Map" element={<Map token={token} player={player} onLocationState={setLocationState} onPlayer={setPlayer} />} />
               <Route path="Profile" element={<Profile setTypeShowIsModal={setTypeShowIsModal} setShowModal={setShowModal} player={player} locationState={locationState} />} />
               <Route path="Tasks" element={<Tasks token={token} onPlayer={setPlayer} />} />
@@ -330,7 +327,7 @@ function App() {
               <Route path="Casino/Blackjack" element={<BlackjackGame token={token} player={player} onPlayer={setPlayer} />} />
               <Route path="Casino/Ladder" element={<LadderGame token={token} player={player} onPlayer={setPlayer} />} />
             </Route>
-            <Route path="/TakeAWalk" element={<PveFight token={token} player={player} inventory={inventory} onPlayer={setPlayer} onInventory={setInventory} locationState={locationState} onError={setError} error={error} onState={setState} state={state} />} />
+            <Route path="/TakeAWalk" element={<PveFight token={token} player={player} inventory={inventory} onPlayer={setPlayer} onInventory={setInventory} locationState={locationState} onError={setError} error={error} onState={updateCombatState} state={state} />} />
             <Route path="/Fight" element={<Fight token={token} player={player} inventory={inventory} onPlayer={setPlayer} onInventory={setInventory} pvpState={pvpState} onPvpState={updatePvpState} />} />
           </Routes>
         ) : (

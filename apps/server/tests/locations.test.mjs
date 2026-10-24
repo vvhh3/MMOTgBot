@@ -105,7 +105,7 @@ test("migration preserves related data, closes unfinished locations and releases
   assert.equal(getPlayer(100).money, 456);
   assert.equal(getPlayer(100).currentLocationId, null);
   assert.equal(getPlayer(100).idTheLastAction, null);
-  assert.equal(db.select().from(combatSessions).where(eq(combatSessions.id, 1)).get().status, "fled");
+  assert.equal(db.select().from(combatSessions).where(eq(combatSessions.id, 1)).get().status, "aborted");
   assert.equal(getPlayer(1).currentLocationId, "park");
   assert.deepEqual(db.$client.pragma("foreign_key_check"), []);
 });

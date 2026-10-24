@@ -1,3 +1,5 @@
+import type { BattlePublicState, BattleRequest } from './combat.js';
+export * from './combat.js';
 export type PlayerDto = { // описание игрока
   id: number
   friendId:number
@@ -86,14 +88,15 @@ export type CombatLogEntry = { // типо логирование
   at: string;
 }
 
-export type CombatStateResponse = { // описание боя 
+export type CombatStateResponse = BattlePublicState & {
+  id: number; // описание боя
   mob: MobDto;
   droppedItems: ItemDto[]; // только фактически выданные предметы; пусто до победы
   playerHp: number;
   playerMaxHp: number;
   mobHp: number;
   mobMaxHp: number;
-  status: "active" | "victory" | "defeat" | "fled";
+  status: "active" | "victory" | "defeat" | "fled" | "aborted";
   log: CombatLogEntry[];
 }
 
@@ -101,7 +104,7 @@ export type CombatStartRequest = {
   mobId: string;
 }
 
-export type CombatActionRequest = {
+export type CombatActionRequest = BattleRequest & {
   action: "attack" | "flee" | "use";
   itemType?: number;
 }
@@ -354,7 +357,9 @@ export type ClaimQuestResponse = { player: PlayerDto; claimed: boolean }
 
 
 
-export type PvpStateDto = {
+export type PvpStateDto = BattlePublicState & {
+  exitRequested: boolean;
+  partnerExitRequested: boolean;
   partnerAvatar?: string | null
   id: number
   status: "pending" | "active" | "finished"
@@ -365,7 +370,7 @@ export type PvpStateDto = {
   myMaxHp: number
   partnerHp: number
   partnerMaxHp: number
-  myTurn: boolean // чей ход щас
+  myTurn: boolean // совместимость: можно выбрать действие текущего раунда
   finished: boolean
   isWon : boolean | null // null = ничья/побег
 }

@@ -1,3 +1,4 @@
+import type { BattleRequest } from '@mmobot/shared';
 import axios, { type AxiosError } from "axios";
 import {
   CombatActionResponse,
@@ -150,13 +151,13 @@ export async function startCombat(token: string, mobId: number) {
   return response.data
 }
 
-export async function combatAction(token: string, action: CombatActionRequest["action"], itemType?: number) {
-  const response = await api.post<CombatActionResponse>("/combat/action", { action, itemType }, { headers: authHeader(token) })
+export async function combatAction(token: string, action: CombatActionRequest["action"], request: BattleRequest) {
+  const response = await api.post<CombatActionResponse>("/combat/action", { action, ...request }, { headers: authHeader(token) })
   return response.data
 }
 
-export async function getCombatState(token: string) {
-  const response = await api.get<CombatStateResponse>("/combat/state", { headers: authHeader(token) })
+export async function getCombatState(token: string, sessionId?: number) {
+  const response = await api.get<CombatStateResponse>("/combat/state", { params: { sessionId }, headers: authHeader(token) })
   return response.data
 }
 
@@ -348,8 +349,8 @@ export async function theLastAction(token: string,id: number) {
 }
 
 // Сделать ход в активной дуэли: attack | flee | use(зелье)
-export async function pvpAction(token: string, id: number, action: "attack" | "flee" | "use", itemType?: number) {
-  const response = await api.post<{ ok: boolean; state: PvpStateDto }>(`/pvp/${id}/action`, { action, itemType }, { headers: authHeader(token), timeout: 15000 })
+export async function pvpAction(token: string, id: number, action: "attack" | "use", request: BattleRequest) {
+  const response = await api.post<{ ok: boolean; state: PvpStateDto }>(`/pvp/${id}/action`, { action, ...request }, { headers: authHeader(token), timeout: 15000 })
   return response.data
 }
 
@@ -420,4 +421,9 @@ export async function chooseLadderCell(token: string, cell: number): Promise<Cas
 export async function cashoutLadder(token: string): Promise<CasinoSessionResponse> {
   const res = await api.post<CasinoSessionResponse>("/casino/ladder/cashout", undefined, { headers: authHeader(token) })
   return res.data
+}
+
+export async function requestPvpExit(token: string, id: number, request: BattleRequest, requested: boolean) {
+  const response = await api.post<{ ok: boolean; state: PvpStateDto }>(`/pvp/${id}/exit-request`, { ...request, requested }, { headers: authHeader(token), timeout: 15000 });
+  return response.data;
 }

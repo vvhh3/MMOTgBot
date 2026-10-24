@@ -1,3 +1,4 @@
+import type { BattleState } from '@mmobot/shared';
 import { index, integer, real, sqliteTable, text, uniqueIndex ,check} from "drizzle-orm/sqlite-core";
 import { nowGameTime } from "../time.js";
 // TradeItem — тип одного пункта выкладки в трейде (из общего пакета)
@@ -114,20 +115,24 @@ export const items = sqliteTable("items", {
 })
 
 // Сессии боя: у игрока в каждый момент может быть максимум один активный бой с мобом.
-// uniqueIndex на playerId гарантирует это на уровне БД.
+// Частичный uniqueIndex на playerId ограничивает только активные сессии.
 // onDelete: "cascade" — при удалении игрока/моба его сессии боя удаляются автоматически.
-// status: active (идёт бой) | victory | defeat | fled (игрок сбежал).
+// Завершённые сессии сохраняются; aborted — техническое прекращение без наград.
 export const combatSessions = sqliteTable('combat_sessions', {
+  roundNumber: integer("round_number").notNull().default(1),
+  roundStartedAt: text("round_started_at"),
+  stateVersion: integer("state_version").notNull().default(0),
+  battleState: text("battle_state", { mode: "json" }).$type<BattleState>(),
   id: integer("id").primaryKey({ autoIncrement: true }),
   playerId: integer("player_id").notNull().references(() => players.id, { onDelete: "cascade" }),
   mobId: integer("mob_id").notNull().references(() => mobs.id, { onDelete: "cascade" }),
   playerHealth: integer("player_health").notNull(),
   mobHealth: integer("mob_health").notNull(),
-  status: text("status", { enum: ["active", "victory", "defeat", "fled"] }).notNull().default("active"),
+  status: text("status", { enum: ["active", "victory", "defeat", "fled", "aborted"] }).notNull().default("active"),
   startedAt: text("started_at").notNull(),
   lastActionAt: text("last_action_at").notNull()
 },
-  (table) => [uniqueIndex("combat_sessions_player_idx").on(table.playerId), index("combat_sessions_mob_idx").on(table.mobId)]
+  (table) => [uniqueIndex("combat_sessions_player_idx").on(table.playerId).where(sql`${table.status} = 'active'`), index("combat_sessions_mob_idx").on(table.mobId)]
 )
 
 // Оружие хранится по экземплярам (quantity=1, собственный weaponLevel).
@@ -245,6 +250,10 @@ export const friendships = sqliteTable("friendships", {
 ]);
 
 export const pvpSessions = sqliteTable("pvp_sessions", {
+  roundNumber: integer("round_number").notNull().default(1),
+  roundStartedAt: text("round_started_at"),
+  stateVersion: integer("state_version").notNull().default(0),
+  battleState: text("battle_state", { mode: "json" }).$type<BattleState>(),
   id: integer("id").primaryKey({autoIncrement: true}),
   player1Id: integer("player_1_id").notNull().references(() => players.id,{onDelete: "cascade"}),
   player2Id: integer("player_2_id").notNull().references(() => players.id,{onDelete: "cascade"}),
