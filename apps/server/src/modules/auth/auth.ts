@@ -1,0 +1,88 @@
+import { isValid,parse } from "@tma.js/init-data-node";
+import { eq } from "drizzle-orm";
+import type { NextFunction,Request,Response } from "express";
+import jwt from "jsonwebtoken";
+import { config } from "../../config/env.js";
+import { db } from "../../database/connection.js";
+import { players,type PlayerRow } from "../../database/schema.js";
+import { nowGameTime } from "../../shared/time.js";
+import { RegenHealth } from "../players/regen.js";
+
+export type TelegramUser = {
+  id: number;
+  first_name?: string;
+  last_name?: string;
+  username?: string;
+};
+
+export type AuthedRequest = Request & {
+  player: PlayerRow; // описание пользователя
+};
+
+export function validateTelegramInitData(initData: string): TelegramUser { // проверка initData от телеграма на валидность
+  if (config.devBypassAuth) {
+    const raw = new URLSearchParams(initData).get("user");
+    if (!raw) {
+      throw new Error("Telegram initData has no user");
+    }
+    return JSON.parse(raw) as TelegramUser;
+  }
+
+  if (!isValid(initData, config.botToken)) {
+    throw new Error("Telegram initData signature mismatch");
+  }
+
+  const user = parse(initData).user;
+  if (!user) {
+    throw new Error("Telegram initData has no user");
+  }
+
+  return user;
+}
+
+export function createSessionToken(playerId: number): string { // создание токена с playerId (живёт 30 дней)
+  return jwt.sign({ playerId }, config.sessionSecret, { expiresIn: "30d" });
+}
+
+export function verifySessionToken(token: string): number { // проверка токена на валидность и получение playerId
+  const payload = jwt.verify(token, config.sessionSecret) as { playerId: number };
+  return payload.playerId;
+}
+
+//проверка на админов
+export const requireAdmin = (req: Request,res: Response,next: NextFunction) => { 
+  const player = (req as AuthedRequest).player
+  // if(!config.adminIds.includes(player.id)){
+  //   res.status(400).json({error: "Admin access required"})
+  //   return
+  // }
+  next()
+}
+
+export function requireAuth(req: Request, res: Response, next: NextFunction): void { /// проверка авторизации по токену
+  const header = req.header("authorization");
+  const token = header?.startsWith("Bearer ") ? header.slice("Bearer ".length) : undefined;
+
+  if (!token) {
+    res.status(401).json({ error: "Missing bearer token" });
+    return;
+  }
+
+  try {
+    const playerId = verifySessionToken(token);
+    const player = db.select().from(players).where(eq(players.id, playerId)).get() as PlayerRow | undefined;
+    if (!player) {
+      res.status(401).json({ error: "Player not found" });
+      return;
+    }
+
+    const newHealth = RegenHealth(playerId)
+    player.health = newHealth
+    
+    db.update(players).set({ lastSeenAt: nowGameTime() }).where(eq(players.id, playerId)).run();
+    (req as AuthedRequest).player = player;
+    next();
+  } catch {
+    res.status(401).json({ error: "Invalid bearer token" });
+  }
+}

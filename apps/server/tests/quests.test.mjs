@@ -17,7 +17,7 @@ process.env.BOT_TOKEN = "123456:test-token";
 process.env.SESSION_SECRET = "quest-tests";
 process.env.ADMIN_IDS = "1";
 const notifications = mock.fn();
-mock.module("../dist/notification.js", { namedExports: { notify: notifications } });
+mock.module("../dist/infrastructure/telegram/notifications.js", { namedExports: { notify: notifications } });
 
 // Воспроизводим обновление существующей базы с пользовательскими данными.
 const migrationSource = fileURLToPath(new URL("../drizzle/", import.meta.url));
@@ -52,13 +52,13 @@ oldSqlite.exec(`
 `);
 oldSqlite.close();
 
-const { db, initializeDatabase } = await import("../dist/db.js");
-const { quests, playerQuests, players, items, mobs, locations, inventoryItems, combatSessions, casinoSessions } = await import("../dist/db/schema.js");
-const { createQuestRoutes, progressQuests } = await import("../dist/quests.js");
-const { createCasinoRoutes } = await import("../dist/casino.js");
-const { startCombat, moveCombatAction } = await import("../dist/combat.js");
-const { nowGameTime, todayGameDate } = await import("../dist/time.js");
-const { buildLocationState } = await import("../dist/state.js");
+const { db, initializeDatabase } = await import("../dist/database/index.js");
+const { quests, playerQuests, players, items, mobs, locations, inventoryItems, combatSessions, casinoSessions } = await import("../dist/database/schema.js");
+const { createQuestRoutes, progressQuests } = await import("../dist/modules/quests/routes.js");
+const { createCasinoRoutes } = await import("../dist/modules/casino/routes.js");
+const { startCombat, moveCombatAction } = await import("../dist/modules/combat/pve.js");
+const { nowGameTime, todayGameDate } = await import("../dist/shared/time.js");
+const { buildLocationState } = await import("../dist/modules/locations/state.js");
 initializeDatabase();
 
 after(() => {

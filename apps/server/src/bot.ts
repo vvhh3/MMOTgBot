@@ -1,5 +1,5 @@
-import { Bot, InlineKeyboard } from "grammy";
-import { config } from "./config.js";
+import { Bot,InlineKeyboard } from "grammy";
+import { config } from "./config/env.js";
 
 const bot = new Bot(config.botToken);
 

@@ -9,12 +9,12 @@ const directory = mkdtempSync(path.join(tmpdir(), "mmobot-casino-"));
 process.env.DATABASE_PATH = path.join(directory, "test.db");
 process.env.BOT_TOKEN = "123456:test-token";
 process.env.SESSION_SECRET = "casino-tests";
-mock.module("../dist/notification.js", { namedExports: { notify: mock.fn() } });
+mock.module("../dist/infrastructure/telegram/notifications.js", { namedExports: { notify: mock.fn() } });
 
-const { db, initializeDatabase } = await import("../dist/db.js");
-const { casinoSessions, players } = await import("../dist/db/schema.js");
-const { createCasinoRoutes } = await import("../dist/casino.js");
-const { nowGameTime } = await import("../dist/time.js");
+const { db, initializeDatabase } = await import("../dist/database/index.js");
+const { casinoSessions, players } = await import("../dist/database/schema.js");
+const { createCasinoRoutes } = await import("../dist/modules/casino/routes.js");
+const { nowGameTime } = await import("../dist/shared/time.js");
 initializeDatabase();
 
 after(() => {

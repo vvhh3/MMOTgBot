@@ -16,8 +16,8 @@ process.env.SESSION_SECRET = "loot-tests";
 process.env.ADMIN_IDS = "1";
 process.env.DEV_BYPASS_AUTH = "false";
 const emit = mock.fn();
-mock.module("../dist/notification.js", { namedExports: { notify: mock.fn() } });
-mock.module("../dist/realTime.js", { namedExports: {
+mock.module("../dist/infrastructure/telegram/notifications.js", { namedExports: { notify: mock.fn() } });
+mock.module("../dist/infrastructure/realtime/socket-server.js", { namedExports: {
   isPlayerOnline: () => false, emitToPlayer: emit, broadcastLocation: mock.fn(), moveSocketToLocation: mock.fn(),
 } });
 
@@ -40,13 +40,13 @@ legacy.exec(`
 `);
 legacy.close();
 
-const { db, initializeDatabase } = await import("../dist/db.js");
-const { items, mobs, players, inventoryItems, combatSessions, playerQuests, quests, events } = await import("../dist/db/schema.js");
+const { db, initializeDatabase } = await import("../dist/database/index.js");
+const { items, mobs, players, inventoryItems, combatSessions, playerQuests, quests, events } = await import("../dist/database/schema.js");
 const { createApp } = await import("../dist/app.js");
-const { createSessionToken } = await import("../dist/auth.js");
-const { nowGameTime, todayGameDate } = await import("../dist/time.js");
-const { parseLoot, rollLoot } = await import("../dist/loot.js");
-const { startCombat, moveCombatAction, isMobAlive } = await import("../dist/combat.js");
+const { createSessionToken } = await import("../dist/modules/auth/auth.js");
+const { nowGameTime, todayGameDate } = await import("../dist/shared/time.js");
+const { parseLoot, rollLoot } = await import("../dist/modules/combat/loot.js");
+const { startCombat, moveCombatAction, isMobAlive } = await import("../dist/modules/combat/pve.js");
 const app = createApp();
 after(() => { db.$client.close(); rmSync(directory, { recursive: true, force: true }); });
 
@@ -207,7 +207,7 @@ test("failed reward writes roll back the whole turn and never leave partial loot
 });
 
 test('combat prevents external healing, stat changes and regeneration; other players are isolated', async () => {
-  const { RegenHealth } = await import('../dist/regen.js');
+  const { RegenHealth } = await import('../dist/modules/players/regen.js');
   const p = player({ health: 40, statPoints: 2 });
   const other = player({ health: 30, lastRegenTime: new Date(Date.parse(nowGameTime()) - 100000).toISOString() });
   const target = mob([], { maxHealth: 500 });

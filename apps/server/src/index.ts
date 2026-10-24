@@ -1,8 +1,8 @@
-import { config } from "./config.js";
+import http from "node:http";
 import { createApp } from "./app.js";
-import http from "node:http"
-import { initRealTime } from "./realTime.js";
-import { startMaintenance } from "./maintenance.js";
+import { config } from "./config/env.js";
+import { initRealTime } from "./infrastructure/realtime/socket-server.js";
+import { startMaintenance } from "./jobs/maintenance.js";
 
 const app = createApp();
 const server = http.createServer(app)

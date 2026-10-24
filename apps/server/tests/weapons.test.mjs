@@ -14,8 +14,8 @@ process.env.DATABASE_PATH = path.join(directory, "test.db");
 process.env.BOT_TOKEN = "123456:test-token";
 process.env.SESSION_SECRET = "weapon-tests";
 process.env.ADMIN_IDS = "1";
-mock.module("../dist/notification.js", { namedExports: { notify: mock.fn() } });
-mock.module("../dist/realTime.js", { namedExports: {
+mock.module("../dist/infrastructure/telegram/notifications.js", { namedExports: { notify: mock.fn() } });
+mock.module("../dist/infrastructure/realtime/socket-server.js", { namedExports: {
   isPlayerOnline: () => false, emitToPlayer: mock.fn(), broadcastLocation: mock.fn(), moveSocketToLocation: mock.fn(),
 } });
 
@@ -44,17 +44,17 @@ legacy.exec(`
 `);
 legacy.close();
 
-const { db, initializeDatabase } = await import("../dist/db.js");
-const { inventoryItems, items, players, trades, mobs, combatSessions, pvpSessions } = await import("../dist/db/schema.js");
-const { createShopRoutes } = await import("../dist/shop.js");
-const { createItemRoutes } = await import("../dist/items.js");
-const { InventoryRoutes } = await import("../dist/inventory.js");
-const { createTradeRoutes } = await import("../dist/trades.js");
-const { grantItems } = await import("../dist/inventoryStore.js");
-const { getPlayerStats, startCombat, moveCombatAction, usePotion } = await import("../dist/combat.js");
-const { MEME_ITEM_CATALOG } = await import("../dist/memeItemCatalog.js");
+const { db, initializeDatabase } = await import("../dist/database/index.js");
+const { inventoryItems, items, players, trades, mobs, combatSessions, pvpSessions } = await import("../dist/database/schema.js");
+const { createShopRoutes } = await import("../dist/modules/shop/routes.js");
+const { createItemRoutes } = await import("../dist/modules/items/routes.js");
+const { InventoryRoutes } = await import("../dist/modules/inventory/routes.js");
+const { createTradeRoutes } = await import("../dist/modules/trades/routes.js");
+const { grantItems } = await import("../dist/modules/inventory/store.js");
+const { getPlayerStats, startCombat, moveCombatAction, usePotion } = await import("../dist/modules/combat/pve.js");
+const { MEME_ITEM_CATALOG } = await import("../dist/modules/items/catalogs/meme-items.js");
 const { getPassiveIdsForType } = await import("@mmobot/shared");
-const { nowGameTime } = await import("../dist/time.js");
+const { nowGameTime } = await import("../dist/shared/time.js");
 initializeDatabase();
 after(() => { db.$client.close(); rmSync(directory, { recursive: true, force: true }); });
 

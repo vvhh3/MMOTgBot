@@ -18,8 +18,8 @@ process.env.ADMIN_IDS = "1";
 process.env.DEV_BYPASS_AUTH = "false";
 const broadcast = mock.fn();
 const moveSockets = mock.fn();
-mock.module("../dist/notification.js", { namedExports: { notify: mock.fn() } });
-mock.module("../dist/realTime.js", { namedExports: {
+mock.module("../dist/infrastructure/telegram/notifications.js", { namedExports: { notify: mock.fn() } });
+mock.module("../dist/infrastructure/realtime/socket-server.js", { namedExports: {
   isPlayerOnline: () => false, emitToPlayer: mock.fn(),
   broadcastLocation: broadcast, moveSocketToLocation: moveSockets,
 } });
@@ -54,13 +54,13 @@ legacy.exec(`
 `);
 legacy.close();
 
-const { db, initializeDatabase } = await import("../dist/db.js");
-const { locations, players, mobs, events, combatSessions, quests, playerQuests } = await import("../dist/db/schema.js");
-const { config } = await import("../dist/config.js");
+const { db, initializeDatabase } = await import("../dist/database/index.js");
+const { locations, players, mobs, events, combatSessions, quests, playerQuests } = await import("../dist/database/schema.js");
+const { config } = await import("../dist/config/env.js");
 const { createApp } = await import("../dist/app.js");
-const { createSessionToken } = await import("../dist/auth.js");
-const { getPlayersInLocation } = await import("../dist/presence.js");
-const { nowGameTime, todayGameDate } = await import("../dist/time.js");
+const { createSessionToken } = await import("../dist/modules/auth/auth.js");
+const { getPlayersInLocation } = await import("../dist/modules/locations/presence.js");
+const { nowGameTime, todayGameDate } = await import("../dist/shared/time.js");
 const app = createApp();
 
 after(() => {

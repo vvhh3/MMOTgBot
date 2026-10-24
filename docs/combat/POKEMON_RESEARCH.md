@@ -140,7 +140,7 @@ Hyper Beam после успешного удара обычно требует 
 
 ## 11. Сравнение с нашим проектом
 
-Колонка «в коде» основана на `apps/server/src/combat.ts`, `pvp.ts`, `level.ts`, `db/schema.ts`, shared DTO и клиентских `BattleScreen.tsx` / `PveFight.tsx`. Колонка плана включает неутверждённые предложения из `IMPLEMENTATION_PLAN.md` и обсуждения.
+Колонка «в коде» основана на `apps/server/src/modules/combat/pve.ts`, `pvp.ts`, `level.ts`, `db/schema.ts`, shared DTO и клиентских `BattleScreen.tsx` / `PveFight.tsx`. Колонка плана включает неутверждённые предложения из `IMPLEMENTATION_PLAN.md` и обсуждения.
 
 | Механика | Pokémon I–III | MMOBot в коде | Наш предыдущий план |
 | --- | --- | --- | --- |

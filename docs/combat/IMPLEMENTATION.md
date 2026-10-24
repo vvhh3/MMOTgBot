@@ -39,18 +39,18 @@
 | Файлы | Назначение |
 | --- | --- |
 | `packages/shared/src/combat.ts`, `index.ts` | Контракты и формат JSON |
-| `apps/server/src/battle/engine.ts` | Чистый расчёт раунда и общие приёмы |
-| `apps/server/src/battle/state.ts` | Проверка/повторы команд и сборка публичной части |
-| `apps/server/src/battle/stats.ts` | Снимок игрока с экипировкой и шаблона моба |
-| `apps/server/src/combat.ts`, `pvp.ts` | Существующие адаптеры режимов, транзакции и награды |
-| `apps/server/src/app.ts`, `theLastAction.ts` | Маршруты и единое восстановление |
-| `apps/server/src/inventory.ts`, `regen.ts` | Ограничения активного боя и изоляция здоровья |
-| `apps/client/src/components/ui/MovePanel.tsx`, `ui/BattleConsole.tsx` | Приёмы и сообщения внутри общей панели Card/Grid/Text |
-| `apps/client/src/hooks/useBattlePlayback.ts` | Перелистывание/пропуск сообщений и соответствующий снимок HP |
-| `apps/client/src/components/BattleScreen.tsx`, `PveFight.tsx`, `Fight.tsx` | Экран боя и подключение режимов |
-| `apps/client/src/api.ts`, `main.tsx` | Команды и отсечение устаревших HTTP/socket-обновлений |
+| `apps/server/src/modules/combat/battle/engine.ts` | Чистый расчёт раунда и общие приёмы |
+| `apps/server/src/modules/combat/battle/state.ts` | Проверка/повторы команд и сборка публичной части |
+| `apps/server/src/modules/combat/battle/stats.ts` | Снимок игрока с экипировкой и шаблона моба |
+| `apps/server/src/modules/combat/pve.ts`, `pvp.ts` | Существующие адаптеры режимов, транзакции и награды |
+| `apps/server/src/modules/combat/routes.ts`, `modules/players/last-action.ts` | Маршруты и единое восстановление |
+| `apps/server/src/modules/inventory/routes.ts`, `modules/players/regen.ts` | Ограничения активного боя и изоляция здоровья |
+| `apps/client/src/features/combat/components/MovePanel.tsx`, `BattleConsole.tsx` | Приёмы и сообщения внутри общей панели Card/Grid/Text |
+| `apps/client/src/features/combat/hooks/useBattlePlayback.ts` | Перелистывание/пропуск сообщений и соответствующий снимок HP |
+| `apps/client/src/features/combat/components/BattleScreen.tsx`, `PveFight.tsx`, `Fight.tsx` | Экран боя и подключение режимов |
+| `apps/client/src/features/combat/api.ts`, `apps/client/src/app/App.tsx` | Команды и отсечение устаревших HTTP/socket-обновлений |
 
-Не создавались ненужные обёртки `service.ts`/`dto.ts`: транзакционные адаптеры остались в существующих `combat.ts`/`pvp.ts`, публичная проекция вынесена в `battle/state.ts`. Существующий механизм обслуживания с интервалом PvP 10 секунд сохранён. Формат времени проекта UTC+4 также сохранён.
+Транзакционные адаптеры находятся в `modules/combat/pve.ts` и `pvp.ts`, публичная проекция — в `modules/combat/battle/state.ts`. Существующий механизм обслуживания с интервалом PvP 10 секунд сохранён. Формат времени проекта UTC+4 также сохранён. Полная карта расположения файлов: [архитектура проекта](../architecture.md).
 
 ## Проверки
 

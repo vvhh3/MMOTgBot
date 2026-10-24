@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { basicAttack, createBattle, resolveRound, availableMove } from '../dist/battle/engine.js';
+import { basicAttack, createBattle, resolveRound, availableMove } from '../dist/modules/combat/battle/engine.js';
 const attack = basicAttack(false);
 const fighter = (name, moves = [attack]) => ({ name, maxHp: 100, strength: 40, defense: 0, moves });
 const battle = (left = [attack], right = [attack]) => {

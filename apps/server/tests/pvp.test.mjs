@@ -11,19 +11,19 @@ process.env.DATABASE_PATH = path.join(directory, "test.db");
 process.env.BOT_TOKEN = "123456:test-token";
 process.env.SESSION_SECRET = "pvp-tests";
 const emitted = mock.fn();
-mock.module("../dist/notification.js", { namedExports: { notify: mock.fn() } });
-mock.module("../dist/realTime.js", { namedExports: {
+mock.module("../dist/infrastructure/telegram/notifications.js", { namedExports: { notify: mock.fn() } });
+mock.module("../dist/infrastructure/realtime/socket-server.js", { namedExports: {
   isPlayerOnline: () => false, emitToPlayer: emitted,
   broadcastLocation: mock.fn(), moveSocketToLocation: mock.fn(),
 } });
 
-const { db, initializeDatabase } = await import("../dist/db.js");
-const { players, pvpSessions } = await import("../dist/db/schema.js");
-const { createPvpRoutes, expireStalePvpSessions, STALE_PVP_MS } = await import("../dist/pvp.js");
-const { receivingTheLastAction } = await import("../dist/theLastAction.js");
-const { startMaintenance, PVP_MAINTENANCE_INTERVAL_MS } = await import("../dist/maintenance.js");
-const { createBattle, basicAttack } = await import("../dist/battle/engine.js");
-const { nowGameTime, nowGameTimeMs } = await import("../dist/time.js");
+const { db, initializeDatabase } = await import("../dist/database/index.js");
+const { players, pvpSessions } = await import("../dist/database/schema.js");
+const { createPvpRoutes, expireStalePvpSessions, STALE_PVP_MS } = await import("../dist/modules/combat/pvp.js");
+const { receivingTheLastAction } = await import("../dist/modules/players/last-action.js");
+const { startMaintenance, PVP_MAINTENANCE_INTERVAL_MS } = await import("../dist/jobs/maintenance.js");
+const { createBattle, basicAttack } = await import("../dist/modules/combat/battle/engine.js");
+const { nowGameTime, nowGameTimeMs } = await import("../dist/shared/time.js");
 initializeDatabase();
 const app = express();
 createPvpRoutes(app);
@@ -239,7 +239,7 @@ test('accepted choice and replay receipt survive an actual fresh process', async
   const { execFileSync } = await import('node:child_process');
   const { a, session } = duel();
   choose(a, session);
-  const code = `const { getPvpStateForPlayer } = await import('./dist/pvp.js');
+  const code = `const { getPvpStateForPlayer } = await import('./dist/modules/combat/pvp.js');
     const state = getPvpStateForPlayer(${session.id}, ${a.id});
     process.stdout.write(JSON.stringify(state));`;
   const restored = JSON.parse(execFileSync(process.execPath, ['--input-type=module', '-e', code], { cwd: process.cwd(), env: process.env, encoding: 'utf8' }));
@@ -250,7 +250,7 @@ test('accepted choice and replay receipt survive an actual fresh process', async
 });
 
 test('an active PvE prevents accepting a duel, without changing the invitation', async () => {
-  const { combatSessions } = await import('../dist/db/schema.js');
+  const { combatSessions } = await import('../dist/database/schema.js');
   const { a, b, session } = duel({ status: 'pending', battleState: null });
   const pve = db.insert(combatSessions).values({ playerId: a.id, mobId: 0, playerHealth: 100, mobHealth: 10,
     status: 'active', startedAt: nowGameTime(), lastActionAt: nowGameTime() }).returning().get();
@@ -260,7 +260,7 @@ test('an active PvE prevents accepting a duel, without changing the invitation',
 });
 
 test('PvP healing stays hidden until both choices, then heals before attack and consumes once', async () => {
-  const { inventoryItems } = await import('../dist/db/schema.js');
+  const { inventoryItems } = await import('../dist/database/schema.js');
   const { a, b, session } = duel();
   db.insert(inventoryItems).values({ playerId: a.id, itemType: 3, quantity: 2, acquiredAt: nowGameTime() }).run();
   const body = command(session, { action: 'use', itemType: 3 });
@@ -285,7 +285,7 @@ test('PvP healing stays hidden until both choices, then heals before attack and 
 });
 
 test('mutual exit does not consume a queued healing item', async () => {
-  const { inventoryItems } = await import('../dist/db/schema.js');
+  const { inventoryItems } = await import('../dist/database/schema.js');
   const { a, b, session } = duel();
   db.insert(inventoryItems).values({ playerId: a.id, itemType: 3, quantity: 1, acquiredAt: nowGameTime() }).run();
   choose(a, session, command(session, { action: 'use', itemType: 3 }));
