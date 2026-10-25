@@ -60,6 +60,10 @@ h2.text-2xl {
 .rt-Card {
     border: solid 2px;
     --base-card-border-width: 2px;
+    /* Avoid backdrop recompositing while cards scroll or animate their scale. */
+    --color-panel: var(--color-panel-solid);
+    --backdrop-filter-panel: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .rt-Card::before {
