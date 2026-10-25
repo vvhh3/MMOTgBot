@@ -29,7 +29,7 @@ export function toPlayerDto(row: PlayerRow): PlayerDto {
     money:row.money,
     cooldowns:row.cooldowns,
     isCreated: row.isCreated,
-    race: row.race,
+    factionId: row.factionId,
     avatar: row.avatar
 
   }

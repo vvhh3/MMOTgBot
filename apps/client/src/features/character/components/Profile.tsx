@@ -5,6 +5,7 @@ import ButtonAnimation from "../../../shared/ui/animations/ButtonAnimation";
 import EnterAnimation from "../../../shared/ui/animations/EnterAnimation";
 import { TypeModal } from "../../../shared/ui/modal/types";
 import { getSkins } from "../lib/skins";
+import FactionBadge from "./FactionBadge";
 import map from '/mapMat.png';
 
 type ProfileProps = {
@@ -19,6 +20,9 @@ export default function Profile({ player,locationState,setShowModal,setTypeShowI
         <div className='flex min-h-full w-full flex-col items-center' >
             <div className='flex shrink-0 flex-col justify-center items-center'>
                 <p className='font-bold'>{player?.name}</p>
+                <Link to="/Leaderboard?tab=factions" className="my-2" aria-label="Посмотреть рейтинг своей группировки">
+                    <FactionBadge factionId={player?.factionId} />
+                </Link>
                 <img className='h-50' src={getSkins(player?.avatar)} />
             </div>
             <Grid columns="2" gap="3" style={{ padding: "20px", flexShrink: 0 }}>

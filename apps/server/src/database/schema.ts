@@ -59,12 +59,13 @@ export const players = sqliteTable("players",
     money: integer("money").notNull().default(0),
     cooldowns: text("cooldowns", { mode: "json" }).$type<Cooldowns>().notNull().default({}),
     isCreated: integer("is_created", { mode: "boolean" }).notNull().default(false),
-    race: text("race"),
+    factionId: text("faction_id").$type<import("@mmobot/shared").FactionId>(),
     avatar: text("avatar"),
   },
   // Индекс ускоряет поиск игроков по текущей локации (напр. "кто сейчас на площади").
   (table) => [
     index("players_current_location_idx").on(table.currentLocationId),
+    index("players_faction_idx").on(table.factionId),
     uniqueIndex("players_friend_id_idx").on(table.friendId),
     check("money_non_negative",sql`${table.money} >= 0`)
   ]

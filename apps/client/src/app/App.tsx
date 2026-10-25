@@ -315,7 +315,7 @@ export default function App() {
               <Route path="Map" element={<Map token={token} player={player} onLocationState={setLocationState} onPlayer={setPlayer} />} />
               <Route path="Profile" element={<Profile setTypeShowIsModal={setTypeShowIsModal} setShowModal={setShowModal} player={player} locationState={locationState} />} />
               <Route path="Tasks" element={<Tasks token={token} onPlayer={setPlayer} />} />
-              <Route path="Leaderboard" element={<Leaderboard token={token} playerId={player?.id ?? null} playerPoints={player?.points ?? 0} />} />
+              <Route path="Leaderboard" element={<Leaderboard token={token} playerId={player?.id ?? null} playerPoints={player?.points ?? 0} factionId={player?.factionId ?? null} />} />
               <Route path="Team" element={<Team token={token} player={player} liveOverview={friendsOverview} />} />
               <Route path="Inventory" element={<Inventory token={token} player={player} inventory={inventory} onPlayer={setPlayer} onInventory={setInventory} />} />
               <Route path="Shop" element={<Shop token={token} player={player} inventory={inventory} onPlayer={setPlayer} onInventory={setInventory} />} />

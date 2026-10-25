@@ -23,6 +23,7 @@ PlayerDto = {
   strength: number;          // с учётом экипировки
   defense: number;           // с учётом экипировки
   statPoints: number;        // нераспределённые очки характеристик
+  factionId: FactionId | null; // социальная группировка, каталог @mmobot/shared
 }
 
 StatType = "maxHealth" | "strength" | "defense"
@@ -329,6 +330,15 @@ PvpOverviewResponse = {
   "entries": LeaderBoardToDto[]
 }
 ```
+
+### Группировки и создание персонажа
+
+Все маршруты требуют авторизацию. `race` больше не используется.
+
+- `POST /me/character`: `{ name, avatar, factionId }` → `{ player: PlayerDto }`. Создаёт персонажа один раз; повторное создание возвращает `409`.
+- `GET /leaderboard/factions` → `{ entries: [{ factionId, members, totalPoints }] }`. Все группировки, включая пустые; сортировка по численности, затем сумме очков, затем ID. Учитываются только созданные персонажи с известной группировкой.
+
+Допустимые ID: `nefors`, `normies`, `offniks`, `skufs`, `gamers`, `anime`. Неизвестная группировка возвращает `400`. Выбор доступен только при создании персонажа; отдельного API выбора/смены нет. Подробнее: [группировки и обновление базы](docs/factions.md).
 
 ### `POST /inventory/equip`
 

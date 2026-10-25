@@ -204,6 +204,20 @@
       "when": 1792870024718,
       "tag": "0028_round_combat",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "6",
+      "when": 1792929385138,
+      "tag": "0029_social_factions",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "6",
+      "when": 1792929585546,
+      "tag": "0030_remove_races",
+      "breakpoints": true
     }
   ]
 }

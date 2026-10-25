@@ -26,6 +26,9 @@ export function initializeDatabase(): void {
   // Применяем миграции из папки drizzle (файлы 0000_*.sql, 0001_*.sql и т.д.).
   // drizzle следит за применёнными миграциями и выполняет только новые.
   migrate(db, { migrationsFolder: migrationsFolder() });
+  // Старое поле создавалось вне SQL-миграций и отсутствует в чистой базе.
+  // Удаляем его условно; больше ни один путь запуска не добавляет расы.
+  if (columnExists("players", "race")) sqlite.exec('ALTER TABLE "players" DROP COLUMN "race"');
   // Сессии старых версий, завершённые до удаления при расчёте результата.
   db.delete(casinoSessions).where(ne(casinoSessions.status, "active")).run();
   console.info("[database] after migrations", JSON.stringify({ players: countPlayers() }));
@@ -36,7 +39,7 @@ export function initializeDatabase(): void {
   ensureLocationsActions();
   ensureItemsShopAvailable();
 
-  // Автофикс схемы: колонки конструктора персонажа (is_created, race, avatar).
+  // Автофикс старых колонок конструктора персонажа (is_created, avatar).
   ensurePlayerCharacterColumns();
 
   // Ниже — сид (начальные данные), который заносится в БД при первом запуске.
@@ -243,9 +246,6 @@ function ensurePlayerCharacterColumns(): void {
   if (!tableExists("players")) return;
   if (!columnExists("players", "is_created")) {
     sqlite.exec(`ALTER TABLE "players" ADD COLUMN "is_created" integer NOT NULL DEFAULT 1`);
-  }
-  if (!columnExists("players", "race")) {
-    sqlite.exec(`ALTER TABLE "players" ADD COLUMN "race" text`);
   }
   if (!columnExists("players", "avatar")) {
     sqlite.exec(`ALTER TABLE "players" ADD COLUMN "avatar" text`);

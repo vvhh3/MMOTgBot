@@ -1,4 +1,5 @@
 import type { CharacterCreateRequest,CharacterCreateResponse,CharacterSkinsResponse,MeResponse,SpendStatPointRequest } from "@mmobot/shared";
+import { isFactionId } from "@mmobot/shared";
 import { and,asc,desc,eq } from "drizzle-orm";
 import express from "express";
 import path from "node:path";
@@ -83,9 +84,7 @@ export function createPlayerRoutes(app: express.Express): void {
   });
 
   // КОНСТРУКТОР ПЕРСОНАЖА: POST /me/character
-  // При первом заходе игрок выбирает имя, расу и аватар. После сохранения
-  // is_created=true, и клиент пускает его в игру. Допустимые расы — список ниже.
-  const ALLOWED_RACES = ["Человек", "Эльф", "Орк", "Гном"];
+  // Имя, группировка и аватар выбираются только при создании персонажа.
   app.get("/character-skins", requireAuth, (_req, res) => {
     const skins = db
       .select({
@@ -112,17 +111,18 @@ export function createPlayerRoutes(app: express.Express): void {
 
   app.post("/me/character", requireAuth, (req, res) => {
     const player = (req as AuthedRequest).player;
-    const body = req.body as CharacterCreateRequest;
+    if (player.isCreated) return res.status(409).json({ error: "Персонаж уже создан" });
+    const body = (req.body ?? {}) as Partial<CharacterCreateRequest>;
     const name = typeof body.name === "string" ? body.name.trim() : "";
-    const race = typeof body.race === "string" ? body.race : "";
+    const factionId = body.factionId;
     const avatar = typeof body.avatar === "string" ? body.avatar : "";
 
     if (name.length < 2 || name.length > 20) {
       res.status(400).json({ error: "Имя должно быть от 2 до 20 символов" });
       return;
     }
-    if (!ALLOWED_RACES.includes(race)) {
-      res.status(400).json({ error: "Недопустимая раса" });
+    if (!isFactionId(factionId)) {
+      res.status(400).json({ error: "Выберите доступную группировку" });
       return;
     }
     const selectedSkin = avatar
@@ -136,8 +136,8 @@ export function createPlayerRoutes(app: express.Express): void {
     }
 
     db.update(players)
-      .set({ name, race, avatar, isCreated: true })
-      .where(eq(players.id, player.id))
+      .set({ name, factionId, avatar, isCreated: true })
+      .where(and(eq(players.id, player.id), eq(players.isCreated, false)))
       .run();
     const updated = db.select().from(players).where(eq(players.id, player.id)).get()!;
     emitToPlayer(player.id, "player", toPlayerDto(updated));
@@ -154,7 +154,7 @@ export function createPlayerRoutes(app: express.Express): void {
     }
     const player = (req as AuthedRequest).player;
     db.update(players)
-      .set({ isCreated: false, race: null, avatar: null })
+      .set({ isCreated: false, factionId: null, avatar: null })
       .where(eq(players.id, player.id))
       .run();
     const updated = db.select().from(players).where(eq(players.id, player.id)).get()!;

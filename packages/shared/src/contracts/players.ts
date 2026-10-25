@@ -1,6 +1,7 @@
 
 
 import type { LastAction } from "./activity.js";
+import type { FactionId } from "../factions.js";
 import type { InventoryItemDto } from "./items.js";
 
 
@@ -23,7 +24,7 @@ export type PlayerDto = { // описание игрока
   money:number | 0,
   cooldowns:Cooldowns,
   isCreated: boolean // прошёл ли игрок конструктор персонажа
-  race: string | null // выбранная раса
+  factionId: FactionId | null // выбранная социальная группировка
   avatar: string | null // выбранный аватар (имя файла из /public)
 };
 
@@ -31,7 +32,7 @@ export type PlayerDto = { // описание игрока
 // Конструктор персонажа: что отправляет клиент при первом заходе
 export type CharacterCreateRequest = {
   name: string
-  race: string
+  factionId: FactionId
   avatar: string
 }
 

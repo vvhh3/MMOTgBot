@@ -1,9 +1,9 @@
-import type { CharacterSkinDto,PlayerDto } from "@mmobot/shared";
+import type { CharacterSkinDto,FactionId,PlayerDto } from "@mmobot/shared";
 import { useEffect,useState } from "react";
 import { createCharacter,getCharacterSkins } from "../api";
 import { getCharacterImage } from "../lib/skins";
 
-const RACES = ["Человек", "Эльф", "Орк", "Гном"];
+import FactionPicker from "./FactionPicker";
 
 type CharacterCreationProps = {
   token: string | null;
@@ -15,7 +15,7 @@ export default function CharacterCreation({ token, player, onCreated }: Characte
   const [avatarIndex, setAvatarIndex] = useState(0);
   const [displayedAvatarIndex, setDisplayedAvatarIndex] = useState(0);
   const [name, setName] = useState(player?.name ?? "");
-  const [race, setRace] = useState(RACES[0]);
+  const [factionId, setFactionId] = useState<FactionId | null>(null);
   const [skins, setSkins] = useState<CharacterSkinDto[]>([]);
   const [loadingSkins, setLoadingSkins] = useState(true);
   const [loadingAvatar, setLoadingAvatar] = useState(true);
@@ -57,11 +57,11 @@ export default function CharacterCreation({ token, player, onCreated }: Characte
   const nextAvatar = () => setAvatarIndex((i) => (i + 1) % skins.length);
 
   const submit = async () => {
-    if (!token || !avatar) return;
+    if (!token || !avatar || !factionId || saving) return;
     setSaving(true);
     setError(null);
     try {
-      const { player: updated } = await createCharacter(token, { name, race, avatar });
+      const { player: updated } = await createCharacter(token, { name, factionId, avatar });
       onCreated(updated);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Не удалось создать персонажа");
@@ -148,32 +148,14 @@ export default function CharacterCreation({ token, player, onCreated }: Characte
         />
       </div>
 
-      <div className="flex flex-col gap-2 w-full max-w-xs">
-        <span className="text-sm font-bold text-[#8A7A60]">Раса</span>
-        <div className="flex flex-wrap gap-2 ">
-          {RACES.map((r) => (
-            <button
-              key={r}
-              type="button"
-              onClick={() => setRace(r)}
-              className={`rounded-lg px-3 py-1.5 border-2 transition-colors ${
-                r === race
-                  ? "bg-[#E8603C] text-white border-[#E8603C]"
-                  : "bg-transparent text-[#8A7A60] border-[#8A7A60]"
-              }`}
-            >
-              {r}
-            </button>
-          ))}
-        </div>
-      </div>
+      <FactionPicker value={factionId} onChange={setFactionId} disabled={saving} />
 
       {error && <p className="text-sm text-red-500">{error}</p>}
 
       <button
         type="button"
         onClick={submit}
-        disabled={name.trim().length < 2 || saving || !avatar || isChangingAvatar || loadingAvatar || avatarLoadError}
+        disabled={!token || !factionId || name.trim().length < 2 || saving || !avatar || isChangingAvatar || loadingAvatar || avatarLoadError}
         className="rounded-lg bg-[#E8603C] px-6 py-3 font-bold text-white disabled:opacity-50"
       >
         {saving ? "Сохранение..." : "Создать персонажа"}

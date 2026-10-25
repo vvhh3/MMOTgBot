@@ -1,15 +1,18 @@
-import type { LeaderBoardToDto } from "@mmobot/shared";
-import { Badge,Card,Heading,Table,Text } from "@radix-ui/themes";
+import type { FactionId,LeaderBoardToDto } from "@mmobot/shared";
+import { Badge,Card,Heading,Table,Tabs,Text } from "@radix-ui/themes";
 import { useEffect,useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { getLeaderboard } from "../api";
+import FactionLeaderboard from "./FactionLeaderboard";
 
 type LeaderboardProps = {
   token: string | null;
   playerId: number | null;
   playerPoints: number;
+  factionId: FactionId | null;
 };
 
-export default function Leaderboard({ token, playerId, playerPoints }: LeaderboardProps) {
+function PlayerLeaderboard({ token, playerId, playerPoints }: LeaderboardProps) {
   const [entries, setEntries] = useState<LeaderBoardToDto[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -59,4 +62,21 @@ export default function Leaderboard({ token, playerId, playerPoints }: Leaderboa
       </Card>
     </main>
   );
+}
+
+export default function Leaderboard(props: LeaderboardProps) {
+  const [params, setParams] = useSearchParams();
+  const tab = params.get("tab") === "factions" ? "factions" : "players";
+  return <Tabs.Root value={tab} onValueChange={(value) => setParams((previous) => {
+    const next = new URLSearchParams(previous);
+    next.set("tab", value);
+    return next;
+  }, { replace: true })}>
+    <Tabs.List color="orange" className="justify-center" aria-label="Вид рейтинга">
+      <Tabs.Trigger value="players">Игроки</Tabs.Trigger>
+      <Tabs.Trigger value="factions">Группировки</Tabs.Trigger>
+    </Tabs.List>
+    <Tabs.Content value="players"><PlayerLeaderboard {...props} /></Tabs.Content>
+    <Tabs.Content value="factions"><FactionLeaderboard token={props.token} factionId={props.factionId} /></Tabs.Content>
+  </Tabs.Root>;
 }

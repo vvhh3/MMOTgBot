@@ -1,7 +1,23 @@
 @import "tailwindcss";
-* {
-    font-family: "Unbounded", sans-serif;
-    /* background-color: #F0E6D0;   */
+
+@theme {
+    --font-sans: "Rubik", system-ui, sans-serif;
+    --font-display: "Unbounded", "Rubik", system-ui, sans-serif;
+}
+
+body {
+    font-family: var(--font-sans);
+}
+
+.radix-themes {
+    --default-font-family: var(--font-sans);
+    --heading-font-family: var(--font-display);
+}
+
+h1,
+h2.text-xl,
+h2.text-2xl {
+    font-family: var(--font-display);
 }
 .rt-Card {
     border: solid 2px;
