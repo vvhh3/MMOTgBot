@@ -2,6 +2,7 @@ import type { LocationDto,MobDto } from "@mmobot/shared";
 import { getLocationAccess } from "@mmobot/shared";
 import { and,eq,ne,sql } from "drizzle-orm";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { config } from "../config/env.js";
@@ -17,10 +18,18 @@ export function initializeDatabase(): void {
     if (!tableExists("players")) return null;
     return (sqlite.prepare('SELECT COUNT(*) AS count FROM "players"').get() as { count: number }).count;
   };
+  const fileStat = (filePath: string) => {
+    if (!fs.existsSync(filePath)) return null;
+    const stat = fs.statSync(filePath);
+    return { size: stat.size, inode: stat.ino, mtime: stat.mtime.toISOString() };
+  };
   console.info("[database] before migrations", JSON.stringify({
     path: config.databasePath,
+    realPath: fs.existsSync(config.databasePath) ? fs.realpathSync(config.databasePath) : null,
     existedBeforeOpen: databaseExistedAtStartup,
     volumeMountPath: process.env.RAILWAY_VOLUME_MOUNT_PATH ?? null,
+    dbFile: fileStat(config.databasePath),
+    walFile: fileStat(`${config.databasePath}-wal`),
     players: countPlayers(),
   }));
   // Применяем миграции из папки drizzle (файлы 0000_*.sql, 0001_*.sql и т.д.).

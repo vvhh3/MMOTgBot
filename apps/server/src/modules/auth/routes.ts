@@ -1,5 +1,5 @@
 import type { AuthRequest,AuthResponse } from "@mmobot/shared";
-import { eq } from "drizzle-orm";
+import { eq,sql } from "drizzle-orm";
 import type express from "express";
 import { db } from "../../database/connection.js";
 import { toPlayerDtoEquipped } from "../../database/mappers.js";
@@ -55,6 +55,13 @@ export function createAuthRoutes(app: express.Express): void {
       }
 
       const player = db.select().from(players).where(eq(players.id, telegramUser.id)).get()!;
+      const totalPlayers = (db.select({ count: sql<number>`count(*)` }).from(players).get()?.count) ?? 0;
+      console.info("[auth] player synced", JSON.stringify({
+        id: player.id,
+        mode: existing ? "update" : "insert",
+        isCreated: player.isCreated,
+        totalPlayers,
+      }));
       const response: AuthResponse = {
         token: createSessionToken(player.id),
         player: toPlayerDtoEquipped(player)
