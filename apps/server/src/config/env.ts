@@ -14,10 +14,19 @@ export const config = {
   port: Number(process.env.PORT ?? 4000),
   clientUrl: process.env.CLIENT_URL ?? "http://localhost:5173",
   corsOrigins: parseOrigins(process.env.CORS_ORIGINS),
-  databasePath: path.resolve(process.env.DATABASE_PATH ?? "./apps/server/data/mmobot.db"),
+  databasePath: resolveDatabasePath(),
   devBypassAuth,
   adminIds: parseNumberList(process.env.ADMIN_IDS)
 };
+
+function resolveDatabasePath(): string {
+  if (process.env.DATABASE_PATH) return path.resolve(process.env.DATABASE_PATH);
+  // Railway задаёт RAILWAY_VOLUME_MOUNT_PATH при подключённом volume.
+  // Без этого БД остаётся внутри контейнера и теряется при каждом деплое.
+  const volumeMountPath = process.env.RAILWAY_VOLUME_MOUNT_PATH;
+  if (volumeMountPath) return path.resolve(volumeMountPath, "mmobot.db");
+  return path.resolve("./apps/server/data/mmobot.db");
+}
 
 function parseOrigins(raw: string | undefined): string[] {
   if (!raw) {
