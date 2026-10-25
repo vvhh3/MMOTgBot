@@ -15,6 +15,7 @@
 | `tsconfig.base.json` | Общие настройки TypeScript. |
 | `Dockerfile`, `railway.json` | Сборка и запуск приложения в контейнере. |
 
+
 ## Клиент
 
 ```text
