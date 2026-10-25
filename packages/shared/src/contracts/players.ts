@@ -2,6 +2,7 @@
 
 import type { LastAction } from "./activity.js";
 import type { FactionId } from "../factions.js";
+import type { TutorialStep } from "../tutorial.js";
 import type { InventoryItemDto } from "./items.js";
 
 
@@ -25,6 +26,7 @@ export type PlayerDto = { // описание игрока
   cooldowns:Cooldowns,
   isCreated: boolean // прошёл ли игрок конструктор персонажа
   factionId: FactionId | null // выбранная социальная группировка
+  tutorialStep: TutorialStep
   avatar: string | null // выбранный аватар (имя файла из /public)
 };
 

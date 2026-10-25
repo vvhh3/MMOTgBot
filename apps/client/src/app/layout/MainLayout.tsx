@@ -1,4 +1,4 @@
-import { PlayerDto,PvpStateDto,TradeStateDto } from "@mmobot/shared";
+import { CombatStateResponse,PlayerDto,PvpStateDto,TradeStateDto } from "@mmobot/shared";
 import { Avatar } from "@radix-ui/themes";
 import { LayoutGroup,motion,useReducedMotion } from "motion/react";
 import type { ReactNode } from "react";
@@ -8,6 +8,7 @@ import { resetCharacter } from "../../features/character/api";
 import { NotificationButton } from "../../features/notifications/components/NotificationButton.tsx";
 import { TypeModal } from "../../shared/ui/modal/types";
 import Modal from "../modals/Modal.tsx";
+import TutorialGuide from "../../features/tutorial/components/TutorialGuide";
 
 function BottomNavItem({ to, children }: { to: string; children: ReactNode }) {
     const reducedMotion = useReducedMotion();
@@ -46,6 +47,7 @@ function BottomNavItem({ to, children }: { to: string; children: ReactNode }) {
 }
 
 type LayoutProps = {
+    onCombatState: (state: CombatStateResponse) => void
     player: PlayerDto | null
     token: string | null
     error: string | null
@@ -65,7 +67,7 @@ type LayoutProps = {
   }
 }
 
-export default function MainLayout({ infoMessages,player, setTypeShowIsModal,token, error,onError, onPlayer, pvpState, tradeState,showIsModal,setShowModal,typeShowIsModal,setTradeState,setPvpState }: LayoutProps) {
+export default function MainLayout({ onCombatState,infoMessages,player, setTypeShowIsModal,token, error,onError, onPlayer, pvpState, tradeState,showIsModal,setShowModal,typeShowIsModal,setTradeState,setPvpState }: LayoutProps) {
     const notifRef = useRef<HTMLDivElement | null>(null) // ссылка на панель уведомлений
     const topBarRef = useRef<HTMLDivElement | null>(null);
     const [topBarHeight, setTopBarHeight] = useState(62);
@@ -136,6 +138,7 @@ export default function MainLayout({ infoMessages,player, setTypeShowIsModal,tok
             <div className="relative w-full min-h-0 flex-1 overflow-y-auto overflow-x-hidden" style={{ paddingTop: `calc(var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)) + var(--tg-content-safe-area-inset-top, 0px) + ${topBarHeight + 20}px)`, paddingBottom: "calc(108px + max(var(--tg-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)), var(--tg-content-safe-area-inset-bottom, 0px)))" }}>
                 {/* Выпадающая панель уведомлений */}
                 <Modal infoMessages={infoMessages} setPvpState={setPvpState}  setTradeState={setTradeState} typeModal={typeShowIsModal} token={token} pvpState={pvpState} tradeState={tradeState}  showIsModal={showIsModal} tradeIncoiming={tradeIncoiming} pvpIncoiming={pvpIncoiming} notifRef={notifRef}  onError={onError}  setShowModal={setShowModal} player={player}  onPlayer={onPlayer} />
+                <TutorialGuide token={token} player={player} onPlayer={onPlayer} onCombatState={onCombatState} />
                 <Outlet></Outlet>
             </div>
 

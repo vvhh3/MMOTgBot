@@ -6,6 +6,8 @@ LocationStateResponse,
 PlayerDto,
 } from "@mmobot/shared";
 import { useEffect,useRef,useState } from "react";
+import { TUTORIAL_MOB_ID } from "@mmobot/shared";
+import { motion,useReducedMotion } from "motion/react";
 import { useNavigate } from "react-router-dom";
 import { getMe } from "../../character/api";
 import { getCharacterImage,getSkins } from "../../character/lib/skins";
@@ -49,6 +51,7 @@ export default function PveFight({
     error,
 }: PveFightProps) {
     const navigate = useNavigate();
+    const reduced = useReducedMotion();
     const [pending, setPending] = useState(false);
     const [showMoves, setShowMoves] = useState(false);
     const [showInventory, setShowInventory] = useState(false);
@@ -166,6 +169,7 @@ export default function PveFight({
     if (!state) return null;
 
     const finished = state.status !== "active";
+    const tutorial = state.mob.id === TUTORIAL_MOB_ID;
     let statusMessage = `Что предпримет ${player?.name ?? "ваш персонаж"}?`;
     if (pending) statusMessage = "Действие…";
     if (finished) statusMessage = state.status === "fled" ? "Вы покинули поле боя" : "Бой завершён";
@@ -184,6 +188,7 @@ export default function PveFight({
         if (showMoves && !finished) {
             return (
                 <MovePanel
+                    tutorial={tutorial}
                     state={state}
                     disabled={pending}
                     onMove={(moveId) => { void handleAction("attack", moveId); }}
@@ -214,9 +219,12 @@ export default function PveFight({
             }}
             error={error}
             round={state.round}
-            status={playback.busy ? undefined : statusMessage}
+            status={playback.busy ? undefined : tutorial && !finished && !pending ? <motion.span key={showMoves ? "move" : "attack"} initial={{ opacity: 0, y: reduced ? 0 : 4 }} animate={{ opacity: 1, y: 0 }}>
+                {showMoves ? "Выбери «Удар рукой» или атаку оружием. Затем противник ответит." : "Нажми «Битва», чтобы выбрать атаку. Зелёные полоски показывают здоровье."}
+            </motion.span> : statusMessage}
             actions={{
                 attack: {
+                    highlight: tutorial,
                     label: "Битва",
                     disabled: finished || pending,
                     onClick: () => setShowMoves(true),
@@ -254,7 +262,7 @@ export default function PveFight({
                 />
             )}
             {finished && !playback.busy && (state.status === "victory" || state.status === "defeat") && (
-                <FightResultModal state={state} />
+                <FightResultModal state={state} tutorial={tutorial} />
             )}
         </BattleScreen>
     );

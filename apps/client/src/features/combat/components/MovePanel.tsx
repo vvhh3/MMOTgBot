@@ -2,13 +2,14 @@ import type { BattlePublicState } from "@mmobot/shared";
 import { Card,Grid,Text } from "@radix-ui/themes";
 
 type MovePanelProps = {
+    tutorial?: boolean;
     state: BattlePublicState;
     disabled: boolean;
     onMove: (moveId: string) => void;
     onBack: () => void;
 };
 
-export default function MovePanel({ state, disabled, onMove, onBack }: MovePanelProps) {
+export default function MovePanel({ state, disabled, onMove, onBack, tutorial = false }: MovePanelProps) {
     return (
         <Grid columns="2" rows="2" gap="2" className="h-full min-h-0 overflow-y-auto" aria-label="Выбор приёма">
             {state.moves.map((move) => {
@@ -18,7 +19,7 @@ export default function MovePanel({ state, disabled, onMove, onBack }: MovePanel
                 return (
                     <Card key={move.id}>
                         <button
-                            className="flex h-full w-full flex-col items-center justify-center disabled:opacity-50"
+                            className={`flex h-full w-full flex-col items-center justify-center rounded-lg disabled:opacity-50 ${tutorial ? "tutorial-target" : ""}`}
                             disabled={moveDisabled}
                             onClick={() => onMove(move.id)}
                         >

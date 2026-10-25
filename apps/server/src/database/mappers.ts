@@ -30,6 +30,7 @@ export function toPlayerDto(row: PlayerRow): PlayerDto {
     cooldowns:row.cooldowns,
     isCreated: row.isCreated,
     factionId: row.factionId,
+    tutorialStep: row.tutorialStep,
     avatar: row.avatar
 
   }

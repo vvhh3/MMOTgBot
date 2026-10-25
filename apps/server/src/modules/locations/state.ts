@@ -1,4 +1,5 @@
 import type { LocationStateResponse } from "@mmobot/shared";
+import { TUTORIAL_MOB_ID } from "@mmobot/shared";
 import { desc,eq } from "drizzle-orm";
 import { db } from "../../database/connection.js";
 import { toEventDto,toLocationDto,toMobDto } from "../../database/mappers.js";
@@ -43,7 +44,7 @@ export function buildLocationState(locationId: string): LocationStateResponse | 
         .all()
         
     const locationMobs = db.select().from(mobs).where(eq(mobs.locationId, locationId)).all();
-    const aliveMobs = locationMobs.filter(isMobAlive);
+    const aliveMobs = locationMobs.filter((mob) => mob.id !== TUTORIAL_MOB_ID && isMobAlive(mob));
     return {
         location: toLocationDto(location),
         players: getPlayersInLocation(locationId),

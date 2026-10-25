@@ -2,11 +2,14 @@ import { CombatStateResponse,RARITY_COLORS,RARITY_LABELS } from "@mmobot/shared"
 import { Button,Flex,Text } from "@radix-ui/themes";
 import { useNavigate } from "react-router-dom";
 import CenterModal from "../../../shared/ui/modal/CenterModal";
+import { motion,useReducedMotion } from "motion/react";
 type ResultFightProps={
     state:CombatStateResponse
+    tutorial?: boolean
 }
 
-export default function CenterResultFight({state}:ResultFightProps){
+export default function CenterResultFight({state,tutorial = false}:ResultFightProps){
+    const reduced = useReducedMotion();
     const navigate= useNavigate();
     const lootItems = state.droppedItems;
 
@@ -34,10 +37,10 @@ export default function CenterResultFight({state}:ResultFightProps){
                             {state.mob.pointsReward} 
                         </div>
                         {lootItems.map((lootItem, index) =>
-                            <div key={`${lootItem.id}-${index}`} className="flex max-w-28 flex-col items-center text-center" title={RARITY_LABELS[lootItem.rarity]}>
+                            <motion.div key={`${lootItem.id}-${index}`} initial={tutorial && !reduced ? { opacity: 0, scale: 0.7, y: 10 } : false} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ type: "spring", stiffness: 230, damping: 16, delay: reduced ? 0 : index * 0.08 }} className="flex max-w-28 flex-col items-center text-center" title={RARITY_LABELS[lootItem.rarity]}>
                                 <div className="h-10 w-10 [&_svg]:h-full [&_svg]:w-full" style={{ color: RARITY_COLORS[lootItem.rarity] }} dangerouslySetInnerHTML={{ __html: lootItem.icon }}/>
                                 <Text size="1">{lootItem.name}</Text>
-                            </div>
+                            </motion.div>
                         )}
                     </Flex>
                     {lootItems.length === 0 && <Text size="1" color="gray">Предметы не выпали</Text>}
@@ -45,8 +48,9 @@ export default function CenterResultFight({state}:ResultFightProps){
                 : 
                 <></>}
               
-                <Button style={{ background: "#E8603C", borderRadius: "16px" }} color="orange" onClick={() => { navigate("/") }}>
-                    Вернуться в город
+                {tutorial && state.status === "victory" && <Text size="2" align="center">Первая находка твоя! Открой инвентарь и надень оружие.</Text>}
+                <Button style={{ background: "#E8603C", borderRadius: "16px" }} color="orange" onClick={() => { navigate(tutorial && state.status === "victory" ? "/Inventory" : "/") }}>
+                    {tutorial && state.status === "victory" ? "Открыть инвентарь" : "Вернуться в город"}
                 </Button>
             </Flex>
         </CenterModal>

@@ -218,6 +218,13 @@
       "when": 1792929585546,
       "tag": "0030_remove_races",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "6",
+      "when": 1792938592483,
+      "tag": "0031_first_adventure",
+      "breakpoints": true
     }
   ]
 }

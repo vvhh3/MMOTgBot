@@ -60,6 +60,7 @@ export const players = sqliteTable("players",
     cooldowns: text("cooldowns", { mode: "json" }).$type<Cooldowns>().notNull().default({}),
     isCreated: integer("is_created", { mode: "boolean" }).notNull().default(false),
     factionId: text("faction_id").$type<import("@mmobot/shared").FactionId>(),
+    tutorialStep: text("tutorial_step", { enum: ["welcome", "battle", "equip", "complete", "done"] }).notNull().default("done"),
     avatar: text("avatar"),
   },
   // Индекс ускоряет поиск игроков по текущей локации (напр. "кто сейчас на площади").

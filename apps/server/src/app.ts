@@ -21,6 +21,7 @@ import { createAdminPlayerRoutes } from "./modules/admin/players.routes.js";
 import { createAuthRoutes } from "./modules/auth/routes.js";
 import { createCombatRoutes } from "./modules/combat/routes.js";
 import { createLeaderboardRoutes } from "./modules/leaderboard/routes.js";
+import { createTutorialRoutes } from "./modules/tutorial/routes.js";
 import { createLocationRoutes } from "./modules/locations/routes.js";
 import { createOnlinePlayerRoutes } from "./modules/players/online.routes.js";
 import { createPlayerRoutes } from "./modules/players/routes.js";
@@ -99,6 +100,7 @@ export function createApp(): express.Express {
   createCombatRoutes(app);
 
   createLeaderboardRoutes(app);
+  createTutorialRoutes(app);
 
   serveClient(app);
 

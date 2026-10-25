@@ -1,4 +1,5 @@
 import type { CombatStateResponse,ItemDto } from "@mmobot/shared";
+import { TUTORIAL_MOB_ID,TUTORIAL_REWARD_KEY } from "@mmobot/shared";
 import { and,eq,inArray,lt,sql } from "drizzle-orm";
 import { db } from "../../database/connection.js";
 import { toItemDto,toMobDto,toPlayerDto } from "../../database/mappers.js";
@@ -106,7 +107,7 @@ export function moveCombatAction(player: PlayerRow, mob: MobRow, session: Combat
         changed = true;
         return getCombatState(player, updated, mob);
     });
-    if (changed && result.status === 'victory') markMobDead(mob);
+    if (changed && result.status === 'victory' && mob.id !== TUTORIAL_MOB_ID) markMobDead(mob);
     if (changed && result.status === 'defeat') movePlayer(toPlayerDto({ ...player, currentLocationId: 'square' }), 'square');
     return result;
 }
@@ -126,6 +127,15 @@ function endCombatSession(status: "victory" | "defeat" | "fled" | "aborted", pla
     const droppedItems: ItemDto[] = [];
 
     if (status === "victory") {
+        if (mob.id === TUTORIAL_MOB_ID) {
+            const fresh = db.select().from(players).where(eq(players.id, player.id)).get()!;
+            if (fresh.tutorialStep !== "battle") throw new BattleError("Награда обучения уже получена", 409);
+            const reward = db.select().from(items).where(eq(items.catalogKey, TUTORIAL_REWARD_KEY)).get();
+            if (!reward || reward.type !== "weapon") throw new BattleError("Награда обучения недоступна", 409);
+            grantItems(db, player.id, reward.id, 1, now);
+            droppedItems.push(toItemDto(reward));
+            db.update(players).set({ tutorialStep: "equip" }).where(eq(players.id, player.id)).run();
+        }
         // Один розыгрыш при победе. Выдача, квесты и завершение боя — в транзакции хода.
         for (const item of rollLoot(mob.loot)) {
             grantItems(db, player.id, item, 1, now);

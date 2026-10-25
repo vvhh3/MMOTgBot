@@ -67,7 +67,7 @@ export default function Inventory({ token, player, inventory,onPlayer,onInventor
                                 title={entry?.item ? `${entry.item.name} · ${RARITY_LABELS[entry.item.rarity]}${entry.inventoryEntry.weaponLevel ? ` · Ур. ${entry.inventoryEntry.weaponLevel}` : ""}` : "Пустая ячейка"}
                                 aria-label={entry?.item ? `${entry.item.name}${entry.inventoryEntry.weaponLevel ? `, уровень ${entry.inventoryEntry.weaponLevel}` : ""}` : "Пустая ячейка"}
                                 style={{ borderColor: entry?.item?.type === "weapon" ? RARITY_COLORS[entry.item.rarity] : undefined }}
-                                className={`border aspect-square min-w-0 p-1 flex flex-col justify-between overflow-hidden ${entry?.equiped ? "border-[#E85D2F] border-2 bg-orange-50" : "border-[#898888]"}`}>
+                                className={`border aspect-square min-w-0 p-1 flex flex-col justify-between overflow-hidden ${!combat && player?.tutorialStep === "equip" && entry?.item?.type === "weapon" ? "tutorial-target" : ""} ${entry?.equiped ? "border-[#E85D2F] border-2 bg-orange-50" : "border-[#898888]"}`}>
                                 {entry?.item && (
                                     <>
                                         {entry.item.icon ? 

@@ -1,4 +1,5 @@
 import type { CombatActionResponse,CombatStartRequest } from "@mmobot/shared";
+import { TUTORIAL_MOB_ID } from "@mmobot/shared";
 import { and,desc,eq } from "drizzle-orm";
 import type express from "express";
 import { db } from "../../database/connection.js";
@@ -14,6 +15,7 @@ export function createCombatRoutes(app: express.Express): void {
   app.post("/combat/start", requireAuth, (req, res) => {
     const player = (req as AuthedRequest).player;
     const body = req.body as CombatStartRequest;
+    if (Number(body?.mobId) === TUTORIAL_MOB_ID) return res.status(409).json({ error: "Начните первое поручение через обучение" });
 
     // 1. Моб существует? (mobId приходит строкой из JSON, а id в БД — число)
     const mob = db.select().from(mobs).where(eq(mobs.id, Number(body.mobId))).get();

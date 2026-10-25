@@ -136,7 +136,7 @@ export function createPlayerRoutes(app: express.Express): void {
     }
 
     db.update(players)
-      .set({ name, factionId, avatar, isCreated: true })
+      .set({ name, factionId, avatar, isCreated: true, tutorialStep: "welcome" })
       .where(and(eq(players.id, player.id), eq(players.isCreated, false)))
       .run();
     const updated = db.select().from(players).where(eq(players.id, player.id)).get()!;
@@ -154,7 +154,7 @@ export function createPlayerRoutes(app: express.Express): void {
     }
     const player = (req as AuthedRequest).player;
     db.update(players)
-      .set({ isCreated: false, factionId: null, avatar: null })
+      .set({ isCreated: false, factionId: null, avatar: null, tutorialStep: "done" })
       .where(eq(players.id, player.id))
       .run();
     const updated = db.select().from(players).where(eq(players.id, player.id)).get()!;

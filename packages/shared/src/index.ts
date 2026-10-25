@@ -1,5 +1,6 @@
 export * from './combat.js';
 export * from './factions.js';
+export * from './tutorial.js';
 export * from './contracts/activity.js';
 export * from './contracts/auth.js';
 export * from './contracts/casino.js';

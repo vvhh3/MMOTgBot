@@ -1,4 +1,5 @@
 import { asc,eq,inArray } from "drizzle-orm";
+import { TUTORIAL_MOB_ID } from "@mmobot/shared";
 import type { Express } from "express";
 import { db } from "../../database/connection.js";
 import { toMobDto } from "../../database/mappers.js";
@@ -32,7 +33,7 @@ function parseMob(body: unknown, previous?: MobRow): typeof mobs.$inferInsert {
 
 export const createMobRoutes = (app: Express) => {
   app.get("/mobs", (_req, res) => {
-    res.json({ mobs: db.select().from(mobs).orderBy(asc(mobs.level)).all().map(toMobDto) });
+    res.json({ mobs: db.select().from(mobs).orderBy(asc(mobs.level)).all().filter((mob) => mob.id !== TUTORIAL_MOB_ID).map(toMobDto) });
   });
   app.get("/mobs/:id", (req, res) => {
     const mob = db.select().from(mobs).where(eq(mobs.id, Number(req.params.id))).get();
@@ -46,6 +47,7 @@ export const createMobRoutes = (app: Express) => {
     } catch (error) { res.status(400).json({ error: error instanceof Error ? error.message : "Не удалось создать монстра" }); }
   });
   app.put("/mobs/:id", (req, res) => {
+    if (Number(req.params.id) === TUTORIAL_MOB_ID) return res.status(409).json({ error: "Учебный противник не редактируется" });
     const previous = db.select().from(mobs).where(eq(mobs.id, Number(req.params.id))).get();
     if (!previous) return res.status(404).json({ error: "Монстр не найден" });
     try {
@@ -54,6 +56,7 @@ export const createMobRoutes = (app: Express) => {
     } catch (error) { res.status(400).json({ error: error instanceof Error ? error.message : "Не удалось сохранить монстра" }); }
   });
   app.delete("/mobs/:id", (req, res) => {
+    if (Number(req.params.id) === TUTORIAL_MOB_ID) return res.status(409).json({ error: "Учебный противник не удаляется" });
     const mob = db.select().from(mobs).where(eq(mobs.id, Number(req.params.id))).get();
     if (!mob) return res.status(404).json({ error: "Монстр не найден" });
     db.delete(mobs).where(eq(mobs.id, mob.id)).run();

@@ -1,0 +1,1 @@
+ALTER TABLE `players` ADD `tutorial_step` text DEFAULT 'done' NOT NULL;

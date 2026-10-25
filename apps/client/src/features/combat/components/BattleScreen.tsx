@@ -12,6 +12,7 @@ type Fighter = {
 };
 
 type BattleAction = {
+    highlight?: boolean;
     label: string;
     disabled: boolean;
     onClick: () => void;
@@ -59,7 +60,7 @@ export default function BattleScreen({
     const renderAction = (action: BattleAction) => (
         <Card>
             <button
-                className="flex h-full w-full items-center justify-center disabled:opacity-50"
+                className={`flex h-full w-full items-center justify-center rounded-lg disabled:opacity-50 ${action.highlight ? "tutorial-target" : ""}`}
                 disabled={action.disabled}
                 onClick={action.onClick}
             >

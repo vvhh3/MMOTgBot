@@ -80,6 +80,11 @@ export const InventoryRoutes = (app: Express) => {
             .where(eq(inventoryItems.id, inventoryItem.id))
             .run()
 
+        if (item.type === "weapon") {
+            db.update(players).set({ tutorialStep: "complete" })
+                .where(and(eq(players.id, player.id), eq(players.tutorialStep, "equip"))).run();
+        }
+
         });
 
         const update = db.select().from(inventoryItems).where(eq(inventoryItems.playerId, player.id)).all()
