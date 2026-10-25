@@ -18,19 +18,25 @@
 }
 
 .tutorial-target {
-    outline: 2px solid #e8603c;
-    outline-offset: -2px;
+    border: 2px solid #e8603c;
     animation: tutorial-pulse 1.6s ease-in-out 3;
 }
 
-@keyframes tutorial-pulse {
-    0%, 100% { box-shadow: inset 0 0 0 0 #e8603c00; }
-    50% { box-shadow: inset 0 0 0 5px #e8603c40; }
+.rt-Card.tutorial-target {
+    border-color: #e8603c;
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .tutorial-target { animation: none; }
+@keyframes tutorial-pulse {
+    0%, 100% {
+        border-color: #e8603c;
+        box-shadow: 0 0 0 0 #e8603c00;
+    }
+    50% {
+        border-color: #f5a58d;
+        box-shadow: 0 0 0 4px #e8603c33;
+    }
 }
+
 
 @theme {
     --font-sans: "Rubik", system-ui, sans-serif;
@@ -54,6 +60,10 @@ h2.text-2xl {
 .rt-Card {
     border: solid 2px;
     --base-card-border-width: 2px;
+}
+
+.rt-Card::before {
+    inset: 0;
 }
 
 .rt-Card::after {

@@ -17,9 +17,9 @@ export default function MovePanel({ state, disabled, onMove, onBack, tutorial = 
                 const moveDisabled = disabled || state.actionSubmitted || cooldown > 0;
 
                 return (
-                    <Card key={move.id}>
+                    <Card key={move.id} className={tutorial ? "tutorial-target" : undefined}>
                         <button
-                            className={`flex h-full w-full flex-col items-center justify-center rounded-lg disabled:opacity-50 ${tutorial ? "tutorial-target" : ""}`}
+                            className="flex h-full w-full flex-col items-center justify-center rounded-lg disabled:opacity-50"
                             disabled={moveDisabled}
                             onClick={() => onMove(move.id)}
                         >

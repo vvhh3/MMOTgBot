@@ -220,7 +220,7 @@ export default function PveFight({
             error={error}
             round={state.round}
             status={playback.busy ? undefined : tutorial && !finished && !pending ? <motion.span key={showMoves ? "move" : "attack"} initial={{ opacity: 0, y: reduced ? 0 : 4 }} animate={{ opacity: 1, y: 0 }}>
-                {showMoves ? "Выбери «Удар рукой» или атаку оружием. Затем противник ответит." : "Нажми «Битва», чтобы выбрать атаку. Зелёные полоски показывают здоровье."}
+                {showMoves ? "Выбери «Удар рукой» или атаку оружием. Затем противник ответит." : "Нажми «Битва», чтобы атаковать противника. Зелёные полоски показывают ваше здоровье."}
             </motion.span> : statusMessage}
             actions={{
                 attack: {

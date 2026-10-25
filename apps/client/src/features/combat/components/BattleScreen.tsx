@@ -58,9 +58,9 @@ export default function BattleScreen({
         : 0;
 
     const renderAction = (action: BattleAction) => (
-        <Card>
+        <Card className={action.highlight ? "tutorial-target" : undefined}>
             <button
-                className={`flex h-full w-full items-center justify-center rounded-lg disabled:opacity-50 ${action.highlight ? "tutorial-target" : ""}`}
+                className="flex h-full w-full items-center justify-center rounded-lg disabled:opacity-50"
                 disabled={action.disabled}
                 onClick={action.onClick}
             >

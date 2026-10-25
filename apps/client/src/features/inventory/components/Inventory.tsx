@@ -91,13 +91,13 @@ export default function Inventory({ token, player, inventory,onPlayer,onInventor
                 <Card>
                     <div className="flex flex-col">
                         <div className="flex flex-row ">
-                            <div className="flex flex-row w-35 mr-1.5">
-                                <img src={getSkins(player?.avatar)} className="h-25" />
-                                <div className="flex flex-col gap-1 w-5 justify-evenly">
+                            <div className="flex w-25 mr-1.5">
+                                <img src={getSkins(player?.avatar)} className="h-25 object-cover" />
+                                {/* <div className="flex flex-col gap-1 w-5 justify-evenly">
                                     <div className="h-5 w-5 border flex justify-center items-center"><button> +</button></div>
                                     <div className="h-5 w-5 border flex justify-center items-center"><button> +</button></div>
                                     <div className="h-5 w-5 border flex justify-center items-center"><button> +</button></div>
-                                </div>
+                                </div> */}
                             </div>
                             <div className="flex-1 min-w-0 flex flex-col">
                                 <div className="flex justify-end w-full">

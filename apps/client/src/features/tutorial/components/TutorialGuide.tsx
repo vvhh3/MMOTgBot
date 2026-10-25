@@ -57,7 +57,7 @@ export default function TutorialGuide({ token, player, onPlayer, onCombatState }
     : step === "equip" ? "Примерь первую находку"
     : step === "battle" ? "Закончим первое поручение?"
     : "Первый день в районе";
-  const description = complete ? "Побеждай в прогулках, собирай вещи и усиливай персонажа. Следующее приключение выбираешь ты."
+  const description = complete ? "Побеждай в прогулках, собирай вещи и усиливай персонажа. Следующее приключение выбираешь ты"
     : step === "equip" ? "Открой оружие в инвентаре и нажми «Надеть». Оно увеличит твою силу в следующем бою."
     : step === "battle" ? "Пакет ещё не побеждён. Продолжи бой или попробуй снова — дворник тебя подстрахует."
     : "Дворник: «Новенький? Мусорный пакет решил стать главным по району. Разберёшься — отдам Кирпич с дипломом».";
@@ -65,10 +65,10 @@ export default function TutorialGuide({ token, player, onPlayer, onCombatState }
   return <AnimatePresence>
     {visible && <motion.section ref={panel} key="tutorial" className={`tutorial-guide ${complete ? "tutorial-guide-complete" : ""}`}
       initial={{ opacity: 0, y: reduced ? 0 : 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, height: reduced ? undefined : 0, marginTop: 0, marginBottom: 0 }}
-      transition={{ duration: reduced ? 0 : 0.25 }} aria-label="Первое приключение">
+      transition={{ duration: reduced ? 0 : 0.25 }}>
       <div className="mb-3 flex items-center justify-between gap-3">
-        <span className="text-xs font-semibold uppercase tracking-wider text-orange-700">Первое приключение · {progress}/3</span>
-        {!complete && <button type="button" disabled={busy || !token} onClick={() => void run("skip")} className="min-h-9 px-2 text-xs text-gray-500 underline underline-offset-4 disabled:opacity-50">Пропустить обучение</button>}
+        <span className="text-xs font-semibold uppercase tracking-wider text-nowrap text-orange-700">Первое приключение · {progress}/3</span>
+        {!complete && <button type="button" disabled={busy || !token} onClick={() => void run("skip")} className="min-h-9 px-2 text-[10px] text-gray-500 underline text-nowrap disabled:opacity-50">Пропустить обучение</button>}
       </div>
       <div className="mb-4 grid grid-cols-3 gap-2" aria-label={`Выполнено шагов: ${progress} из 3`}>
         {["Первый бой", "Награда", "Экипировка"].map((label, index) => <div key={label}>
