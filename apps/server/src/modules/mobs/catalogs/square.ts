@@ -29,7 +29,7 @@ export const SQUARE_MOBS: readonly SquareMob[] = [
   { key: 'square_golem', name: 'Папочный голем «Не по форме»', description: 'Собран из папок, печатей и справок, которых у вас нет.', rank: 'elite', weight: 4,
     maxHealth: 88, strength: 11, defense: 5, attack: 'Удар печатью', strong: 'Верните оригинал',
     loot: ['fate_stapler', 'new_folder_37', 'utility_bill', 'final_thesis_usb', 'foil_hat_pro_max', 'yesterday_deadline_coffee', 'scrap_metal'] },
-  { key: 'square_speaker', name: 'Колонка «Ещё погромче»', description: 'Слышно весь город. Жалобы не слышно.', rank: 'elite', weight: 2,
+  { key: 'square_speaker', name: 'Колонка «Не бойся ночи»', description: 'Слышно весь город. Жалобы не слышно.', rank: 'elite', weight: 2,
     maxHealth: 82, strength: 12, defense: 3, attack: 'Бас по рёбрам', strong: 'Проверка звука',
     loot: ['district_extension_cord', 'double_click_mouse', 'eternal_caps_keyboard', 'everything_remote', 'iphone_9', 'old_rifle', 'scrap_metal'] },
   { key: 'square_ilyich', name: 'Ильич вне расписания', description: 'Вышел с постамента на внеплановый субботник.', rank: 'boss', weight: 1,

@@ -303,3 +303,42 @@ test('mutual exit does not consume a queued healing item', async () => {
   assert.equal(getPlayer(a.id).health, 80);
   assert.equal(db.select().from(inventoryItems).where(eq(inventoryItems.playerId, a.id)).get().quantity, 1);
 });
+
+test('PvP reveals status effects only after both choices, with identical absolute sides for both clients and safe retry', () => {
+  const { a, b, session } = duel();
+  const state = session.battleState;
+  state.fighters[0].passives = { weapon: { id: 'independent_life', params: { chancePercent: 100, durationRounds: 3, damageCoefficientPercent: 50 } } };
+  db.update(pvpSessions).set({ battleState: state }).where(eq(pvpSessions.id, session.id)).run();
+  const bodyA = command(session), bodyB = command(session);
+  assert.equal(choose(a, session, bodyA).status, 200);
+  assert.deepEqual(request('get', '/pvp/:id', b.id, session.id).body.statuses, [[], []]);
+  const random = mock.method(Math, 'random', () => 0);
+  try { assert.equal(choose(b, getSession(session.id), bodyB).status, 200); } finally { random.mock.restore(); }
+  const outgoing = request('get', '/pvp/:id', a.id, session.id).body;
+  const incoming = request('get', '/pvp/:id', b.id, session.id).body;
+  assert.equal(outgoing.statuses[1][0].kind, 'poison');
+  assert.deepEqual(incoming.statuses, outgoing.statuses);
+  assert.ok(outgoing.events.some(event => event.statuses[1].some(status => status.kind === 'poison')));
+  const persisted = getSession(session.id);
+  choose(b, persisted, bodyB);
+  assert.deepEqual(getSession(session.id), persisted);
+});
+
+test('simultaneous periodic knockout ends PvP as a draw with no rewards', () => {
+  const { a, b, session } = duel({ player1Health: 1, player2Health: 1 });
+  const state = session.battleState;
+  for (const fighter of state.fighters) fighter.moves = [{ id: 'unarmed_strike', name: 'Ожидание', kind: 'defend', accuracy: 100, priority: 1, power: 0, cooldownRounds: 0 }];
+  state.statuses = [0, 1].map(target => ({ kind: 'burn', target, source: 1 - target, value: 10, untilRound: 2 }));
+  db.update(pvpSessions).set({ battleState: state }).where(eq(pvpSessions.id, session.id)).run();
+  choose(a, session);
+  const result = choose(b, getSession(session.id));
+  assert.equal(result.body.state.finished, true);
+  assert.equal(result.body.state.isWon, null);
+  assert.deepEqual(result.body.state.statuses, [[], []]);
+  for (const original of [a, b]) {
+    const saved = getPlayer(original.id);
+    assert.equal(saved.health, 0);
+    assert.equal(saved.points, original.points);
+    assert.equal(saved.xp, original.xp);
+  }
+});

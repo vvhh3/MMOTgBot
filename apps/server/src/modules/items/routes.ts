@@ -43,7 +43,7 @@ function parseItem(body: unknown, previous?: ItemRow): typeof items.$inferInsert
   }
   if (value.passiveId != null) {
     const id = member(value.passiveId, getPassiveIdsForType(type), "Эффект для выбранного типа предмета");
-    const params = input.passiveParams ?? (previous?.passiveId === id ? previous.passiveParams : getDefaultPassiveParams(id));
+    const params = input.passiveParams ?? { ...getDefaultPassiveParams(id), ...(previous?.passiveId === id ? previous.passiveParams : {}) };
     if (!params || typeof params !== "object" || Array.isArray(params)) throw new Error("Некорректные параметры пассивки");
     const definition = getPassiveDefinition(id);
     if (Object.keys(params).some((key) => !(key in definition.parameters))) throw new Error("Неизвестный параметр пассивки");

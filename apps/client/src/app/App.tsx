@@ -125,6 +125,7 @@ export default function App() {
         if (incomingPvp) {
           setPvpState({
             round: 1, stateVersion: 0, roundStartedAt: null, events: [], moves: [], actionSubmitted: false, healingAvailable: true,
+            statuses: [[], []],
             exitRequested: false, partnerExitRequested: false,
             id: incomingPvp.id,
             status: "pending",

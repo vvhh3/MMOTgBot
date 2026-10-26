@@ -3,7 +3,7 @@ import { db } from "../../../database/connection.js";
 import type { MobRow,PlayerRow } from '../../../database/schema.js';
 import { inventoryItems,items } from '../../../database/schema.js';
 import { mobMoves } from '../../mobs/balance.js';
-import { getItemMinLevel } from '@mmobot/shared';
+import { getItemMinLevel, getPassiveDefinition, resolvePassiveParams, type BattlePassive } from '@mmobot/shared';
 import { equipmentMoves } from './moves.js';
 export function getEquippedItems(player: PlayerRow) {
   return db.select({ item: items }).from(inventoryItems).innerJoin(items, eq(inventoryItems.itemType, items.id))
@@ -12,7 +12,14 @@ export function getEquippedItems(player: PlayerRow) {
 }
 export function playerFighter(player: PlayerRow) {
   const equipment = getEquippedItems(player);
+  const weapon = equipment.find(i => i.type === 'weapon');
+  const passives: Partial<Record<'weapon' | 'armor', BattlePassive>> = {};
+  for (const item of equipment) {
+    if (item.passiveId && getPassiveDefinition(item.passiveId).available !== false)
+      passives[item.type as 'weapon' | 'armor'] = { id: item.passiveId, params: resolvePassiveParams(item.passiveId, item.passiveParams) };
+  }
   return { name: player.name, maxHp: player.maxHealth,
+    damageType: weapon?.damageType ?? undefined, passives,
     strength: player.strength + equipment.reduce((n, i) => n + i.damage, 0),
     defense: player.defense + equipment.reduce((n, i) => n + i.defense, 0),
     moves: equipmentMoves(equipment.find(i => i.type === 'weapon'), equipment.find(i => i.type === 'armor')) };

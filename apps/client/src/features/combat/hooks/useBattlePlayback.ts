@@ -1,4 +1,4 @@
-import type { BattleEvent } from "@mmobot/shared";
+import type { BattleEvent, BattleStatusView } from "@mmobot/shared";
 import { useEffect,useState } from "react";
 
 type BattleMessageCursor = {
@@ -11,6 +11,7 @@ export function useBattlePlayback(
     battleId: string,
     health: [number, number],
     events: BattleEvent[],
+    statuses: [BattleStatusView[], BattleStatusView[]] = [[], []],
 ) {
     const latestSequence = events.at(-1)?.sequence ?? 0;
     const [cursor, setCursor] = useState<BattleMessageCursor>({
@@ -43,6 +44,7 @@ export function useBattlePlayback(
 
     return {
         hp: message?.hp ?? health,
+        statuses: message ? message.statuses ?? [[], []] : statuses,
         busy: message !== null,
         message,
         remainingMessages: unreadMessages.length,

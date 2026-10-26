@@ -1,6 +1,6 @@
 import type { ItemRarity } from './weapons.js';
 
-// Initial item level. Upgrades and future passive effects do not modify this profile.
+// Base item stats. Passive modifiers are resolved separately during battle; upgrades are deferred.
 export const ITEM_BALANCE: Record<ItemRarity, {
   minLevel: number; damage: number; defense: number; price: number; sellPrice: number;
   strongPower: number; strongAccuracy: number;

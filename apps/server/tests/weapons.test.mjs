@@ -415,3 +415,60 @@ test("NPC buyback is independent of retail price and ignores forged sale prices"
     assert.equal(request('put', '/items/:id', { id: item.id, body: { sellPrice } }).status, 400);
   }
 });
+
+test('admin-created passive works in PvE, freezes its parameters, persists statuses and does not replay on retry', () => {
+  const created = request('post', '/items', { body: { name: 'Тестовый ядовитый инструмент', description: 'Пассивка', type: 'weapon', damage: 2,
+    passiveId: 'independent_life', passiveParams: { chancePercent: 100, durationRounds: 3, damageCoefficientPercent: 50 } } });
+  assert.equal(created.status, 200);
+  const item = created.body.item, p = player();
+  const [owned] = give(p.id, item.id);
+  assert.equal(request('post', '/inventory/equip', { playerId: p.id, body: { inventoryItemId: owned.id } }).status, 200);
+  const target = db.insert(mobs).values({ name: 'Проверка эффектов', description: 'Тест', level: 1, maxHealth: 1000, strength: 0, defense: 0,
+    loot: [], pointsReward: 0, locationId: 'square', respawnSeconds: 1 }).returning().get();
+  const started = startCombat(getPlayer(p.id), target);
+  const saved = () => db.select().from(combatSessions).where(eq(combatSessions.id, started.id)).get();
+  const initial = saved();
+  const body = { sessionId: initial.id, round: initial.roundNumber, expectedVersion: initial.stateVersion, requestId: 'passive-once', moveId: 'weapon_attack' };
+  const first = moveCombatAction(getPlayer(p.id), target, initial, 'attack', body);
+  assert.equal(first.statuses[1][0].kind, 'poison');
+  assert.equal(first.statuses[1][0].remainingRounds, 2);
+  const persisted = saved();
+  assert.equal(persisted.battleState.fighters[0].passives.weapon.params.damageCoefficientPercent, 50);
+  assert.equal(request('put', '/items/:id', { id: item.id, body: { passiveId: 'burning', passiveParams: { chancePercent: 100, durationRounds: 1, damageCoefficientPercent: 100 } } }).status, 200);
+  moveCombatAction(getPlayer(p.id), target, saved(), 'attack', body);
+  assert.deepEqual(saved(), persisted);
+  initializeDatabase();
+  assert.deepEqual(saved(), persisted);
+  const second = moveCombatAction(getPlayer(p.id), target, saved(), 'attack', { ...body, requestId: 'passive-two', round: 2, expectedVersion: persisted.stateVersion });
+  assert.ok(second.statuses[1].some(status => status.kind === 'poison'));
+  assert.ok(second.statuses[1].every(status => status.kind !== 'burn'));
+});
+
+test('existing passive JSON gets newly added defaults on edit; invalid passive parameters cannot partially update items', () => {
+  const item = db.insert(items).values({ name: 'Старая квитанция', description: 'Тест', type: 'weapon', passiveId: 'fine_print', passiveParams: {} }).returning().get();
+  assert.equal(request('put', '/items/:id', { id: item.id, body: { price: 100 } }).status, 200);
+  const saved = db.select().from(items).where(eq(items.id, item.id)).get();
+  assert.equal(saved.passiveParams.damageBonusPerMarkPercent, 15);
+  const invalid = request('put', '/items/:id', { id: item.id, body: { price: 200, passiveParams: { damageBonusPerMarkPercent: 101 } } });
+  assert.equal(invalid.status, 400);
+  assert.deepEqual(db.select().from(items).where(eq(items.id, item.id)).get(), saved);
+});
+
+test('percent healing can cleanse at full health in battle and is consumed once', () => {
+  const p = player();
+  const created = request('post', '/items', { body: { name: 'Тестовое очищение', description: 'Процентное лечение', type: 'potion', healAmount: 0,
+    passiveId: 'primordial_dumpling' } });
+  assert.equal(created.status, 200);
+  const item = created.body.item;
+  give(p.id, item.id, 2);
+  const target = db.insert(mobs).values({ name: 'Очищение', description: 'Тест', level: 1, maxHealth: 1000, strength: 0, defense: 0,
+    loot: [], pointsReward: 0, locationId: 'square', respawnSeconds: 1 }).returning().get();
+  const state = startCombat(getPlayer(p.id), target);
+  const session = db.select().from(combatSessions).where(eq(combatSessions.id, state.id)).get();
+  session.battleState.statuses = [{ kind: 'poison', source: 1, target: 0, value: 1, untilRound: 3 }];
+  db.update(combatSessions).set({ battleState: session.battleState }).where(eq(combatSessions.id, session.id)).run();
+  const healed = usePotion(getPlayer(p.id), item.id, session, target);
+  assert.ok(healed.statuses[0].every(status => status.kind !== 'poison'));
+  assert.equal(healed.healingAvailable, false);
+  assert.equal(getInventory(p.id).find(entry => entry.itemType === item.id).quantity, 1);
+});

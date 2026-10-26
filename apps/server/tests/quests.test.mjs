@@ -242,7 +242,9 @@ test("walk and visit quests match location targets", () => {
   assert.equal(assigned(visit.id).progress, 1);
 });
 
-test("combat loot advances item and kill quests; ordinary collection does not advance loot quests", () => {
+test("combat loot advances item and kill quests; ordinary collection does not advance loot quests", (t) => {
+  // This checks quest rewards; a random 5% attack miss must not make it intermittent.
+  t.mock.method(Math, 'random', () => 0);
   const p = player();
   const stick = db.select().from(items).where(eq(items.name, "Палка")).get();
   const rat = db.insert(mobs).values({ name: 'Тестовый противник', description: 'Проверка заданий', level: 1, maxHealth: 1,

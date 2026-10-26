@@ -1,4 +1,5 @@
 import type { BattlePublicState,BattleRequest,BattleSide,BattleState } from '@mmobot/shared';
+import { battleStatusViews } from '@mmobot/shared';
 
 export class BattleError extends Error {
   constructor(message: string, public status = 409) { super(message); }
@@ -30,7 +31,8 @@ export function publicBattle(state: BattleState | null, round: number, version: 
   return {
     round, stateVersion: version, roundStartedAt: startedAt,
     events: state?.events ?? [], actionSubmitted: !!state?.choices[side], finishReason: state?.finishReason,
-    healingAvailable: state?.healingLimit === undefined || state.events.filter(e => e.type === 'heal' && e.side === side).length < state.healingLimit,
+    healingAvailable: state?.healingLimit === undefined || state.events.filter(e => e.type === 'heal' && e.side === side && e.source !== 'passive' && e.source !== 'status').length < state.healingLimit,
+    statuses: state ? battleStatusViews(state, round) : [[], []],
     moves: state?.fighters[side].moves.filter(m => m.itemType === undefined).map(m => ({ ...m, availableFromRound: state.cooldowns[side][m.id] ?? 1 })) ?? [],
   };
 }

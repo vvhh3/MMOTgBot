@@ -1,6 +1,8 @@
 import { Card,Grid,Progress,Text } from "@radix-ui/themes";
 import type { ReactNode } from "react";
 import DamageEffect from "./DamageEffect";
+import type { BattleStatusView } from '@mmobot/shared';
+import BattleStatusBadges from './BattleStatusBadges';
 
 type Fighter = {
     name: string;
@@ -9,6 +11,7 @@ type Fighter = {
     image: string;
     mirrored?: boolean;
     maxImageWidth?: number;
+    statuses?: BattleStatusView[];
 };
 
 type BattleAction = {
@@ -114,6 +117,7 @@ export default function BattleScreen({
                                     color={fighter.hp <= 0 ? "red" : "green"}
                                     value={healthPercent(fighter)}
                                 />
+                                <BattleStatusBadges statuses={fighter.statuses ?? []} fighterName={fighter.name} />
                             </Card>
                         ))}
                         {fighters.map((fighter, index) => (

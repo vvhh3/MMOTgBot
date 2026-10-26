@@ -9,6 +9,7 @@ export type CombatInventoryActions = {
   busy: boolean;
   healthFull: boolean;
   healingAvailable: boolean;
+  hasNegativeEffects?: boolean;
 };
 
 type CenterModalItemProps = {
@@ -51,6 +52,8 @@ export default function CenterModalItem({
 
   if (item === null) return null;
   const levelLocked = playerLevel < item.minLevel;
+  const healthFull = combat?.healthFull && !(item.passiveId === 'primordial_dumpling' && combat.hasNegativeEffects);
+  const healingSupported = item.healAmount > 0 || !!combat && (item.passiveId === 'primordial_dumpling' || item.passiveId === 'mothers_care');
 
   const close = () => {
     onItem(null);
@@ -60,7 +63,7 @@ export default function CenterModalItem({
   const handleUse = async () => {
     if (!token || !inventoryEntry || busy || combat?.busy) return;
     if (levelLocked && !equiped) return;
-    if (combat && (item.type !== "potion" || combat.healthFull || !combat.healingAvailable)) return;
+    if (combat && (item.type !== "potion" || healthFull || !combat.healingAvailable || !healingSupported)) return;
     setBusy(true);
     try {
       let res;
@@ -167,10 +170,10 @@ export default function CenterModalItem({
         <div className="flex justify-center">
           <button
             className="p-3 bg-green-500 rounded-2xl m-4 text-white disabled:opacity-50"
-            disabled={busy || levelLocked || combat?.busy || combat?.healthFull || combat?.healingAvailable === false || item.healAmount <= 0}
+            disabled={busy || levelLocked || combat?.busy || healthFull || combat?.healingAvailable === false || !healingSupported}
             onClick={handleUse}
           >
-            {levelLocked ? `Требуется уровень ${item.minLevel}` : combat?.healingAvailable === false ? "Лечение уже использовано" : item.healAmount <= 0 ? "Эффект появится позже" : combat?.healthFull ? "Здоровье полное" : busy ? "Использование…" : "Использовать"}
+            {levelLocked ? `Требуется уровень ${item.minLevel}` : combat?.healingAvailable === false ? "Лечение уже использовано" : !healingSupported ? "Нет лечения вне боя" : healthFull ? "Здоровье полное" : busy ? "Использование…" : "Использовать"}
           </button>
         </div>
       )}

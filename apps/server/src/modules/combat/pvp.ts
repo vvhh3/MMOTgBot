@@ -44,6 +44,7 @@ function finishPvpSession(sessionId: number, winnerId: number | null, reason: Ba
         if (winner === current.player2Id) finished.player1Health = 0;
         if (state) {
             state.finishReason = reason;
+            state.statuses = []; state.effects = [];
             event(state, current.roundNumber, 'finish', [finished.player1Health, finished.player2Health], nowGameTime(),
                 reason === 'mutual_exit' ? 'Бой завершён по согласию обоих' : reason === 'inactivity' ? 'Бой завершён: оба участника бездействовали' : reason === 'timeout' ? 'Поражение за бездействие' : 'Бой завершён');
         }

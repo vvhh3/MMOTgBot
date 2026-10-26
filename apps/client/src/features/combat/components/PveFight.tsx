@@ -65,6 +65,7 @@ export default function PveFight({
         `pve-${state?.id}`,
         [state?.playerHp ?? 0, state?.mobHp ?? 0],
         state?.events ?? [],
+        state?.statuses,
     );
 
     useEffect(() => {
@@ -206,6 +207,7 @@ export default function PveFight({
             player={{
                 name: player?.name ?? "",
                 hp: playback.hp[0],
+                statuses: playback.statuses[0],
                 maxHp: state.playerMaxHp,
                 image: getSkins(player?.avatar),
                 mirrored: true,
@@ -214,6 +216,7 @@ export default function PveFight({
             opponent={{
                 name: tutorial ? state.mob.name : `${state.mob.name} · ур. ${state.mob.level}${state.mob.rank ? ` · ${MOB_RANK_LABELS[state.mob.rank]}` : ''}`,
                 hp: playback.hp[1],
+                statuses: playback.statuses[1],
                 maxHp: state.mobMaxHp,
                 image: getCharacterImage("/character-images/monstr.svg"),
             }}
@@ -259,6 +262,7 @@ export default function PveFight({
                         busy: pending || playback.busy,
                         healthFull: state.playerHp >= state.playerMaxHp,
                         healingAvailable: state.healingAvailable,
+                        hasNegativeEffects: state.statuses?.[0].some(status => !status.positive),
                     }}
                 />
             )}

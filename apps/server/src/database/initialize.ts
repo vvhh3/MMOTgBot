@@ -145,6 +145,9 @@ export function initializeDatabase(): void {
     // Existing IDs, base stats and loot stay intact; only the previously code-owned profile is initialized.
     db.update(mobs).set({ combatProfile }).where(and(eq(mobs.catalogKey, profile.key), isNull(mobs.combatProfile))).run();
   }
+  // Rename the original speaker while preserving names customized in the admin panel.
+  db.update(mobs).set({ name: 'Колонка «Не бойся ночи»' })
+    .where(and(eq(mobs.catalogKey, 'square_speaker'), eq(mobs.name, 'Колонка «Ещё погромче»'))).run();
   const mobId = (key: string) => String(db.select().from(mobs).where(eq(mobs.catalogKey, key)).get()!.id);
 
   // Дополняем каталог и в существующей БД. Награды/настройки уже созданных

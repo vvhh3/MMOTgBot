@@ -55,6 +55,7 @@ export default function Fight({
             ? [pvpState?.myHp ?? 0, pvpState?.partnerHp ?? 0]
             : [pvpState?.partnerHp ?? 0, pvpState?.myHp ?? 0],
         pvpState?.events ?? [],
+        pvpState?.statuses,
     );
 
     useEffect(() => {
@@ -258,6 +259,7 @@ export default function Fight({
             player={{
                 name: player?.name ?? pvpState.myName,
                 hp: playback.hp[side],
+                statuses: playback.statuses[side],
                 maxHp: pvpState.myMaxHp,
                 image: getSkins(player?.avatar),
                 mirrored: true,
@@ -266,6 +268,7 @@ export default function Fight({
             opponent={{
                 name: pvpState.partnerName,
                 hp: playback.hp[side === 0 ? 1 : 0],
+                statuses: playback.statuses[side === 0 ? 1 : 0],
                 maxHp: pvpState.partnerMaxHp,
                 image: getSkins(pvpState.partnerAvatar),
                 maxImageWidth: 180,
@@ -313,6 +316,7 @@ export default function Fight({
                         busy: pending || inventoryLoading || pvpState.actionSubmitted || playback.busy,
                         healthFull: pvpState.myHp >= pvpState.myMaxHp,
                         healingAvailable: pvpState.healingAvailable,
+                        hasNegativeEffects: pvpState.statuses?.[side].some(status => !status.positive),
                     }}
                 />
             )}

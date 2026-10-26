@@ -1,5 +1,4 @@
-// Метаданные будущей боевой системы. Сейчас урон использует прежнюю формулу,
-// уровень, категория, разновидность урона и пассивки её не изменяют.
+// Общие свойства предметов и параметры исполняемых боевых способностей.
 export const ITEM_RARITIES = ["common", "uncommon", "rare", "epic", "legendary"] as const;
 export type ItemRarity = typeof ITEM_RARITIES[number];
 export const RARITY_LABELS: Record<ItemRarity, string> = {
@@ -31,14 +30,15 @@ export const DAMAGE_TYPES_BY_CATEGORY: Record<DamageCategory, readonly DamageTyp
 type PassiveParameter = { label: string; default: number; min: number; max: number };
 type PassiveDefinition = {
   name: string;
+  available?: boolean;
   itemTypes?: readonly ("weapon" | "armor" | "potion")[]; // по умолчанию — только оружие
   parameters: Record<string, PassiveParameter>;
   describe: (parameters: Record<string, number>) => string;
 };
-const percent = (label: string, value: number): PassiveParameter => ({ label, default: value, min: 1, max: 100 });
+const percent = (label: string, value: number, max = 100): PassiveParameter => ({ label, default: value, min: 1, max });
 export const ITEM_PASSIVES = {
   long_handle: {
-    name: "Длинная ручка", parameters: { armorIgnorePercent: percent("Игнорирование брони, %", 10) },
+    name: "Длинная ручка", parameters: { armorIgnorePercent: percent("Игнорирование брони, %", 10, 50) },
     describe: (p) => `После защиты, ослабившей удар, следующая атака игнорирует ${p.armorIgnorePercent}% брони. Бонус не накапливается.`,
   },
   returning: {
@@ -46,20 +46,25 @@ export const ITEM_PASSIVES = {
     describe: (p) => `Чередование двух разных атакующих приёмов усиливает второй на ${p.damageBonusPercent}%. Дополнительного удара нет.`,
   },
   precision: {
-    name: "Канцелярская точность", parameters: { criticalChancePercent: percent("Бонус к шансу крита, п.п.", 5) },
-    describe: (p) => `Повышает шанс критического прямого удара на ${p.criticalChancePercent} п.п.`,
+    name: "Канцелярская точность", parameters: { criticalChancePercent: percent("Бонус к шансу крита, п.п.", 5, 50) },
+    describe: (p) => `Шанс критического прямого удара +${p.criticalChancePercent} п.п. (не выше 50%). Крит умножает мощность на 1,5 до вычитания защиты. Без способностей исходный шанс — 0%.`,
   },
   questionable_freshness: {
-    name: "Сомнительная свежесть", parameters: { healingReductionPercent: percent("Снижение лечения, %", 15) },
-    describe: (p) => `Пока цель отравлена этим оружием, получаемое ею лечение слабее на ${p.healingReductionPercent}%.`,
+    name: "Сомнительная свежесть", parameters: {
+      chancePercent: percent("Шанс отравления, %", 20),
+      durationRounds: { label: "Длительность, раунды", default: 2, min: 1, max: 5 },
+      damageCoefficientPercent: percent("Урон за тик от атаки, %", 10),
+      healingReductionPercent: percent("Снижение лечения, %", 15),
+    },
+    describe: (p) => `Попадание с шансом ${p.chancePercent}% отравляет на ${p.durationRounds} раунда: ${p.damageCoefficientPercent}% атаки за тик до защиты. Пока действует это отравление, лечение цели слабее на ${p.healingReductionPercent}%.`,
   },
   last_percent: {
     name: "Последний процент", parameters: { healthThresholdPercent: percent("Порог здоровья, %", 30), damageBonusPercent: percent("Усиление атаки, %", 20) },
     describe: (p) => `Один раз за бой: если перед атакой здоровье ниже ${p.healthThresholdPercent}%, её прямой урон выше на ${p.damageBonusPercent}%.`,
   },
   fine_print: {
-    name: "Мелкий шрифт", parameters: {},
-    describe: () => "Первый защитный приём противника за бой добавляет одну метку долга, в пределах общего лимита двух меток.",
+    name: "Мелкий шрифт", parameters: { damageBonusPerMarkPercent: percent("Мощность сильной атаки за метку, %", 15) },
+    describe: (p) => `Первый защитный приём противника за бой добавляет метку долга. До двух меток на цели, срок — до конца следующего раунда. Сильная атака расходует метки и получает +${p.damageBonusPerMarkPercent}% мощности за каждую. Метки расходуются и при промахе.`,
   },
   burning: {
     name: "Накипело", parameters: { chancePercent: percent("Шанс поджога, %", 20), durationRounds: { label: "Длительность, раунды", default: 2, min: 1, max: 5 }, damageCoefficientPercent: percent("Урон за тик от атакующей мощности, %", 10) },
@@ -74,12 +79,12 @@ export const ITEM_PASSIVES = {
     describe: (p) => `Прямой урон по цели, выбравшей защиту, увеличен на ${p.damageBonusPercent}%.`,
   },
   stale_crust: {
-    name: "Каменная корочка", parameters: { chancePercent: percent("Шанс, %", 15), armorIgnorePercent: percent("Игнорирование брони, %", 20) },
+    name: "Каменная корочка", parameters: { chancePercent: percent("Шанс, %", 15), armorIgnorePercent: percent("Игнорирование брони, %", 20, 50) },
     describe: (p) => `Попадание с шансом ${p.chancePercent}% игнорирует ${p.armorIgnorePercent}% брони цели.`,
   },
   suction: {
     name: "Не отлипает", parameters: { chancePercent: percent("Шанс, %", 15), damageReductionPercent: percent("Ослабление атаки, %", 15) },
-    describe: (p) => `Попадание с шансом ${p.chancePercent}% ослабляет следующую прямую атаку цели на ${p.damageReductionPercent}%. Повторное наложение не складывается.`,
+    describe: (p) => `Попадание с шансом ${p.chancePercent}% накладывает страх: мощность следующей атаки цели ниже на ${p.damageReductionPercent}%. Расходуется и при промахе, не складывается. Исчезает через два следующих раунда.`,
   },
   saved_for_tomorrow: {
     name: "Это на завтра", itemTypes: ["armor"], parameters: { damageReductionPercent: percent("Снижение первого урона, %", 15) },
@@ -107,15 +112,15 @@ export const ITEM_PASSIVES = {
   },
   lost_in_folders: {
     name: "Потерялся", parameters: { chancePercent: percent("Шанс, %", 20), accuracyReductionPercent: percent("Снижение точности, п.п.", 15) },
-    describe: (p) => `Попадание с шансом ${p.chancePercent}% снижает точность следующей атаки цели на ${p.accuracyReductionPercent} п.п. Эффект не складывается.`,
+    describe: (p) => `Попадание с шансом ${p.chancePercent}% накладывает замешательство: точность следующей атаки цели ниже на ${p.accuracyReductionPercent} п.п. Расходуется и при промахе, не складывается. Исчезает через два следующих раунда.`,
   },
   clear_mind: {
     name: "Мысли стекают", itemTypes: ["armor"], parameters: { damageReductionPercent: percent("Снижение психического урона, %", 20) },
     describe: (p) => `Уменьшает получаемый психический урон на ${p.damageReductionPercent}%.`,
   },
   caffeine_credit: {
-    name: "Скорость в кредит", itemTypes: ["potion"], parameters: { speedBonusPercent: percent("Ускорение, %", 25), durationRounds: { label: "Длительность ускорения, раунды", default: 2, min: 1, max: 5 }, slowdownPercent: percent("Последующее замедление, %", 15) },
-    describe: (p) => `Повышает скорость на ${p.speedBonusPercent}% на ${p.durationRounds} раунда, затем снижает её на ${p.slowdownPercent}% на один раунд. Повторное применение не складывается.`,
+    name: "Скорость в кредит", available: false, itemTypes: ["potion"], parameters: { speedBonusPercent: percent("Ускорение, %", 25), durationRounds: { label: "Длительность ускорения, раунды", default: 2, min: 1, max: 5 }, slowdownPercent: percent("Последующее замедление, %", 15) },
+    describe: () => 'Архивная способность: скорость в бою не используется. Работает только обычное лечение предмета.',
   },
   caps_lock: {
     name: "Я НЕ КРИЧУ", parameters: { damageBonusPerHitPercent: percent("Усиление за попадание, %", 5), maxStacks: { label: "Максимум усилений", default: 3, min: 1, max: 5 } },
@@ -135,7 +140,7 @@ export const ITEM_PASSIVES = {
   },
   chat_ban: {
     name: "Пункт 3.14", parameters: { chancePercent: percent("Шанс блокировки, %", 15), durationRounds: { label: "Длительность, раунды", default: 1, min: 1, max: 3 } },
-    describe: (p) => `Попадание с шансом ${p.chancePercent}% блокирует пассивку оружия противника на ${p.durationRounds} раунда. Повторное наложение обновляет срок.`,
+    describe: (p) => `Попадание с шансом ${p.chancePercent}% блокирует пассивку оружия противника до конца ${p.durationRounds}-го следующего раунда. Атаки и пассивка брони доступны. Повторное наложение обновляет срок.`,
   },
   admin_aim: {
     name: "Я всё вижу", parameters: { accuracyBonusPercent: percent("Бонус точности, п.п.", 25), damageBonusPercent: percent("Усиление удара, %", 20) },
@@ -147,7 +152,11 @@ export const ITEM_PASSIVES = {
   },
   primordial_dumpling: {
     name: "Последний в пачке", itemTypes: ["potion"], parameters: { healingPercent: percent("Лечение от максимального HP, %", 50) },
-    describe: (p) => `Один раз за бой восстанавливает ${p.healingPercent}% максимального HP и снимает один случайный отрицательный эффект.`,
+    describe: (p) => `В бою вместо фиксированного лечения восстанавливает ${p.healingPercent}% максимального HP и снимает один случайный отрицательный эффект. Расходует разрешённое использование лечебного предмета.`,
+  },
+  soaking: {
+    name: 'Мокрое дело', itemTypes: ['weapon', 'armor', 'potion'], parameters: { chancePercent: percent('Шанс намокания, %', 30), durationRounds: { label: 'Длительность, раунды', default: 2, min: 1, max: 5 } },
+    describe: (p) => `При попадании оружием, защитном приёме брони или использовании расходника: шанс ${p.chancePercent}% намочить противника до конца ${p.durationRounds}-го следующего раунда. Усиливает разряд «Короткого замыкания». Повторное наложение обновляет срок.`,
   },
 } satisfies Record<string, PassiveDefinition>;
 
@@ -163,6 +172,13 @@ export const WEAPON_PASSIVES = ITEM_PASSIVES;
 export const WEAPON_PASSIVE_IDS = getPassiveIdsForType("weapon");
 export function getDefaultPassiveParams(id: WeaponPassiveId): Record<string, number> {
   return Object.fromEntries(Object.entries(getPassiveDefinition(id).parameters).map(([key, value]) => [key, value.default]));
+}
+/** Old saved items may lack parameters added with a newer mechanic. */
+export function resolvePassiveParams(id: ItemPassiveId, saved: Record<string, number> = {}): Record<string, number> {
+  return Object.fromEntries(Object.entries(getPassiveDefinition(id).parameters).map(([key, rule]) => {
+    const value = saved[key];
+    return [key, Number.isSafeInteger(value) ? Math.max(rule.min, Math.min(rule.max, value)) : rule.default];
+  }));
 }
 export type WeaponProperties = {
   rarity: ItemRarity;

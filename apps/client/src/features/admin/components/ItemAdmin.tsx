@@ -1,13 +1,11 @@
 import {
 DAMAGE_CATEGORY_LABELS,
 DAMAGE_TYPE_LABELS,DAMAGE_TYPES_BY_CATEGORY,
-getDefaultPassiveParams,getPassiveDefinition,
-getPassiveIdsForType,
+getPassiveDefinition,resolvePassiveParams,ITEM_BALANCE,HEALING_BALANCE,
 ItemDto,
 RARITY_COLORS,
 RARITY_LABELS,
 WEAPON_FAMILY_LABELS,
-type ItemPassiveId,
 } from "@mmobot/shared";
 import {
 Button,
@@ -23,6 +21,8 @@ TextField
 } from "@radix-ui/themes";
 import { useEffect,useState } from "react";
 import { createItem,deleteItem,getItems,updateItem } from "../../items/api";
+import ItemPassiveEditor from './ItemPassiveEditor';
+import ItemBalancePreview from './ItemBalancePreview';
 
 type ItemAdminProps = {
     token: string | null
@@ -58,6 +58,9 @@ const NumberField = ({ label, value, min, onChange }: NumberFieldProps) => (
         <TextField.Root
             type="number"
             min={min}
+            max={Number.MAX_SAFE_INTEGER}
+            step={1}
+            required
             value={value}
             onChange={(e) => onChange(Number(e.target.value))}
         />
@@ -82,6 +85,7 @@ export const ItemAdmin = ({ token }: ItemAdminProps) => {
 
     const [error, setError] = useState<string | null>(null)
     const [saved, setSaved] = useState(false)
+    const [busy, setBusy] = useState(false)
 
     const refresh = () => {
         if (!token) return
@@ -95,12 +99,15 @@ export const ItemAdmin = ({ token }: ItemAdminProps) => {
     }, [token])
 
     const save = async () => {
-        if (!token) return
+        if (!token || busy) return
+        setBusy(true)
         try {
+            const payload = { ...draft, passiveParams: draft.passiveId
+                ? { ...resolvePassiveParams(draft.passiveId, draft.passiveParams), ...draft.passiveParams } : {} };
             if (draft.id > 0) {
-                await updateItem(token, draft.id, draft)
+                await updateItem(token, draft.id, payload)
             } else {
-                await createItem(token, draft)
+                await createItem(token, payload)
             }
             setDraft(emptyItem)
             setSaved(true)
@@ -109,6 +116,8 @@ export const ItemAdmin = ({ token }: ItemAdminProps) => {
             refresh()
         } catch (e) {
             setError(e instanceof Error ? e.message : "Ошибка сохранения")
+        } finally {
+            setBusy(false)
         }
     }
 
@@ -126,13 +135,15 @@ export const ItemAdmin = ({ token }: ItemAdminProps) => {
         
         <Flex direction="column" gap="4">
             <Card size="3">
+                <form onSubmit={(event) => { event.preventDefault(); void save(); }}>
+                <fieldset disabled={busy} className="min-w-0">
                 <Flex direction="column" gap="4">
                     <Flex align="center" gap="2">
                         <Heading size="4">
                             {draft.id > 0 ? `Редактирование предмета #${draft.id}` : "Новый предмет"}
                         </Heading>
                         {draft.id > 0 && (
-                            <Button variant="ghost" size="1" color="gray" onClick={() => setDraft(emptyItem)}>
+                            <Button type="button" variant="ghost" size="1" color="gray" onClick={() => setDraft(emptyItem)}>
                                 Отменить
                             </Button>
                         )}
@@ -155,6 +166,7 @@ export const ItemAdmin = ({ token }: ItemAdminProps) => {
                             </Text>
                             <TextField.Root
                                 placeholder="Например: Кирка"
+                                required
                                 value={draft.name}
                                 onChange={(e) => setDraft({ ...draft, name: e.target.value })} />
                         </label>
@@ -165,6 +177,7 @@ export const ItemAdmin = ({ token }: ItemAdminProps) => {
                             </Text>
                             <TextField.Root
                                 placeholder="Описание предмета"
+                                required
                                 value={draft.description}
                                 onChange={(e) => setDraft({ ...draft, description: e.target.value })}
                             />
@@ -195,7 +208,7 @@ export const ItemAdmin = ({ token }: ItemAdminProps) => {
                             onChange={(rarity) => setDraft({ ...draft, rarity: rarity as ItemDto["rarity"] })} />
                         {draft.type === "weapon" && (
                             <div className="grid gap-3 rounded-lg border p-3">
-                                <p className="text-sm text-gray-600">Новые экземпляры получают уровень 1. Категории урона и пассивки подготовлены для будущей боевой системы и пока не действуют.</p>
+                                <p className="text-sm text-gray-600">Новые экземпляры получают уровень 1. Тип урона учитывается способностями; статус накладывает соответствующая способность.</p>
                                 <ChoiceField label="Семейство оружия" value={draft.weaponFamily ?? "legacy"} options={WEAPON_FAMILY_LABELS}
                                     onChange={(weaponFamily) => setDraft({ ...draft, weaponFamily: weaponFamily as ItemDto["weaponFamily"] })} />
                                 <ChoiceField label="Категория урона" value={draft.damageCategory ?? "physical"} options={DAMAGE_CATEGORY_LABELS}
@@ -208,22 +221,7 @@ export const ItemAdmin = ({ token }: ItemAdminProps) => {
                                     onChange={(damageType) => setDraft({ ...draft, damageType: damageType as ItemDto["damageType"] })} />
                             </div>
                         )}
-                        {getPassiveIdsForType(draft.type).length > 0 && (
-                            <div className="grid gap-3 rounded-lg border p-3">
-                                <p className="text-sm text-gray-600">Особые эффекты подготовлены для будущей боевой системы и пока не действуют.</p>
-                                <ChoiceField label="Будущий эффект" value={draft.passiveId ?? "none"}
-                                    options={{ none: "Без эффекта", ...Object.fromEntries(getPassiveIdsForType(draft.type).map((id) => [id, getPassiveDefinition(id).name])) }}
-                                    onChange={(value) => {
-                                        const passiveId = value === "none" ? null : value as ItemPassiveId;
-                                        setDraft({ ...draft, passiveId, passiveParams: passiveId ? getDefaultPassiveParams(passiveId) : {} });
-                                    }} />
-                                {draft.passiveId && Object.entries(getPassiveDefinition(draft.passiveId).parameters).map(([key, rule]) => (
-                                    <NumberField key={key} label={rule.label} min={rule.min} value={draft.passiveParams[key] ?? rule.default}
-                                        onChange={(value) => setDraft({ ...draft, passiveParams: { ...draft.passiveParams, [key]: value } })} />
-                                ))}
-                                {draft.passiveId && <p className="text-sm text-gray-600">{getPassiveDefinition(draft.passiveId).describe(draft.passiveParams)}</p>}
-                            </div>
-                        )}
+                        <ItemPassiveEditor item={draft} onChange={(patch) => setDraft({ ...draft, ...patch })} />
                         <NumberField label="Сила оружия (текущий бонус атаки)" min={0} value={draft.damage}
                             onChange={(v) => setDraft({ ...draft, damage: v })} />
 
@@ -232,6 +230,16 @@ export const ItemAdmin = ({ token }: ItemAdminProps) => {
 
                         <NumberField label="Лечение" min={0} value={draft.healAmount}
                             onChange={(v) => setDraft({ ...draft, healAmount: v })} />
+
+                        <ItemBalancePreview item={draft} onPreset={() => {
+                            const tier = ITEM_BALANCE[draft.rarity];
+                            const healing = HEALING_BALANCE[draft.rarity as keyof typeof HEALING_BALANCE] ?? HEALING_BALANCE.rare;
+                            setDraft({ ...draft, damage: draft.type === 'weapon' ? tier.damage : 0,
+                                defense: draft.type === 'armor' ? tier.defense : 0,
+                                healAmount: draft.type === 'potion' ? healing.healAmount : 0,
+                                price: draft.type === 'potion' ? healing.price : tier.price,
+                                sellPrice: draft.type === 'potion' ? healing.sellPrice : tier.sellPrice });
+                        }} />
 
                         <NumberField label="Цена" min={0} value={draft.price}
                             onChange={(v) => setDraft({ ...draft, price: v })} />
@@ -263,15 +271,17 @@ export const ItemAdmin = ({ token }: ItemAdminProps) => {
 
                     <Flex gap="3" justify="end">
                         {draft.id > 0 && (
-                            <Button variant="soft" color="gray" onClick={() => setDraft(emptyItem)}>
+                            <Button type="button" variant="soft" color="gray" onClick={() => setDraft(emptyItem)}>
                                 Отмена
                             </Button>
                         )}
-                        <Button onClick={save}>
-                            {draft.id > 0 ? "Сохранить" : "Создать"}
+                        <Button type="submit" disabled={busy}>
+                            {busy ? 'Сохранение…' : draft.id > 0 ? "Сохранить" : "Создать"}
                         </Button>
                     </Flex>
                 </Flex>
+                </fieldset>
+                </form>
             </Card>
 
             <Card size="3">
@@ -286,7 +296,7 @@ export const ItemAdmin = ({ token }: ItemAdminProps) => {
                             <Table.ColumnHeaderCell>Семейство</Table.ColumnHeaderCell>
                             <Table.ColumnHeaderCell>Категория урона</Table.ColumnHeaderCell>
                             <Table.ColumnHeaderCell>Тип урона</Table.ColumnHeaderCell>
-                            <Table.ColumnHeaderCell>Будущий эффект</Table.ColumnHeaderCell>
+                            <Table.ColumnHeaderCell>Способность</Table.ColumnHeaderCell>
                             <Table.ColumnHeaderCell>Начальный уровень</Table.ColumnHeaderCell>
                             <Table.ColumnHeaderCell justify="center">Сила</Table.ColumnHeaderCell>
                             <Table.ColumnHeaderCell justify="center">Защита</Table.ColumnHeaderCell>

@@ -16,7 +16,7 @@ import { rollLoot } from "./loot.js";
 import type { BattleRequest,BattleState } from '@mmobot/shared';
 import { randomUUID } from 'node:crypto';
 import { assertOutsideCombat } from '../inventory/store.js';
-import { createBattle,event,resolveRound } from './battle/engine.js';
+import { createBattle,event,resolveRound,resolveFailedEscape } from './battle/engine.js';
 import { BattleError,checkRequest,parseBattleRequest,publicBattle,rememberRequest } from './battle/state.js';
 import { getEquippedItems,mobFighter,playerFighter } from './battle/stats.js';
 import { chooseMobMove,scaleMob } from '../mobs/balance.js';
@@ -37,6 +37,7 @@ export function expireStaleCombatSessions(): void {
         const state = session.battleState;
         if (state) {
             state.finishReason = 'aborted';
+            state.statuses = []; state.effects = [];
             event(state, session.roundNumber, 'finish', [session.playerHealth, session.mobHealth], nowGameTime(), 'Бой прекращён из-за бездействия');
         }
         db.update(combatSessions).set({ status: 'aborted', battleState: state, stateVersion: session.stateVersion + 1, lastActionAt: nowGameTime() }).where(eq(combatSessions.id, session.id)).run();
@@ -82,11 +83,12 @@ export function moveCombatAction(player: PlayerRow, mob: MobRow, session: Combat
         if (action === 'flee') {
             if (Math.random() < .5) {
                 status = 'fled'; state.finishReason = 'fled';
+                state.statuses = []; state.effects = [];
                 event(state, current.roundNumber, 'flee', hp, now, 'Вы убежали с поля боя', 0);
             } else {
-                hp[0] = Math.max(0, hp[0] - Math.max(1, state.fighters[1].strength - state.fighters[0].defense));
-                event(state, current.roundNumber, 'flee', hp, now, 'Побег не удался, моб наносит удар', 1);
-                if (!hp[0]) { status = 'defeat'; state.finishReason = 'knockout'; }
+                const resolved = resolveFailedEscape(state, hp, current.roundNumber, now);
+                next = resolved.state; hp = resolved.hp;
+                if (resolved.finished) status = resolved.winner === 0 ? 'victory' : 'defeat';
             }
         } else {
             const selected = action === 'use' ? preparePotion(state, 0, player.id, request.itemType, hp[0]) : moveId;

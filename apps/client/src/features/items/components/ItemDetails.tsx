@@ -3,6 +3,7 @@ DAMAGE_CATEGORY_LABELS,DAMAGE_TYPE_LABELS,RARITY_COLORS,RARITY_LABELS,
 WEAPON_FAMILY_LABELS,getPassiveDefinition,type ItemDto,
 ITEM_ATTACK_NAMES,ITEM_BALANCE,
 getItemMinLevel,
+resolvePassiveParams,
 } from "@mmobot/shared";
 
 export default function ItemDetails({ item, level, compact = false }: { item: ItemDto; level?: number | null; compact?: boolean }) {
@@ -28,12 +29,15 @@ export default function ItemDetails({ item, level, compact = false }: { item: It
         {item.damageType && ` · ${DAMAGE_TYPE_LABELS[item.damageType]}`}
         {!compact && item.weaponFamily && ` · ${WEAPON_FAMILY_LABELS[item.weaponFamily]}`}
       </p>}
-      {passive && <p><span className="font-semibold">Пассивка «{passive.name}» (пока не действует):</span> {passive.describe(item.passiveParams)}</p>}
-      {item.type === "weapon" && <p className="text-gray-500">Типы урона и пассивки пока не действуют в бою. Прокачка оружия появится позже.</p>}
-      {item.type === "armor" && passive && <p className="text-gray-500">Уникальная пассивка появится позже.</p>}
+      {passive && <p><span className="font-semibold">Способность «{passive.name}»:</span> {passive.describe(resolvePassiveParams(item.passiveId!, item.passiveParams))}</p>}
+      {item.type === "weapon" && !compact && <p className="text-gray-500">Пассивка действует у надетого оружия. Ядовитый или тепловой тип сам по себе не накладывает статус. Прокачка оружия появится позже.</p>}
       {item.type === "potion" && <p className="text-gray-500">{item.healAmount > 0
-        ? `Восстанавливает ${item.healAmount} HP сразу. В бою — одно лечение за бой.${passive ? " Особый эффект появится позже." : ""}`
-        : "Использование станет доступно после добавления эффекта."}</p>}
+        ? item.passiveId === 'primordial_dumpling'
+          ? `Вне боя восстанавливает ${item.healAmount} HP. В бою действует процентное лечение способности, без добавления фиксированного. Одно использование лечебного предмета за бой.`
+          : `Восстанавливает ${item.healAmount} HP сразу. В бою — одно использование лечебного предмета за бой.${item.passiveId === 'mothers_care' ? ' Дополнительное восстановление происходит в конце раундов.' : ''}`
+        : item.passiveId === 'primordial_dumpling' || item.passiveId === 'mothers_care'
+          ? 'Лечение способностью доступно только в бою. Одно использование лечебного предмета за бой.'
+          : 'Предмет не восстанавливает здоровье.'}</p>}
     </div>
   );
 }

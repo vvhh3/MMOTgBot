@@ -6,7 +6,7 @@ import type { InventoryDatabase } from "../../inventory/store.js";
 const icon = (content: string) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${content}</svg>`;
 
 // Согласованный второй набор: по четыре предмета каждой редкости.
-// damage/defense/healAmount работают сейчас; passiveId/Params — будущие эффекты.
+// Численные характеристики и пассивки используют общие определения shared.
 const definitions: (typeof items.$inferInsert)[] = [
   {
     catalogKey: "graduate_brick", name: "Кирпич с дипломом", description: "Окончил строительный с отличием. Теперь аргументирует лично.",
