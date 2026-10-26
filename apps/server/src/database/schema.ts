@@ -2,7 +2,7 @@ import type { BattleState } from '@mmobot/shared';
 import { check,index,integer,real,sqliteTable,text,uniqueIndex } from "drizzle-orm/sqlite-core";
 import { nowGameTime } from "../shared/time.js";
 // TradeItem — тип одного пункта выкладки в трейде (из общего пакета)
-import type { CasinoGameType,Cooldowns,DamageCategory,DamageType,ItemRarity,LastAction,MobLootEntry,TradeItem,WeaponFamily,WeaponPassiveId } from "@mmobot/shared";
+import type { CasinoGameType,Cooldowns,DamageCategory,DamageType,ItemRarity,LastAction,MobLootEntry,MobCombatProfile,TradeItem,WeaponFamily,WeaponPassiveId } from "@mmobot/shared";
 import { sql } from "drizzle-orm";
 
 // Локации игрового мира: уникальный id (текстовый ключ) + название, описание и координаты x/y на карте.
@@ -80,6 +80,7 @@ export const players = sqliteTable("players",
 export const mobs = sqliteTable('mobs', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   catalogKey: text('catalog_key').unique(),
+  combatProfile: text('combat_profile', { mode: 'json' }).$type<MobCombatProfile>(),
   isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
   name: text("name").notNull(),
   description: text("description").notNull(),

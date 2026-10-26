@@ -1,6 +1,7 @@
 import type { EventDto,InventoryItemDto,ItemDto,LocationDto,MobDto,PlayerDto,QuestsDto } from "@mmobot/shared";
 import { getItemMinLevel } from "@mmobot/shared";
 import { getPlayerStats } from "../modules/combat/pve.js";
+import { mobProfile } from '../modules/mobs/balance.js';
 import { getLevelXpBounds } from "../modules/players/level.js";
 import type { EventRow,InventoryItemRow,ItemRow,LocationRow,MobRow,PlayerRow,QuestsRow } from "./schema.js";
 
@@ -46,6 +47,8 @@ export function toPlayerDtoEquipped(row: PlayerRow): PlayerDto {
 
 export function toMobDto(row: MobRow): MobDto{
   return {
+    combatProfile: mobProfile(row),
+    rank: mobProfile(row).rank,
     catalogKey: row.catalogKey,
     id: row.id,
     name: row.name,

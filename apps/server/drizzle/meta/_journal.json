@@ -239,6 +239,13 @@
       "when": 1793030000000,
       "tag": "0033_square_encounters",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "6",
+      "when": 1793031000000,
+      "tag": "0034_mob_constructor",
+      "breakpoints": true
     }
   ]
 }

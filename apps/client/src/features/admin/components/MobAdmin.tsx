@@ -1,8 +1,9 @@
-import { ItemDto,MobDto } from "@mmobot/shared";
+import { calculateMobStats,createMobCombatProfile,legacyMobCombatProfile,MOB_RANK_LABELS,recommendedMobStats,type ItemDto,type MobDto,type MobRank } from "@mmobot/shared";
 import {
 Button,
 Callout,
 Card,
+Checkbox,
 Flex,
 Grid,
 Heading,
@@ -15,59 +16,52 @@ import { useEffect,useState } from "react";
 import { getItems } from "../../items/api";
 import { getLocations } from "../../locations/api";
 import { createMob,deleteMob,getMobs,updateMob } from "../../mobs/api";
+import MobCombatEditor,{ MobNumberField as NumberField } from './MobCombatEditor';
+import MobLootEditor from './MobLootEditor';
+import MobBalancePreview from './MobBalancePreview';
 
 
 type MobAdminProps = {
     token: string | null
 }
 
-const emptyMob: MobDto = {
+const emptyMob = (): MobDto => ({
     id: 0,
     name: "",
     description: "",
-    level: 0,
-    maxHealth: 0,
-    strength: 0,
-    defense: 0,
+    ...recommendedMobStats('normal'),
+    combatProfile: createMobCombatProfile(),
     loot: [],
-    pointsReward: 0,
-    coinReward: 0,
     locationId: "square",
     respawnSeconds: 1
-}
-
-type NumberFieldProps = {
-    label: string
-    value: number
-    min?: number
-    onChange: (value: number) => void
-}
-
-const NumberField = ({ label, value, min, onChange }: NumberFieldProps) => (
-    <label>
-        <Text as="div" size="1" weight="medium" mb="1" color="gray">
-            {label}
-        </Text>
-        <TextField.Root
-            type="number"
-            min={min}
-            value={value}
-            onChange={(e) => onChange(Number(e.target.value))}
-        />
-    </label>
-)
+});
 
 export const MobAdmin = ({ token }: MobAdminProps) => {
 
     const [editingId, setEditingId] = useState<number | null>(null)
     const [catalog, setCatalog] = useState<ItemDto[]>([])
     const [busy, setBusy] = useState(false)
-    const resetDraft = () => { setDraft(emptyMob); setEditingId(null); }
+    const resetDraft = () => { setDraft(emptyMob()); setEditingId(null); setPreviewLevel(1); }
     const [mobs, setMobs] = useState<MobDto[]>([])
     const [locations, setLocations] = useState<{ id: string; name: string }[]>([])
     const [draft, setDraft] = useState<MobDto>(emptyMob)
+    const [previewLevel,setPreviewLevel] = useState(1);
     const [error, setError] = useState<string | null>(null)
     const [saved, setSaved] = useState(false)
+    const profile = draft.combatProfile ?? legacyMobCombatProfile();
+    const otherWeight = mobs.filter(mob => mob.id !== editingId && mob.locationId === 'square')
+        .reduce((sum,mob) => sum + (mob.combatProfile ?? legacyMobCombatProfile()).encounterWeight, 0);
+    const totalWeight = otherWeight + profile.encounterWeight;
+    const encounterPercent = draft.locationId === 'square' && totalWeight > 0 ? profile.encounterWeight / totalWeight * 100 : 0;
+    const previewStats = calculateMobStats(draft, previewLevel, profile);
+    const applyPreset = () => {
+        const suggested = createMobCombatProfile(profile.rank);
+        suggested.scaleToPlayer = profile.scaleToPlayer;
+        suggested.attack.name = profile.attack.name;
+        if (suggested.strongAttack && profile.strongAttack) suggested.strongAttack.name = profile.strongAttack.name;
+        if (suggested.guard && profile.guard) suggested.guard.name = profile.guard.name;
+        setDraft({ ...draft, ...recommendedMobStats(profile.rank, Math.max(1, draft.level)), combatProfile: suggested });
+    };
 
     const refresh = () => {
         if (!token) return
@@ -106,25 +100,27 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
     }
 
     const remove = async (id: number) => {
+        if (!token || busy) return;
+        setBusy(true);
         try {
-            if (!token) return
             await deleteMob(token, id)
             refresh()
         } catch (e) {
             setError(e instanceof Error ? e.message : "Ошибка удаления")
-        }
+        } finally { setBusy(false); }
     }
 
     return (
         <Flex direction="column" gap="4">
             <Card size="3">
-                <Flex direction="column" gap="4">
+                <form onSubmit={(event) => { event.preventDefault(); void save(); }}>
+                <fieldset disabled={busy} className="flex min-w-0 flex-col gap-4">
                     <Flex align="center" gap="2">
                         <Heading size="4">
                             {editingId !== null ? `Редактирование моба #${draft.id}` : "Новый моб"}
                         </Heading>
                         {editingId !== null && (
-                            <Button variant="ghost" size="1" color="gray" onClick={resetDraft}>
+                            <Button type="button" variant="ghost" size="1" color="gray" onClick={resetDraft}>
                                 Отменить
                             </Button>
                         )}
@@ -140,13 +136,13 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
                         </Callout.Root>
                     )}
 
-                    <Grid  gap="3">
+                    <Grid columns={{ initial: '1', sm: '2' }} gap="3">
                         <label>
                             <Text as="div" color="gray">
                                 Название
                             </Text>
                             <TextField.Root
-                                placeholder="Например: Гоблин"
+                                required placeholder="Например: Терминал без сдачи"
                                 value={draft.name}
                                 onChange={(e) => setDraft({ ...draft, name: e.target.value })}/>
                         </label>
@@ -161,7 +157,7 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
                                 <Select.Trigger placeholder="Выберите локацию" style={{ width: "100%" }} />
                                 <Select.Content>
                                     {locations.map((loc) => (
-                                        <Select.Item key={loc.id} value={loc.id}>
+                                        <Select.Item key={loc.id} value={loc.id} disabled={loc.id !== 'square'}>
                                             {loc.name} ({loc.id})
                                         </Select.Item>
                                     ))}
@@ -177,13 +173,27 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
                                 Описание
                             </Text>
                             <TextField.Root
-                                placeholder="Описание моба"
+                                required placeholder="Описание моба"
                                 value={draft.description}
                                 onChange={(e) => setDraft({ ...draft, description: e.target.value })}
                             />
                         </label>
 
-                        <NumberField label="Уровень" min={1} value={draft.level}
+                        <label>
+                            <Text as="div" size="1" mb="1" color="gray">Класс сложности</Text>
+                            <Select.Root value={profile.rank} onValueChange={(rank) => setDraft({ ...draft, combatProfile: { ...profile, rank: rank as MobRank } })}>
+                                <Select.Trigger style={{ width: '100%' }} />
+                                <Select.Content>{Object.entries(MOB_RANK_LABELS).map(([rank,label]) => <Select.Item key={rank} value={rank}>{label}</Select.Item>)}</Select.Content>
+                            </Select.Root>
+                        </label>
+                        <Text as="label" size="2"><Flex gap="2" align="center">
+                            <Checkbox checked={profile.scaleToPlayer} onCheckedChange={(checked) => setDraft({ ...draft, combatProfile: { ...profile, scaleToPlayer: checked === true } })} />
+                            Подстраивать уровень под персонажа
+                        </Flex></Text>
+                        <NumberField label="Вес встречи" min={0} max={10000} step="any" value={profile.encounterWeight}
+                            onChange={(encounterWeight) => setDraft({ ...draft, combatProfile: { ...profile, encounterWeight } })} />
+                        <Text size="1" color="gray">Вес 2 даёт вдвое больше встреч, чем вес 1. Точный процент рассчитан в предпросмотре.</Text>
+                        <NumberField label={profile.scaleToPlayer ? 'Базовый уровень характеристик' : 'Фиксированный уровень моба'} min={1} max={8} value={draft.level}
                             onChange={(v) => setDraft({ ...draft, level: v })} />
                         <NumberField label="Макс. HP" min={1} value={draft.maxHealth}
                             onChange={(v) => setDraft({ ...draft, maxHealth: v })} />
@@ -191,49 +201,32 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
                             onChange={(v) => setDraft({ ...draft, strength: v })} />
                         <NumberField label="Защита" min={0} value={draft.defense}
                             onChange={(v) => setDraft({ ...draft, defense: v })} />
-                        <NumberField label="Награда (очки)" min={0} value={draft.pointsReward}
+                        <NumberField label="Награда: XP и очки" min={0} value={draft.pointsReward}
                             onChange={(v) => setDraft({ ...draft, pointsReward: v })} />
                         <NumberField label="Награда (монеты)" min={0} value={draft.coinReward}
                             onChange={(v) => setDraft({ ...draft, coinReward: v })} />
                     </Grid>
-
-                    <div className="space-y-3 rounded-lg border p-3">
-                        <Text as="div" weight="bold">Добыча с монстра</Text>
-                        <p className="text-sm text-gray-600">Каждая строка — независимый шанс получить одну штуку. 0% — никогда, 100% — всегда. Сумма шансов может превышать 100%.</p>
-                        {draft.loot.length === 0 && <p className="text-sm text-gray-500">Предметы не выпадают.</p>}
-                        {draft.loot.map((entry, index) => (
-                            <div key={index} className="flex flex-wrap items-end gap-2 rounded border p-2">
-                                <label className="flex min-w-0 flex-1 flex-col gap-1 text-sm">
-                                    Предмет
-                                    <select className="min-w-0 rounded border p-2" value={entry.itemType}
-                                        onChange={(event) => setDraft({ ...draft, loot: draft.loot.map((row, i) => i === index ? { ...row, itemType: Number(event.target.value) } : row) })}>
-                                        {catalog.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-                                        {!catalog.some((item) => item.id === entry.itemType) && <option value={entry.itemType}>Предмет #{entry.itemType} недоступен</option>}
-                                    </select>
-                                </label>
-                                <label className="flex flex-col gap-1 text-sm">
-                                    Шанс, %
-                                    <input className="w-24 rounded border p-2" type="number" min={0} max={100} step="any" value={entry.chancePercent}
-                                        onChange={(event) => setDraft({ ...draft, loot: draft.loot.map((row, i) => i === index ? { ...row, chancePercent: Number(event.target.value) } : row) })} />
-                                </label>
-                                <Button type="button" color="red" variant="soft" onClick={() => setDraft({ ...draft, loot: draft.loot.filter((_, i) => i !== index) })}>Удалить</Button>
-                            </div>
-                        ))}
-                        <Button type="button" variant="soft" disabled={catalog.length === 0}
-                            onClick={() => setDraft({ ...draft, loot: [...draft.loot, { itemType: catalog[0].id, chancePercent: 100 }] })}>Добавить предмет</Button>
-                    </div>
+                    <Text size="1" color="gray">Характеристики и награды задаются для базового уровня. При подстройке они растут по классу. Встречи пока доступны только на Площади.</Text>
+                    <Button type="button" variant="soft" onClick={applyPreset}>Применить рекомендуемые параметры класса</Button>
+                    <Text size="1" color="gray">Кнопка обновит характеристики, приёмы и вес встречи. Названия и выбранная добыча сохранятся.</Text>
+                    <MobCombatEditor profile={profile} onChange={(combatProfile) => setDraft({ ...draft, combatProfile })} />
+                    <MobLootEditor loot={draft.loot} catalog={catalog} rank={profile.rank} level={previewStats.level}
+                        onChange={(loot) => setDraft({ ...draft, loot })} />
+                    <MobBalancePreview mob={draft} profile={profile} catalog={catalog} playerLevel={previewLevel}
+                        onLevel={setPreviewLevel} encounterPercent={encounterPercent} />
 
                     <Flex gap="3" justify="end">
                         {editingId !== null && (
-                            <Button variant="soft" color="gray" onClick={resetDraft}>
+                            <Button type="button" variant="soft" color="gray" onClick={resetDraft}>
                                 Отмена
                             </Button>
                         )}
-                        <Button disabled={busy} onClick={save}>
+                        <Button type="submit" disabled={busy || !!profile.guard && profile.guard.fullBlockChance + profile.guard.partialBlockChance > 100}>
                             {editingId !== null ? "Сохранить" : "Создать"}
                         </Button>
                     </Flex>
-                </Flex>
+                </fieldset>
+                </form>
             </Card>
 
             <Card size="3">
@@ -242,6 +235,7 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
                         <Table.Row>
                             <Table.ColumnHeaderCell justify="center">id</Table.ColumnHeaderCell>
                             <Table.ColumnHeaderCell>Имя</Table.ColumnHeaderCell>
+                            <Table.ColumnHeaderCell>Класс / вес</Table.ColumnHeaderCell>
                             <Table.ColumnHeaderCell justify="center">Lvl</Table.ColumnHeaderCell>
                             <Table.ColumnHeaderCell justify="center">HP</Table.ColumnHeaderCell>
                             <Table.ColumnHeaderCell justify="center">Сила</Table.ColumnHeaderCell>
@@ -256,7 +250,7 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
                     <Table.Body>
                         {mobs.length === 0 && (
                             <Table.Row>
-                                <Table.Cell colSpan={11}>
+                                <Table.Cell colSpan={12}>
                                     <Text color="gray">Мобов пока нет</Text>
                                 </Table.Cell>
                             </Table.Row>
@@ -265,6 +259,7 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
                             <Table.Row key={mob.id}>
                                 <Table.Cell justify="center">{mob.id}</Table.Cell>
                                 <Table.Cell><Text weight="medium">{mob.name}</Text></Table.Cell>
+                                <Table.Cell>{MOB_RANK_LABELS[(mob.combatProfile ?? legacyMobCombatProfile()).rank]} / {(mob.combatProfile ?? legacyMobCombatProfile()).encounterWeight}</Table.Cell>
                                 <Table.Cell justify="center">{mob.level}</Table.Cell>
                                 <Table.Cell justify="center">{mob.maxHealth}</Table.Cell>
                                 <Table.Cell justify="center">{mob.strength}</Table.Cell>
@@ -277,7 +272,7 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
                                 ))}</Table.Cell>
                                 <Table.Cell justify="end">
                                     <Flex gap="2" justify="end">
-                                        <Button size="1" variant="soft" onClick={() => {
+                                        <Button disabled={busy} size="1" variant="soft" onClick={() => {
                                             setDraft(mob)
                                             setEditingId(mob.id)
                                             setError(null)
@@ -285,7 +280,7 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
                                         }}>
                                             Изменить
                                         </Button>
-                                        <Button size="1" color="red" variant="soft" onClick={() => remove(mob.id)}>
+                                        <Button disabled={busy} size="1" color="red" variant="soft" onClick={() => remove(mob.id)}>
                                             Удалить
                                         </Button>
                                     </Flex>

@@ -16,9 +16,17 @@ import { nowGameTime,todayGameDate } from "../../shared/time.js";
 import type { AuthedRequest } from "../auth/auth.js";
 import { requireAdmin } from "../auth/auth.js";
 import { addXpForPlayer } from "../players/level.js";
+import { mobProfile } from '../mobs/balance.js';
 
 const DIFFICULTIES = ["easy", "medium", "hard"] as const;
 const OBJECTIVES: QuestsObjectiveType[] = ["kill", "walk", "collect", "visit", "loot", "casino_win"];
+
+function questAvailable(quest: QuestsRow): boolean {
+  if (!quest.isActive) return false;
+  if (quest.objectiveType !== 'kill' || quest.targetId === null) return true;
+  const target = db.select().from(mobs).where(eq(mobs.id, Number(quest.targetId))).get();
+  return !!target && target.isActive && target.locationId === 'square' && mobProfile(target).encounterWeight > 0;
+}
 
 function parseQuestInput(body: unknown, current?: QuestsRow): { data: Omit<QuestsDto, "id"> } | { error: string } {
   if (!body || typeof body !== "object" || Array.isArray(body)) {
@@ -80,7 +88,7 @@ function assignDailyQuests(playerId: number): void {
 
   db.transaction((tx) => {
     for (const difficulty of DIFFICULTIES) {
-      const pool = tx.select().from(quests).where(and(eq(quests.difficulty, difficulty), eq(quests.isActive, true))).all();
+      const pool = tx.select().from(quests).where(and(eq(quests.difficulty, difficulty), eq(quests.isActive, true))).all().filter(questAvailable);
       if (pool.length === 0) continue; // квестов такой сложности ещё нет в каталоге
       const quest = pool[Math.floor(Math.random() * pool.length)];
       tx.insert(playerQuests)
@@ -94,15 +102,16 @@ export function replaceArchivedDailyQuests(playerId?: number): void {
   db.transaction((tx) => {
     const pending = tx.select({ assignment: playerQuests, quest: quests }).from(playerQuests)
       .innerJoin(quests, eq(playerQuests.questId, quests.id)).where(and(
-        eq(playerQuests.assignedDay, todayGameDate()), eq(playerQuests.status, 'waiting'), eq(quests.isActive, false),
+        eq(playerQuests.assignedDay, todayGameDate()), eq(playerQuests.status, 'waiting'),
         playerId === undefined ? undefined : eq(playerQuests.playerId, playerId),
       )).all();
     for (const { assignment, quest } of pending) {
+      if (questAvailable(quest)) continue;
       const assigned = new Set(tx.select().from(playerQuests).where(and(
         eq(playerQuests.playerId, assignment.playerId), eq(playerQuests.assignedDay, assignment.assignedDay),
       )).all().map(row => row.questId));
       const replacement = tx.select().from(quests).where(and(eq(quests.isActive, true), eq(quests.difficulty, quest.difficulty)))
-        .all().find(row => !assigned.has(row.id));
+        .all().find(row => !assigned.has(row.id) && questAvailable(row));
       if (replacement) tx.update(playerQuests).set({ questId: replacement.id, progress: 0, completedAt: null })
         .where(eq(playerQuests.id, assignment.id)).run();
     }

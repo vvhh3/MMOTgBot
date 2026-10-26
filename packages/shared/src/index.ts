@@ -16,3 +16,4 @@ export * from './contracts/realtime.js';
 export * from './contracts/trades.js';
 export * from './weapons.js';
 export * from './item-balance.js';
+export * from './mob-balance.js';

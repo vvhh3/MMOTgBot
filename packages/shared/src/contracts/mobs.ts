@@ -15,6 +15,16 @@ export const MOB_RANK_LABELS: Record<MobRank, string> = {
   normal: 'Обычный', strong: 'Сильный', elite: 'Элита', boss: 'Босс',
 };
 
+export type MobCombatProfile = {
+  rank: MobRank;
+  scaleToPlayer: boolean;
+  encounterWeight: number;
+  attack: { name: string; accuracy: number };
+  strongAttack: { name: string; accuracy: number; power: number; cooldownRounds: number } | null;
+  guard: { name: string; cooldownRounds: number; fullBlockChance: number; partialBlockChance: number;
+    partialMultiplier: number; reflectChance: number } | null;
+};
+
 export type MobDto = { // описание мобов
   id: number
   name: string
@@ -30,6 +40,7 @@ export type MobDto = { // описание мобов
   respawnSeconds: number
   catalogKey?: string | null
   rank?: MobRank
+  combatProfile?: MobCombatProfile | null
 }
 
 

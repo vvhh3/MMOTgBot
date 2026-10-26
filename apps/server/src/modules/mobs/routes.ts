@@ -1,14 +1,58 @@
 import { and,asc,eq,inArray } from "drizzle-orm";
-import { TUTORIAL_MOB_ID } from "@mmobot/shared";
+import { createMobCombatProfile,MOB_RANK_LABELS,recommendedMobStats,TUTORIAL_MOB_ID,type MobCombatProfile,type MobRank } from "@mmobot/shared";
 import type { Express } from "express";
 import { db } from "../../database/connection.js";
 import { toMobDto } from "../../database/mappers.js";
 import { items,locations,mobs,quests,type MobRow } from "../../database/schema.js";
 import { parseLoot } from "../combat/loot.js";
+import { mobProfile } from './balance.js';
+
+function parseProfile(input: unknown): MobCombatProfile {
+  const object = (value: unknown, label: string): Record<string, unknown> => {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error(`${label}: укажите настройки`);
+    return value as Record<string, unknown>;
+  };
+  const number = (value: unknown, label: string, min: number, max: number, integer = false): number => {
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < min || value > max || (integer && !Number.isSafeInteger(value)))
+      throw new Error(`${label}: требуется ${integer ? 'целое ' : ''}число от ${min} до ${max}`);
+    return value;
+  };
+  const name = (value: unknown): string => {
+    if (typeof value !== 'string' || !value.trim() || value.trim().length > 100) throw new Error('Название приёма: от 1 до 100 символов');
+    return value.trim();
+  };
+  const value = object(input, 'Боевой профиль');
+  if (typeof value.rank !== 'string' || !Object.hasOwn(MOB_RANK_LABELS, value.rank)) throw new Error('Выберите класс сложности');
+  if (typeof value.scaleToPlayer !== 'boolean') throw new Error('Укажите режим подстройки уровня');
+  const attack = object(value.attack, 'Обычная атака');
+  const profile: MobCombatProfile = { rank: value.rank as MobRank, scaleToPlayer: value.scaleToPlayer,
+    encounterWeight: number(value.encounterWeight, 'Вес встречи', 0, 10000),
+    attack: { name: name(attack.name), accuracy: number(attack.accuracy, 'Точность обычной атаки', 0, 100) },
+    strongAttack: null, guard: null };
+  if (value.strongAttack !== null) {
+    const strong = object(value.strongAttack, 'Сильная атака');
+    profile.strongAttack = { name: name(strong.name), accuracy: number(strong.accuracy, 'Точность сильной атаки', 0, 100),
+      power: number(strong.power, 'Мощность сильной атаки', .1, 5), cooldownRounds: number(strong.cooldownRounds, 'Перезарядка сильной атаки', 0, 20, true) };
+  }
+  if (value.guard !== null) {
+    const guard = object(value.guard, 'Защита');
+    profile.guard = { name: name(guard.name), cooldownRounds: number(guard.cooldownRounds, 'Перезарядка защиты', 0, 20, true),
+      fullBlockChance: number(guard.fullBlockChance, 'Шанс полного блока', 0, 100),
+      partialBlockChance: number(guard.partialBlockChance, 'Шанс частичного блока', 0, 100),
+      partialMultiplier: number(guard.partialMultiplier, 'Доля урона при частичном блоке', 0, 1),
+      reflectChance: number(guard.reflectChance, 'Шанс отражения', 0, 100) };
+    if (profile.guard.fullBlockChance + profile.guard.partialBlockChance > 100) throw new Error('Сумма шансов полного и частичного блока не должна превышать 100%');
+  }
+  return profile;
+}
 
 function parseMob(body: unknown, previous?: MobRow): typeof mobs.$inferInsert {
   if (!body || typeof body !== "object" || Array.isArray(body)) throw new Error("Ожидаются параметры монстра");
-  const value = { ...previous, ...body } as Record<string, unknown>;
+  const input = body as Record<string, unknown>;
+  const combatProfile = parseProfile(Object.hasOwn(input, 'combatProfile') ? input.combatProfile : previous ? mobProfile(previous) : createMobCombatProfile());
+  const requestedLevel = input.level ?? previous?.level ?? 1;
+  const defaultLevel = typeof requestedLevel === 'number' && Number.isSafeInteger(requestedLevel) && requestedLevel >= 1 ? requestedLevel : 1;
+  const value = { ...recommendedMobStats(combatProfile.rank, defaultLevel), locationId: 'square', respawnSeconds: 1, loot: [], ...previous, ...body } as Record<string, unknown>;
   for (const key of ["name", "description", "locationId"] as const) {
     if (typeof value[key] !== "string" || !(value[key] as string).trim()) throw new Error(`Поле ${key} обязательно`);
   }
@@ -24,6 +68,7 @@ function parseMob(body: unknown, previous?: MobRow): typeof mobs.$inferInsert {
   const missing = ids.filter((id) => !found.has(id));
   if (missing.length) throw new Error(`Предметы лута не найдены: ${missing.join(", ")}`);
   return {
+    combatProfile,
     name: (value.name as string).trim(), description: (value.description as string).trim(), locationId, loot,
     level: value.level as number, maxHealth: value.maxHealth as number, strength: value.strength as number,
     defense: value.defense as number, pointsReward: value.pointsReward as number,

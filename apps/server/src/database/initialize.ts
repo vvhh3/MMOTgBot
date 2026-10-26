@@ -1,6 +1,6 @@
 import type { LocationDto } from "@mmobot/shared";
 import { getLocationAccess } from "@mmobot/shared";
-import { and,eq,ne,sql } from "drizzle-orm";
+import { and,eq,isNull,ne,sql } from "drizzle-orm";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import fs from "node:fs";
 import path from "node:path";
@@ -10,7 +10,7 @@ import { balanceCatalogItem } from "../modules/items/catalogs/balance.js";
 import { seedMemeItemCatalog } from "../modules/items/catalogs/meme-items.js";
 import { seedWeaponCatalog } from "../modules/items/catalogs/weapons.js";
 import { canBypassLocationRestrictions } from "../modules/locations/access.js";
-import { templateLoot } from '../modules/mobs/balance.js';
+import { squareMobProfile,templateLoot } from '../modules/mobs/balance.js';
 import { SQUARE_MOBS } from '../modules/mobs/catalogs/square.js';
 import { replaceArchivedDailyQuests } from '../modules/quests/routes.js';
 import { casinoSessions,characterSkins,combatSessions,items,locations,mobs,players,quests } from "./schema.js";
@@ -136,11 +136,14 @@ export function initializeDatabase(): void {
   const itemCatalog = db.select().from(items).all();
   for (const profile of SQUARE_MOBS) {
     const reward = { normal: [8, 5], strong: [15, 10], elite: [25, 20], boss: [55, 45] }[profile.rank];
-    db.insert(mobs).values({ catalogKey: profile.key, name: profile.name, description: profile.description,
+    const combatProfile = squareMobProfile(profile);
+    db.insert(mobs).values({ catalogKey: profile.key, combatProfile, name: profile.name, description: profile.description,
       locationId: 'square', level: 1, maxHealth: profile.maxHealth, strength: profile.strength, defense: profile.defense,
       pointsReward: reward[0], coinReward: reward[1], respawnSeconds: 1,
       loot: templateLoot(profile.rank, profile.loot, itemCatalog),
     }).onConflictDoNothing({ target: mobs.catalogKey }).run();
+    // Existing IDs, base stats and loot stay intact; only the previously code-owned profile is initialized.
+    db.update(mobs).set({ combatProfile }).where(and(eq(mobs.catalogKey, profile.key), isNull(mobs.combatProfile))).run();
   }
   const mobId = (key: string) => String(db.select().from(mobs).where(eq(mobs.catalogKey, key)).get()!.id);
 

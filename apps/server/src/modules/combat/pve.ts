@@ -120,8 +120,11 @@ export function usePotion(player: PlayerRow, itemType: number, session: CombatSe
 }
 export function getCombatState(player: PlayerRow, session: CombatSessionRow, mob: MobRow): CombatStateResponse {
     const state = session.battleState;
+    const mobDto = toMobDto(encounterMob(mob, state));
+    // Admin settings can change mid-battle; this response describes the saved fighter.
+    delete mobDto.combatProfile;
     return { ...publicBattle(state, session.roundNumber, session.stateVersion, session.roundStartedAt, 0),
-        id: session.id, mob: { ...toMobDto(encounterMob(mob, state)), rank: state?.encounter?.rank }, playerHp: session.playerHealth,
+        id: session.id, mob: { ...mobDto, rank: state?.encounter?.rank }, playerHp: session.playerHealth,
         playerMaxHp: state?.fighters[0].maxHp ?? player.maxHealth, mobHp: session.mobHealth,
         mobMaxHp: state?.fighters[1].maxHp ?? mob.maxHealth, status: session.status,
         droppedItems: state?.droppedItems ?? [], log: state?.events.map(e => ({ text: e.text, at: e.at })) ?? [] };
