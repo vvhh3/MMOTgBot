@@ -30,6 +30,7 @@ export function publicBattle(state: BattleState | null, round: number, version: 
   return {
     round, stateVersion: version, roundStartedAt: startedAt,
     events: state?.events ?? [], actionSubmitted: !!state?.choices[side], finishReason: state?.finishReason,
+    healingAvailable: state?.healingLimit === undefined || state.events.filter(e => e.type === 'heal' && e.side === side).length < state.healingLimit,
     moves: state?.fighters[side].moves.filter(m => m.itemType === undefined).map(m => ({ ...m, availableFromRound: state.cooldowns[side][m.id] ?? 1 })) ?? [],
   };
 }

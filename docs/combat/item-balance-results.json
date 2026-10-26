@@ -1,0 +1,456 @@
+{
+  "seed": 20261025,
+  "runsPerScenario": 2000,
+  "results": [
+    {
+      "scenario": "common: mirror",
+      "games": 2000,
+      "winPercent": 50.8,
+      "lossPercent": 49.3,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 7.55,
+      "meanRemainingHp": 10.37
+    },
+    {
+      "scenario": "common: burst vs basic",
+      "games": 2000,
+      "winPercent": 68.3,
+      "lossPercent": 31.6,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 8.02,
+      "meanRemainingHp": 14.51
+    },
+    {
+      "scenario": "common: guard on enemy strong vs burst",
+      "games": 2000,
+      "winPercent": 50.6,
+      "lossPercent": 48.8,
+      "tiePercent": 0.6,
+      "roundLimitReached": 0,
+      "meanRounds": 10.37,
+      "meanRemainingHp": 9.92
+    },
+    {
+      "scenario": "uncommon: mirror",
+      "games": 2000,
+      "winPercent": 48.5,
+      "lossPercent": 51.5,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 7,
+      "meanRemainingHp": 10.49
+    },
+    {
+      "scenario": "uncommon: burst vs basic",
+      "games": 2000,
+      "winPercent": 73.5,
+      "lossPercent": 26.5,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 7.48,
+      "meanRemainingHp": 17.31
+    },
+    {
+      "scenario": "uncommon: guard on enemy strong vs burst",
+      "games": 2000,
+      "winPercent": 55,
+      "lossPercent": 44.5,
+      "tiePercent": 0.5,
+      "roundLimitReached": 0,
+      "meanRounds": 9.59,
+      "meanRemainingHp": 11.89
+    },
+    {
+      "scenario": "rare: mirror",
+      "games": 2000,
+      "winPercent": 49.9,
+      "lossPercent": 50.1,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 6.48,
+      "meanRemainingHp": 10.98
+    },
+    {
+      "scenario": "rare: burst vs basic",
+      "games": 2000,
+      "winPercent": 78.8,
+      "lossPercent": 21.3,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 6.97,
+      "meanRemainingHp": 20.33
+    },
+    {
+      "scenario": "rare: guard on enemy strong vs burst",
+      "games": 2000,
+      "winPercent": 61.8,
+      "lossPercent": 37.4,
+      "tiePercent": 0.8,
+      "roundLimitReached": 0,
+      "meanRounds": 8.81,
+      "meanRemainingHp": 15.07
+    },
+    {
+      "scenario": "epic: mirror",
+      "games": 2000,
+      "winPercent": 49,
+      "lossPercent": 51,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 6.01,
+      "meanRemainingHp": 10.93
+    },
+    {
+      "scenario": "epic: burst vs basic",
+      "games": 2000,
+      "winPercent": 82,
+      "lossPercent": 17.9,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 6.53,
+      "meanRemainingHp": 22.7
+    },
+    {
+      "scenario": "epic: guard on enemy strong vs burst",
+      "games": 2000,
+      "winPercent": 68.7,
+      "lossPercent": 30.6,
+      "tiePercent": 0.7,
+      "roundLimitReached": 0,
+      "meanRounds": 8.16,
+      "meanRemainingHp": 18.96
+    },
+    {
+      "scenario": "legendary: mirror",
+      "games": 2000,
+      "winPercent": 50.1,
+      "lossPercent": 49.9,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 5.49,
+      "meanRemainingHp": 11.87
+    },
+    {
+      "scenario": "legendary: burst vs basic",
+      "games": 2000,
+      "winPercent": 86,
+      "lossPercent": 14.1,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 6.06,
+      "meanRemainingHp": 26.81
+    },
+    {
+      "scenario": "legendary: guard on enemy strong vs burst",
+      "games": 2000,
+      "winPercent": 75.2,
+      "lossPercent": 24.2,
+      "tiePercent": 0.6,
+      "roundLimitReached": 0,
+      "meanRounds": 7.57,
+      "meanRemainingHp": 23.13
+    },
+    {
+      "scenario": "uncommon vs common: same character, full equipment",
+      "games": 2000,
+      "winPercent": 79.7,
+      "lossPercent": 20.4,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 7.13,
+      "meanRemainingHp": 21.5
+    },
+    {
+      "scenario": "rare vs uncommon: same character, full equipment",
+      "games": 2000,
+      "winPercent": 76.8,
+      "lossPercent": 23.2,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 6.61,
+      "meanRemainingHp": 21.3
+    },
+    {
+      "scenario": "epic vs rare: same character, full equipment",
+      "games": 2000,
+      "winPercent": 75.8,
+      "lossPercent": 24.1,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 6.09,
+      "meanRemainingHp": 21.14
+    },
+    {
+      "scenario": "legendary vs epic: same character, full equipment",
+      "games": 2000,
+      "winPercent": 73.3,
+      "lossPercent": 26.8,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 5.63,
+      "meanRemainingHp": 21.48
+    },
+    {
+      "scenario": "common: {\"strength\":24} mirror",
+      "games": 2000,
+      "winPercent": 51.5,
+      "lossPercent": 48.5,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 3.03,
+      "meanRemainingHp": 16.28
+    },
+    {
+      "scenario": "common: {\"defense\":12} mirror",
+      "games": 2000,
+      "winPercent": 51.9,
+      "lossPercent": 48.1,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 14.27,
+      "meanRemainingHp": 10.91
+    },
+    {
+      "scenario": "common: {\"maxHp\":135} mirror",
+      "games": 2000,
+      "winPercent": 51.3,
+      "lossPercent": 48.8,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 10.21,
+      "meanRemainingHp": 12.18
+    },
+    {
+      "scenario": "legendary: {\"strength\":24} mirror",
+      "games": 2000,
+      "winPercent": 49.1,
+      "lossPercent": 50.9,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 2.43,
+      "meanRemainingHp": 16.26
+    },
+    {
+      "scenario": "legendary: {\"defense\":12} mirror",
+      "games": 2000,
+      "winPercent": 49,
+      "lossPercent": 51,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 8.46,
+      "meanRemainingHp": 11.35
+    },
+    {
+      "scenario": "legendary: {\"maxHp\":135} mirror",
+      "games": 2000,
+      "winPercent": 51.1,
+      "lossPercent": 48.9,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 7.44,
+      "meanRemainingHp": 14.16
+    },
+    {
+      "scenario": "common: heal burst mirror",
+      "games": 2000,
+      "winPercent": 48.2,
+      "lossPercent": 51.8,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 9.64,
+      "meanRemainingHp": 10.27
+    },
+    {
+      "scenario": "common: heal guard mirror",
+      "games": 2000,
+      "winPercent": 50.3,
+      "lossPercent": 49.5,
+      "tiePercent": 0.3,
+      "roundLimitReached": 0,
+      "meanRounds": 14.38,
+      "meanRemainingHp": 11.83
+    },
+    {
+      "scenario": "common: heal vs no heal",
+      "games": 2000,
+      "winPercent": 55.2,
+      "lossPercent": 44.8,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 8.61,
+      "meanRemainingHp": 12.54
+    },
+    {
+      "scenario": "uncommon: heal burst mirror",
+      "games": 2000,
+      "winPercent": 50.6,
+      "lossPercent": 49.4,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 9.69,
+      "meanRemainingHp": 11.87
+    },
+    {
+      "scenario": "uncommon: heal guard mirror",
+      "games": 2000,
+      "winPercent": 50.7,
+      "lossPercent": 49.1,
+      "tiePercent": 0.1,
+      "roundLimitReached": 0,
+      "meanRounds": 14.31,
+      "meanRemainingHp": 12.38
+    },
+    {
+      "scenario": "uncommon: heal vs no heal",
+      "games": 2000,
+      "winPercent": 67.5,
+      "lossPercent": 32.5,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 8.22,
+      "meanRemainingHp": 18.96
+    },
+    {
+      "scenario": "rare: heal burst mirror",
+      "games": 2000,
+      "winPercent": 47.6,
+      "lossPercent": 52.4,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 9.59,
+      "meanRemainingHp": 12.11
+    },
+    {
+      "scenario": "rare: heal guard mirror",
+      "games": 2000,
+      "winPercent": 51,
+      "lossPercent": 48.8,
+      "tiePercent": 0.2,
+      "roundLimitReached": 0,
+      "meanRounds": 13.78,
+      "meanRemainingHp": 13.38
+    },
+    {
+      "scenario": "rare: heal vs no heal",
+      "games": 2000,
+      "winPercent": 76.2,
+      "lossPercent": 23.9,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 7.77,
+      "meanRemainingHp": 25.98
+    },
+    {
+      "scenario": "legendary: heal burst mirror",
+      "games": 2000,
+      "winPercent": 50.9,
+      "lossPercent": 49.1,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 8.81,
+      "meanRemainingHp": 14.38
+    },
+    {
+      "scenario": "legendary: heal guard mirror",
+      "games": 2000,
+      "winPercent": 51.3,
+      "lossPercent": 48.1,
+      "tiePercent": 0.6,
+      "roundLimitReached": 0,
+      "meanRounds": 13.09,
+      "meanRemainingHp": 14.68
+    },
+    {
+      "scenario": "legendary: heal vs no heal",
+      "games": 2000,
+      "winPercent": 81.7,
+      "lossPercent": 18.4,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 6.85,
+      "meanRemainingHp": 31.32
+    },
+    {
+      "scenario": "PvE unarmed vs rat",
+      "games": 2000,
+      "winPercent": 100,
+      "lossPercent": 0,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 1.05,
+      "meanRemainingHp": 99.45
+    },
+    {
+      "scenario": "PvE common set vs rat",
+      "games": 2000,
+      "winPercent": 100,
+      "lossPercent": 0,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 1.05,
+      "meanRemainingHp": 99.47
+    },
+    {
+      "scenario": "PvE unarmed vs drone",
+      "games": 2000,
+      "winPercent": 100,
+      "lossPercent": 0,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 2.95,
+      "meanRemainingHp": 90.1
+    },
+    {
+      "scenario": "PvE common set vs drone",
+      "games": 2000,
+      "winPercent": 100,
+      "lossPercent": 0,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 2.29,
+      "meanRemainingHp": 94.37
+    },
+    {
+      "scenario": "PvE unarmed vs archive",
+      "games": 2000,
+      "winPercent": 100,
+      "lossPercent": 0,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 4.47,
+      "meanRemainingHp": 72.05
+    },
+    {
+      "scenario": "PvE common set vs archive",
+      "games": 2000,
+      "winPercent": 100,
+      "lossPercent": 0,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 3.41,
+      "meanRemainingHp": 82.41
+    },
+    {
+      "scenario": "PvE unarmed vs sniper",
+      "games": 2000,
+      "winPercent": 92.9,
+      "lossPercent": 7.1,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 6.2,
+      "meanRemainingHp": 25.82
+    },
+    {
+      "scenario": "PvE common set vs sniper",
+      "games": 2000,
+      "winPercent": 99.5,
+      "lossPercent": 0.5,
+      "tiePercent": 0,
+      "roundLimitReached": 0,
+      "meanRounds": 4.64,
+      "meanRemainingHp": 49.95
+    }
+  ]
+}

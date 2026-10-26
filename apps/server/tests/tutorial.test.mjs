@@ -1,11 +1,14 @@
 import assert from "node:assert/strict";
-import { after,mock,test } from "node:test";
+import { after,beforeEach,mock,test } from "node:test";
 import { mkdtempSync,rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { and,eq } from "drizzle-orm";
 import { TUTORIAL_MOB_ID,TUTORIAL_REWARD_KEY } from "@mmobot/shared";
+
+// Keep integration assertions deterministic; accuracy itself is covered separately.
+beforeEach((t) => { t.mock.method(Math, 'random', () => 0); });
 
 const directory = mkdtempSync(path.join(tmpdir(), "mmobot-tutorial-"));
 process.env.DATABASE_PATH = path.join(directory, "test.db");

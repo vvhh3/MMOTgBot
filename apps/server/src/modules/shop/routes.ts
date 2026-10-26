@@ -73,12 +73,14 @@ export function createShopRoutes(app: Express): void {
       db.transaction((tx) => {
         const item = tx.select().from(items).where(eq(items.id, itemId)).get();
         if (!item || !item.shopAvailable || item.price <= 0) throw new ShopError("Этот предмет нельзя продать", 400);
+        if (item.sellPrice <= 0) throw new ShopError("Магазин не выкупает этот предмет", 400);
         assertOutsideCombat(tx, playerId);
         const owned = resolveInventoryItem(tx, playerId, req.body ?? {});
         if (!owned || owned.quantity < quantity) throw new ShopError("Недостаточно предметов");
         if (owned.equiped) throw new ShopError("Сначала снимите экипированный предмет");
 
-        total = Math.max(1, Math.floor(item.price / 2)) * quantity;
+        total = item.sellPrice * quantity;
+        if (!Number.isSafeInteger(total)) throw new ShopError("Слишком большая сумма");
         if (total < 1) throw new ShopError("За этот предмет нельзя получить монеты");
 
         tx.update(players).set({ money: sql`${players.money} + ${total}` })

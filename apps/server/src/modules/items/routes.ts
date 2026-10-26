@@ -18,19 +18,20 @@ function member<T extends string>(value: unknown, values: readonly T[], label: s
 function parseItem(body: unknown, previous?: ItemRow): typeof items.$inferInsert {
   if (!body || typeof body !== "object" || Array.isArray(body)) throw new Error("Ожидается описание предмета");
   const input = body as Record<string, unknown>;
-  const value: Record<string, unknown> = { damage: 0, defense: 0, healAmount: 0, price: 0, icon: "", shopAvailable: false, rarity: "common", ...previous, ...input };
+  const value: Record<string, unknown> = { damage: 0, defense: 0, healAmount: 0, price: 0, sellPrice: 0, icon: "", shopAvailable: false, rarity: "common", ...previous, ...input };
   for (const key of ["name", "description"] as const) {
     if (typeof value[key] !== "string" || !(value[key] as string).trim()) throw new Error("Название и описание обязательны");
   }
-  for (const key of ["damage", "defense", "healAmount", "price"] as const) {
+  for (const key of ["damage", "defense", "healAmount", "price", "sellPrice"] as const) {
     if (!Number.isSafeInteger(value[key]) || (value[key] as number) < 0) throw new Error(`${key}: требуется целое неотрицательное число`);
   }
+  if ((value.sellPrice as number) > (value.price as number)) throw new Error("Цена выкупа не может превышать цену покупки");
   if (typeof value.shopAvailable !== "boolean" || typeof value.icon !== "string") throw new Error("Некорректные настройки магазина или иконки");
   const type = member(value.type, ["weapon", "armor", "potion", "material", "other"] as const, "Тип");
   const result: typeof items.$inferInsert = {
     name: (value.name as string).trim(), description: (value.description as string).trim(), type,
     damage: value.damage as number, defense: value.defense as number, healAmount: value.healAmount as number,
-    price: value.price as number, shopAvailable: value.shopAvailable, icon: value.icon,
+    price: value.price as number, sellPrice: value.sellPrice as number, shopAvailable: value.shopAvailable, icon: value.icon,
     rarity: member(value.rarity, ITEM_RARITIES, "Редкость"),
     weaponFamily: null, damageCategory: null, damageType: null, passiveId: null, passiveParams: {},
   };

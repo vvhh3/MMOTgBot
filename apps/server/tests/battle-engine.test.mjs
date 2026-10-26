@@ -7,8 +7,15 @@ const battle = (left = [attack], right = [attack]) => {
   const state = createBattle([fighter('A', left), fighter('B', right)]);
   state.choices = [left[0].id, right[0].id]; return state;
 };
+test('ordinary attacks miss at the 95 percent boundary', () => {
+  const guard = { ...attack, id: 'guard', kind: 'defend', defense: { fullBlockChance: 100, partialBlockChance: 0, partialMultiplier: .5, reflectChance: 0 } };
+  for (const [roll, missed] of [[.9499, false], [.95, true]]) {
+    const result = resolveRound(battle([attack], [guard]), [100, 100], 1, 'now', () => roll);
+    assert.equal(result.state.events.some(e => e.type === 'miss'), missed);
+  }
+});
 test('equal priority is randomized; a knocked out fighter cannot act', () => {
-  for (const [roll, first] of [[0, 0], [.99, 1]]) {
+  for (const [roll, first] of [[0, 0], [.9, 1]]) {
     const result = resolveRound(battle(), [1, 1], 1, 'now', () => roll);
     assert.equal(result.winner, first);
     assert.equal(result.state.events.filter(e => e.type === 'attack').length, 1);

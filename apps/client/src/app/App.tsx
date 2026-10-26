@@ -124,7 +124,7 @@ export default function App() {
         const incomingPvp = pvpOverview?.invites.find((i) => i.direction === "incoming");
         if (incomingPvp) {
           setPvpState({
-            round: 1, stateVersion: 0, roundStartedAt: null, events: [], moves: [], actionSubmitted: false,
+            round: 1, stateVersion: 0, roundStartedAt: null, events: [], moves: [], actionSubmitted: false, healingAvailable: true,
             exitRequested: false, partnerExitRequested: false,
             id: incomingPvp.id,
             status: "pending",

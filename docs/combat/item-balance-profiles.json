@@ -1,0 +1,76 @@
+{
+  "status": "proposal",
+  "basicAccuracy": 95,
+  "strongCooldownRounds": 2,
+  "guardCooldownRounds": 1,
+  "healing": {
+    "usesPerBattle": 1
+  },
+  "tiers": [
+    {
+      "id": "common",
+      "minLevel": 1,
+      "damage": 2,
+      "defense": 1,
+      "strongPower": 1.4,
+      "strongAccuracy": 80,
+      "fullBlockChance": 35,
+      "partialBlockChance": 55,
+      "partialMultiplier": 0.5,
+      "reflectChance": 30,
+      "healAmount": 15
+    },
+    {
+      "id": "uncommon",
+      "minLevel": 2,
+      "damage": 3,
+      "defense": 2,
+      "strongPower": 1.45,
+      "strongAccuracy": 82,
+      "fullBlockChance": 37,
+      "partialBlockChance": 53,
+      "partialMultiplier": 0.5,
+      "reflectChance": 32,
+      "healAmount": 25
+    },
+    {
+      "id": "rare",
+      "minLevel": 3,
+      "damage": 4,
+      "defense": 3,
+      "strongPower": 1.5,
+      "strongAccuracy": 84,
+      "fullBlockChance": 40,
+      "partialBlockChance": 50,
+      "partialMultiplier": 0.5,
+      "reflectChance": 34,
+      "healAmount": 35
+    },
+    {
+      "id": "epic",
+      "minLevel": 5,
+      "damage": 5,
+      "defense": 4,
+      "strongPower": 1.55,
+      "strongAccuracy": 86,
+      "fullBlockChance": 42,
+      "partialBlockChance": 50,
+      "partialMultiplier": 0.5,
+      "reflectChance": 36,
+      "healAmount": null
+    },
+    {
+      "id": "legendary",
+      "minLevel": 7,
+      "damage": 6,
+      "defense": 5,
+      "strongPower": 1.6,
+      "strongAccuracy": 88,
+      "fullBlockChance": 45,
+      "partialBlockChance": 50,
+      "partialMultiplier": 0.5,
+      "reflectChance": 38,
+      "healAmount": 45
+    }
+  ]
+}

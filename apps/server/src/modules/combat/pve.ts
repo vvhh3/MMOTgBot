@@ -1,6 +1,6 @@
 import type { CombatStateResponse,ItemDto } from "@mmobot/shared";
 import { TUTORIAL_MOB_ID,TUTORIAL_REWARD_KEY } from "@mmobot/shared";
-import { and,eq,inArray,lt,sql } from "drizzle-orm";
+import { and,eq,lt,sql } from "drizzle-orm";
 import { db } from "../../database/connection.js";
 import { toItemDto,toMobDto,toPlayerDto } from "../../database/mappers.js";
 import type { CombatSessionRow,MobRow,PlayerRow } from "../../database/schema.js";
@@ -18,7 +18,7 @@ import { randomUUID } from 'node:crypto';
 import { assertOutsideCombat } from '../inventory/store.js';
 import { createBattle,event,resolveRound } from './battle/engine.js';
 import { BattleError,checkRequest,parseBattleRequest,publicBattle,rememberRequest } from './battle/state.js';
-import { mobFighter,playerFighter } from './battle/stats.js';
+import { getEquippedItems,mobFighter,playerFighter } from './battle/stats.js';
 
 const mobRespawnUntil = new Map<number, number>();
 export const STALE_SESSION_MS = 5 * 60 * 1000;
@@ -191,15 +191,7 @@ function markMobDead(mob: MobRow): void {
 
 export const getPlayerStats = (player: PlayerRow) => {
 
-    const equiped = db.select().from(inventoryItems)
-        .where(and(
-            eq(inventoryItems.playerId, player.id),
-            eq(inventoryItems.equiped, true)
-        )).all()
-
-    const catalog = equiped.length
-        ? db.select().from(items).where(inArray(items.id, equiped.map((e) => e.itemType))).all()
-        : []
+    const catalog = getEquippedItems(player)
 
     return {
         strength: player.strength + catalog.reduce((acc, item) => acc + item.damage, 0),

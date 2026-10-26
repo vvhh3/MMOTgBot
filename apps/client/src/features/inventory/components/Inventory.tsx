@@ -4,6 +4,7 @@ import { useEffect,useState } from "react";
 import { spendStatPoint } from "../../character/api";
 import { getSkins } from "../../character/lib/skins";
 import { getCatalog } from "../../items/api";
+import { groupInventory } from "../lib/groupInventory";
 import ItemModal,{ type CombatInventoryActions } from "./ItemModal";
 
 type InventoryProps = {
@@ -41,12 +42,10 @@ export default function Inventory({ token, player, inventory,onPlayer,onInventor
         }
     }
 
-    const list = (inventory ?? []).map(inv => ({
-        inventoryEntry: inv,
-        item: inventoryItems.find(i => i.id === inv.itemType),
-        quantity: inv.quantity,
-        equiped: inv.equiped,
-    }))
+    const list = groupInventory(inventory ?? [], inventoryItems)
+    const selectedGroup = list.find(group => group.item.id === selectedItem?.item.id)
+    const selectedEntry = selectedGroup?.entries.find(entry => entry.id === selectedItem?.inventoryEntry.id)
+        ?? selectedGroup?.inventoryEntry
 
     const renderGrid = (type?: ItemDto["type"] | "other") => {
         const visibleItems = list.filter(({ item }) => item && (!combat || item.type === "potion") && (
@@ -62,10 +61,10 @@ export default function Inventory({ token, player, inventory,onPlayer,onInventor
                         return (
                             <button
                                 onClick={() => entry?.item && setSelectedItem({ item: entry.item, equiped: entry.equiped, inventoryEntry: entry.inventoryEntry })}
-                                key={entry?.inventoryEntry.id ?? `empty-${index}`}
+                                key={entry?.item.id ?? `empty-${index}`}
                                 disabled={!entry?.item}
-                                title={entry?.item ? `${entry.item.name} · ${RARITY_LABELS[entry.item.rarity]}${entry.inventoryEntry.weaponLevel ? ` · Ур. ${entry.inventoryEntry.weaponLevel}` : ""}` : "Пустая ячейка"}
-                                aria-label={entry?.item ? `${entry.item.name}${entry.inventoryEntry.weaponLevel ? `, уровень ${entry.inventoryEntry.weaponLevel}` : ""}` : "Пустая ячейка"}
+                                title={entry?.item ? `${entry.item.name} · ${RARITY_LABELS[entry.item.rarity]} · ×${entry.quantity}` : "Пустая ячейка"}
+                                aria-label={entry?.item ? `${entry.item.name}, количество ${entry.quantity}${entry.equiped ? ', есть надетый экземпляр' : ''}` : "Пустая ячейка"}
                                 style={{ borderColor: entry?.item?.type === "weapon" ? RARITY_COLORS[entry.item.rarity] : undefined }}
                                 className={`border aspect-square min-w-0 p-1 flex flex-col justify-between overflow-hidden ${!combat && player?.tutorialStep === "equip" && entry?.item?.type === "weapon" ? "tutorial-target" : ""} ${entry?.equiped ? "border-[#E85D2F] border-2 bg-orange-50" : "border-[#898888]"}`}>
                                 {entry?.item && (
@@ -74,7 +73,7 @@ export default function Inventory({ token, player, inventory,onPlayer,onInventor
                                         <div className="h-7 w-7 [&_svg]:h-full [&_svg]:w-full" dangerouslySetInnerHTML={{__html: entry.item.icon}}></div>
                                         : <p className="truncate text-lg">{entry.item.name}  </p>
                                         }
-                                        <Text size="1" align="right">{entry.inventoryEntry.weaponLevel != null ? `Ур. ${entry.inventoryEntry.weaponLevel}` : `×${entry.quantity}`}{entry.equiped ? " ✓" : ""}</Text>
+                                        <Text size="1" align="right">×{entry.quantity}{entry.equiped ? " ✓" : ""}</Text>
                                     </>
                                 )}
                             </button>
@@ -86,7 +85,7 @@ export default function Inventory({ token, player, inventory,onPlayer,onInventor
     }
 
     return (
-        <div className=' h-full ' >
+        <div className="min-h-full">
             <div className="p-5">
                 <Card>
                     <div className="flex flex-col">
@@ -201,7 +200,7 @@ export default function Inventory({ token, player, inventory,onPlayer,onInventor
                     </Tabs.Content>
                 </Box>
             </Tabs.Root>}
-            <ItemModal combat={combat} item={selectedItem?.item ?? null} inventoryEntry={selectedItem?.inventoryEntry ?? null} equiped={selectedItem?.equiped ?? false} token={token} onItem={setSelectedItem} onPlayer={onPlayer} onInventory={onInventory}/>
+            <ItemModal combat={combat} playerLevel={player?.level ?? 1} item={selectedGroup?.item ?? null} inventoryEntry={selectedEntry ?? null} inventoryEntries={selectedGroup?.entries} quantity={selectedGroup?.quantity} equiped={selectedEntry?.equiped ?? false} token={token} onItem={setSelectedItem} onPlayer={onPlayer} onInventory={onInventory}/>
         </div>
     )
 }

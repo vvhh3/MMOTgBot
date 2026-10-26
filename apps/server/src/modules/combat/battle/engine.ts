@@ -3,10 +3,10 @@ import { BattleError } from './state.js';
 
 export const basicAttack = (armed: boolean): BattleMove => ({
   id: armed ? 'weapon_attack' : 'unarmed_strike', name: armed ? 'Атака оружием' : 'Удар рукой',
-  kind: 'attack', priority: 0, accuracy: 100, power: 1, cooldownRounds: 0,
+  kind: 'attack', priority: 0, accuracy: 95, power: 1, cooldownRounds: 0,
 });
 export function createBattle(fighters: [BattleFighter, BattleFighter]): BattleState {
-  return { fighters, choices: [null, null], cooldowns: [{}, {}], effects: [], exitRequested: [false, false], events: [], processedRequests: [] };
+  return { fighters, choices: [null, null], cooldowns: [{}, {}], effects: [], exitRequested: [false, false], events: [], processedRequests: [], healingLimit: 1 };
 }
 export function event(state: BattleState, round: number, type: BattleState['events'][number]['type'], hp: [number, number], at: string, text: string, side?: BattleSide) {
   state.events.push({ sequence: state.events.length + 1, round, type, hp: [...hp], at, text, ...(side === undefined ? {} : { side }) });

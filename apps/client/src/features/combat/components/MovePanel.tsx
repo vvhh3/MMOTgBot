@@ -27,7 +27,9 @@ export default function MovePanel({ state, disabled, onMove, onBack, tutorial = 
                             <Text size="1" color="gray">
                                 {cooldown > 0
                                     ? `Через ${cooldown} раунд(а)`
-                                    : `Точность ${move.accuracy}%`}
+                                    : move.kind === 'defend'
+                                        ? `Полный блок ${move.defense?.fullBlockChance ?? 0}%`
+                                        : `${move.power > 1 ? `×${move.power} · ` : ''}Точность ${move.accuracy}%`}
                             </Text>
                         </button>
                     </Card>

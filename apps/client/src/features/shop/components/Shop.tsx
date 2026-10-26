@@ -28,7 +28,7 @@ export default function Shop({ token, player, inventory, onPlayer, onInventory }
   const catalogById = useMemo(() => new Map(catalog.map((item) => [item.id, item])), [catalog]);
   const ownedForSale = inventory.flatMap((entry) => {
     const item = catalogById.get(entry.itemType);
-    return item ? [{ ...entry, item }] : [];
+    return item && item.sellPrice > 0 ? [{ ...entry, item }] : [];
   });
 
   const transact = async (item: ItemDto, action: "buy" | "sell", entry?: InventoryItemDto) => {
@@ -73,7 +73,7 @@ export default function Shop({ token, player, inventory, onPlayer, onInventory }
   );
 
   const itemCard = (item: ItemDto, action: "buy" | "sell", entry?: InventoryItemDto) => {
-    const unitPrice = action === "buy" ? item.price : Math.max(1, Math.floor(item.price / 2));
+    const unitPrice = action === "buy" ? item.price : item.sellPrice;
     const key = `${action}-${entry?.id ?? item.id}`;
     const busy = busyItem === key;
     return (
@@ -129,7 +129,7 @@ export default function Shop({ token, player, inventory, onPlayer, onInventory }
           {ownedForSale.length === 0
             ? <Text color="gray">У вас нет предметов, которые принимает магазин.</Text>
             : ownedForSale.map((entry) => itemCard(entry.item, "sell", entry))}
-          <Text size="1" color="gray">Магазин покупает предметы за половину их цены.</Text>
+          <Text size="1" color="gray">Цена выкупа указана у каждого предмета.</Text>
         </Tabs.Content>
       </Tabs.Root>
     </main>

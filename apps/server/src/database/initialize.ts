@@ -6,6 +6,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { config } from "../config/env.js";
+import { balanceCatalogItem } from "../modules/items/catalogs/balance.js";
 import { seedMemeItemCatalog } from "../modules/items/catalogs/meme-items.js";
 import { seedWeaponCatalog } from "../modules/items/catalogs/weapons.js";
 import { canBypassLocationRestrictions } from "../modules/locations/access.js";
@@ -72,11 +73,11 @@ export function initializeDatabase(): void {
   ]
 
   const seedItems: typeof items.$inferInsert[] = [
-    { id: 1, name: "Ржавый нож", description: "Простой нож", type: "weapon", weaponFamily: "legacy", damageCategory: "physical", damageType: "piercing", damage: 3, defense: 0, healAmount: 0, price: 10, shopAvailable: true, icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 29L13 19M13 19L29 3L13 19Z"/> </svg>'},
-    { id: 2, name: "Кожаная броня", description: "Лёгкая защитная броня", type: "armor", damage: 0, defense: 2, healAmount: 0, price: 15, shopAvailable: true, icon: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 2L6 8v8c0 6 4 10 10 12 6-2 10-6 10-12V8L16 2z'/><path d='M16 12v8'/><path d='M12 16h8'/></svg>"},
-    { id: 3, name: "Малая аптечка", description: "Восстанавливает здоровье", type: "potion", damage: 0, defense: 0, healAmount: 10, price: 12, shopAvailable: true, icon: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 5v22M5 16h22'/><rect x='4' y='4' width='24' height='24' rx='4'/></svg>"},
-    { id: 4, name: "Металлолом", description: "Полезный материал", type: "material", damage: 0, defense: 0, healAmount: 0, price: 5, shopAvailable: false, icon: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 27l4-4 5-6 8-9M9 23l-3-3M18 27c4-7 8-14 9-22l-6 1c-1 4-3 8-5 11'/></svg>" },
-    { id: 5, name: "Старая винтовка", description: "Рабочее оружие", type: "weapon", weaponFamily: "legacy", damageCategory: "physical", damageType: "piercing", damage: 8, defense: 0, healAmount: 0, price: 30, shopAvailable: true, icon: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 24h26M3 24l2-6h24l0 6M7 24v4M12 24v4M17 24v4M22 24v4M14 18h6'/></svg>" }
+    { id: 1, catalogKey: "rusty_knife", name: "Ржавый нож", description: "Простой нож", type: "weapon", weaponFamily: "legacy", damageCategory: "physical", damageType: "piercing", shopAvailable: true, icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 29L13 19M13 19L29 3L13 19Z"/> </svg>'},
+    { id: 2, catalogKey: "leather_armor", name: "Кожаная броня", description: "Лёгкая защитная броня", type: "armor", shopAvailable: true, icon: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 2L6 8v8c0 6 4 10 10 12 6-2 10-6 10-12V8L16 2z'/><path d='M16 12v8'/><path d='M12 16h8'/></svg>"},
+    { id: 3, catalogKey: "small_medkit", name: "Малая аптечка", description: "Восстанавливает здоровье", type: "potion", shopAvailable: true, icon: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 5v22M5 16h22'/><rect x='4' y='4' width='24' height='24' rx='4'/></svg>"},
+    { id: 4, catalogKey: "scrap_metal", name: "Металлолом", description: "Полезный материал", type: "material", damage: 0, defense: 0, healAmount: 0, price: 5, shopAvailable: false, icon: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 27l4-4 5-6 8-9M9 23l-3-3M18 27c4-7 8-14 9-22l-6 1c-1 4-3 8-5 11'/></svg>" },
+    { id: 5, catalogKey: "old_rifle", rarity: "rare", name: "Старая винтовка", description: "Рабочее оружие", type: "weapon", weaponFamily: "legacy", damageCategory: "physical", damageType: "piercing", shopAvailable: true, icon: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M3 24h26M3 24l2-6h24l0 6M7 24v4M12 24v4M17 24v4M22 24v4M14 18h6'/></svg>" }
   ]
 
   // Вставляем сид. Для локаций onConflictDoUpdate: при изменении координат/названия
@@ -120,14 +121,15 @@ export function initializeDatabase(): void {
     })
     .run()
   db.insert(items)
-    .values(seedItems)
+    .values(seedItems.map(balanceCatalogItem))
     .onConflictDoNothing()
     .run()
 
   // Новый предмет получает свободный id, чтобы не затереть предметы из админки.
-  const stick = db.select().from(items).where(eq(items.name, "Палка")).get()
+  const stick = db.select().from(items).where(eq(items.catalogKey, "training_stick")).get()
+    ?? db.select().from(items).where(eq(items.name, "Палка")).get()
     ?? db.insert(items).values({
-      name: "Палка", description: "Простое оружие, которое можно добыть у крыс на Площади",
+      catalogKey: "training_stick", name: "Палка", description: "Простое оружие, которое можно добыть у крыс на Площади",
       type: "weapon", weaponFamily: "legacy", damageCategory: "physical", damageType: "blunt", damage: 1, price: 2, shopAvailable: false,
       icon: "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='3' stroke-linecap='round'><path d='M7 27L23 5M17 13L25 12'/></svg>",
     }).returning().get();

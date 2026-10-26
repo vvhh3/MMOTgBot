@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { after, mock, test } from "node:test";
+import { after, beforeEach, mock, test } from "node:test";
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -8,6 +8,9 @@ import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { eq } from "drizzle-orm";
+
+// Keep integration assertions deterministic; accuracy itself is covered separately.
+beforeEach((t) => { t.mock.method(Math, 'random', () => 0); });
 
 const directory = mkdtempSync(path.join(tmpdir(), "mmobot-loot-"));
 process.env.DATABASE_PATH = path.join(directory, "test.db");
@@ -126,7 +129,7 @@ test("HTTP result, socket, inventory and quests contain only actual drops; repea
   const collected = quest(p.id, "collect"), looted = quest(p.id, "loot"), missed = quest(p.id, "loot", "4"), killed = quest(p.id, "kill", String(target.id));
   const started = request("post", "/combat/start", { playerId: p.id, body: { mobId: target.id } });
   assert.deepEqual(started.body.droppedItems, []);
-  const draws = [0, 0, 0.1, 0.9]; // order, attack, potion succeeds, scrap fails
+  const draws = [0, 0, 0, 0.1, 0.9]; // order, accuracy, damage, potion succeeds, scrap fails
   const rng = mock.method(Math, "random", () => { assert.ok(draws.length > 0, "unexpected reroll"); return draws.shift(); });
   try {
     const body = { action: 'attack', sessionId: started.body.id, round: started.body.round, expectedVersion: started.body.stateVersion, requestId: 'loot-win' };
@@ -145,7 +148,7 @@ test("HTTP result, socket, inventory and quests contain only actual drops; repea
     assert.deepEqual(socketState.droppedItems.map((item) => item.id), [1, 3]);
     assert.equal(request("post", "/combat/action", { playerId: p.id, body }).status, 200);
     assert.equal(request("post", "/combat/action", { playerId: p.id, body: { ...body, requestId: 'new-after-end' } }).status, 409);
-    assert.equal(rng.mock.callCount(), 4);
+    assert.equal(rng.mock.callCount(), 5);
     assert.equal(inventory(p.id).length, 2);
   } finally { rng.mock.restore(); }
 });
@@ -155,7 +158,8 @@ test("a win can drop nothing while still granting coins and kill progress", () =
   const q = quest(p.id, "kill", String(target.id));
   startCombat(p, target);
   const session = db.select().from(combatSessions).where(eq(combatSessions.playerId, p.id)).get();
-  const rng = mock.method(Math, "random", () => 0.99);
+  const draws = [0, 0, 0, 0.99];
+  const rng = mock.method(Math, "random", () => draws.shift());
   try {
     const result = moveCombatAction(p, target, session, "attack");
     assert.equal(result.status, "victory");
@@ -249,7 +253,8 @@ test('PvE potion heals before the mob, spends one action and one item, and survi
   try {
     const result = request('post', '/combat/action', { playerId: p.id, body });
     assert.equal(result.status, 200);
-    assert.equal(result.body.state.playerHp, 48);
+    assert.equal(result.body.state.playerHp, 53);
+    assert.equal(result.body.state.healingAvailable, false);
     assert.equal(result.body.state.mobHp, 500);
     assert.equal(result.body.state.round, 2);
     assert.equal(result.body.inventory.find(i => i.itemType === 3).quantity, 1);
@@ -259,6 +264,12 @@ test('PvE potion heals before the mob, spends one action and one item, and survi
     assert.equal(request('post', '/combat/action', { playerId: p.id, body }).status, 200);
     assert.deepEqual(db.select().from(combatSessions).where(eq(combatSessions.id, started.id)).get(), saved);
     assert.equal(inventory(p.id).find(i => i.itemType === 3).quantity, 1);
+    const again = request('post', '/combat/action', { playerId: p.id, body: {
+      ...body, round: result.body.state.round, expectedVersion: result.body.state.stateVersion, requestId: 'heal-twice',
+    } });
+    assert.equal(again.status, 400);
+    assert.equal(inventory(p.id).find(i => i.itemType === 3).quantity, 1);
+    assert.deepEqual(db.select().from(combatSessions).where(eq(combatSessions.id, started.id)).get(), saved);
   } finally { random.mock.restore(); }
 });
 

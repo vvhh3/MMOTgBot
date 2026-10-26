@@ -221,9 +221,11 @@ export default function Fight({
     if (pvpState.exitRequested) leaveLabel = "Отменить выход";
     if (pvpState.finished) leaveLabel = "Выйти";
 
-    const inventoryMessage = pvpState.actionSubmitted
+    const inventoryMessage = !pvpState.healingAvailable
+        ? "Лечение в этом бою уже использовано."
+        : pvpState.actionSubmitted
         ? "Действие уже выбрано. Предмет можно использовать в следующем раунде."
-        : "Лечебный предмет занимает действие текущего раунда.";
+        : "Лечебный предмет занимает действие раунда. Одно лечение за бой.";
 
     const renderControls = () => {
         if (playback.message) {
@@ -310,6 +312,7 @@ export default function Fight({
                         onUsePotion: (itemType) => handleAction(undefined, undefined, itemType),
                         busy: pending || inventoryLoading || pvpState.actionSubmitted || playback.busy,
                         healthFull: pvpState.myHp >= pvpState.myMaxHp,
+                        healingAvailable: pvpState.healingAvailable,
                     }}
                 />
             )}

@@ -23,9 +23,11 @@ export type BattleState = {
   processedRequests: { playerId: number; requestId: string; fingerprint: string }[];
   finishReason?: BattleFinishReason;
   droppedItems?: import('./index.js').ItemDto[];
+  healingLimit?: number;
 };
 export type BattlePublicState = {
   round: number; stateVersion: number; roundStartedAt: string | null;
   events: BattleEvent[]; moves: (BattleMove & { availableFromRound: number })[];
   actionSubmitted: boolean; finishReason?: BattleFinishReason;
+  healingAvailable: boolean;
 };

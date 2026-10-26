@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { after, mock, test } from "node:test";
+import { after, beforeEach, mock, test } from "node:test";
 import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -8,6 +8,9 @@ import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { and, eq } from "drizzle-orm";
+
+// Keep integration assertions deterministic; accuracy itself is covered separately.
+beforeEach((t) => { t.mock.method(Math, 'random', () => 0); });
 
 const directory = mkdtempSync(path.join(tmpdir(), "mmobot-weapons-"));
 process.env.DATABASE_PATH = path.join(directory, "test.db");
@@ -79,7 +82,7 @@ function request(method, url, { playerId = 1, id, body = {} } = {}) {
 let nextPlayer = 200;
 function player(overrides = {}) {
   const id = nextPlayer++;
-  return db.insert(players).values({ id, friendId: id, name: `Игрок ${id}`, money: 2000, currentLocationId: "square", createdAt: nowGameTime(), lastSeenAt: nowGameTime(), ...overrides }).returning().get();
+  return db.insert(players).values({ id, friendId: id, name: `Игрок ${id}`, money: 2000, level: 7, currentLocationId: "square", createdAt: nowGameTime(), lastSeenAt: nowGameTime(), ...overrides }).returning().get();
 }
 function give(playerId, itemType, quantity = 1) {
   db.transaction((tx) => grantItems(tx, playerId, itemType, quantity));
@@ -117,18 +120,18 @@ test("database rejects invalid instance levels/quantities and duplicate ordinary
 
 test("catalog seeds the original weapons and twenty new items without overwriting admin edits on restart", () => {
   const phone = catalog("iphone_9");
-  assert.equal(request("put", "/items/:id", { id: phone.id, body: { name: "Айфон 9 — изменён", price: 81, passiveParams: { healthThresholdPercent: 35, damageBonusPercent: 15 } } }).status, 200);
+  assert.equal(request("put", "/items/:id", { id: phone.id, body: { name: "Айфон 9 — изменён", price: 20081, passiveParams: { healthThresholdPercent: 35, damageBonusPercent: 15 } } }).status, 200);
   assert.equal(request("put", "/items/:id", { id: catalog("foil_hat_pro_max").id, body: { name: "Шапочка — изменена", passiveParams: { chancePercent: 30 } } }).status, 200);
-  assert.equal(request("put", "/items/:id", { id: catalog("yesterday_deadline_coffee").id, body: { price: 60, passiveParams: { speedBonusPercent: 20, durationRounds: 3, slowdownPercent: 10 } } }).status, 200);
+  assert.equal(request("put", "/items/:id", { id: catalog("yesterday_deadline_coffee").id, body: { price: 60, passiveId: "caffeine_credit", passiveParams: { speedBonusPercent: 20, durationRounds: 3, slowdownPercent: 10 } } }).status, 200);
   db.update(inventoryItems).set({ weaponLevel: 5 }).where(eq(inventoryItems.id, 100)).run();
   const before = getInventory(1);
   const beforeItems = db.select().from(items).all();
   initializeDatabase();
   assert.deepEqual(getInventory(1), before);
   assert.deepEqual(db.select().from(items).all(), beforeItems);
-  assert.equal(db.select().from(items).all().filter((item) => item.catalogKey !== null).length, 28);
+  assert.equal(db.select().from(items).all().filter((item) => item.catalogKey !== null).length, 34);
   assert.equal(catalog("iphone_9").name, "Айфон 9 — изменён");
-  assert.equal(catalog("iphone_9").price, 81);
+  assert.equal(catalog("iphone_9").price, 20081);
   assert.equal(catalog("iphone_9").passiveParams.healthThresholdPercent, 35);
   assert.equal(db.select().from(items).where(eq(items.id, 40)).get().description, "Сохранить");
 });
@@ -145,7 +148,7 @@ test("new catalog has four items per rarity and all effect definitions round-tri
   assert.equal(additions.filter((item) => item.type === "potion").length, 3);
   for (const item of additions) {
     assert.ok(item.icon.startsWith('<svg '));
-    assert.ok(getPassiveIdsForType(item.type).includes(item.passiveId));
+    assert.ok(item.passiveId === null || getPassiveIdsForType(item.type).includes(item.passiveId));
     const result = request("put", "/items/:id", { id: item.id, body: { description: item.description } });
     assert.equal(result.status, 200, `${item.name}: ${JSON.stringify(result.body)}`);
     assert.deepEqual(result.body.item.passiveParams, item.passiveParams);
@@ -173,15 +176,10 @@ test("armor and consumable effect validation rejects incompatible types and pres
 });
 
 test("new shop weapons create level-one instances and armor and consumables stack", () => {
-  const p = player({ money: 10000 });
+  const p = player({ money: 2000000 });
   const shop = request("get", "/shop", { playerId: p.id }).body.items;
   for (const definition of MEME_ITEM_CATALOG) {
     const item = catalog(definition.catalogKey);
-    if (definition.catalogKey === "yesterday_deadline_coffee") {
-      assert.ok(!shop.some((entry) => entry.id === item.id));
-      assert.equal(request("post", "/shop/buy", { playerId: p.id, body: { itemType: item.id, quantity: 1 } }).status, 404);
-      continue;
-    }
     assert.ok(shop.some((entry) => entry.id === item.id));
     const bought = request("post", "/shop/buy", { playerId: p.id, body: { itemType: item.id, quantity: 2 } });
     assert.equal(bought.status, 200);
@@ -201,25 +199,15 @@ test("new shop weapons create level-one instances and armor and consumables stac
   assert.equal(getPlayerStats(getPlayer(p.id)).defense, p.defense + robe.defense);
 });
 
-test("food restores current flat HP and unfinished coffee cannot be consumed in inventory or combat", () => {
-  const p = player({ health: 20 });
+test("food and repurposed coffee restore flat HP at the required character level", () => {
+  const p = player({ health: 5 });
   const soup = catalog("mothers_soup"), dumpling = catalog("primordial_dumpling"), coffee = catalog("yesterday_deadline_coffee");
-  for (const item of [soup, dumpling, coffee]) give(p.id, item.id, 2);
-  const before = getInventory(p.id);
-  assert.equal(request("post", "/inventory/use", { playerId: p.id, body: { itemType: coffee.id } }).status, 400);
-  assert.deepEqual(getInventory(p.id), before);
-  assert.equal(getPlayer(p.id).health, 20);
-  for (const [item, hp] of [[soup, 40], [dumpling, 100]]) {
+  for (const item of [soup, coffee, dumpling]) give(p.id, item.id, 2);
+  for (const [item, hp] of [[soup, 30], [coffee, 65], [dumpling, 100]]) {
     assert.equal(request("post", "/inventory/use", { playerId: p.id, body: { itemType: item.id } }).status, 200);
     assert.equal(getPlayer(p.id).health, hp);
     assert.equal(getInventory(p.id).find((row) => row.itemType === item.id).quantity, 1);
   }
-  const mob = db.select().from(mobs).where(eq(mobs.id, 0)).get();
-  startCombat(getPlayer(p.id), mob);
-  const session = db.select().from(combatSessions).where(eq(combatSessions.playerId, p.id)).get();
-  assert.throws(() => usePotion(getPlayer(p.id), coffee.id, session, mob), /недоступны/);
-  assert.equal(getInventory(p.id).find((row) => row.itemType === coffee.id).quantity, 2);
-  db.delete(combatSessions).where(eq(combatSessions.id, session.id)).run();
 });
 
 test("shop purchases produce individual level-one weapons, ignore forged levels and still stack potions", () => {
@@ -269,7 +257,7 @@ test("selling removes only the selected instance and preserves other levels", ()
   assert.equal(sale({ inventoryItemId: first.id }).status, 200);
   assert.equal(rowById(first.id), undefined);
   assert.equal(rowById(second.id).weaponLevel, 7);
-  assert.equal(getPlayer(p.id).money, p.money + Math.floor(item.price / 2));
+  assert.equal(getPlayer(p.id).money, p.money + item.sellPrice);
   request("post", "/inventory/equip", { playerId: p.id, body: { inventoryItemId: second.id } });
   assert.equal(sale({ inventoryItemId: second.id }).status, 400);
 });
@@ -364,4 +352,65 @@ test("repeated combat loot creates separate weapons and keeps potion loot stacke
   const inventory = getInventory(p.id);
   assert.equal(inventory.filter((row) => row.itemType === weapon.id).length, 2);
   assert.equal(inventory.find((row) => row.itemType === 3).quantity, 2);
+});
+
+test("level requirements are enforced by equip, healing and the authoritative battle snapshot", () => {
+  const p = player({ level: 1, health: 40 });
+  const weapon = catalog('soul_vacuum'), coffee = catalog('yesterday_deadline_coffee');
+  const [owned] = give(p.id, weapon.id);
+  give(p.id, coffee.id, 1);
+  assert.equal(request('post', '/inventory/equip', { playerId: p.id, body: { inventoryItemId: owned.id, level: 99 } }).status, 400);
+  assert.equal(request('post', '/inventory/use', { playerId: p.id, body: { itemType: coffee.id, level: 99 } }).status, 400);
+  assert.equal(getPlayer(p.id).health, 40);
+  // Old or tampered equipment cannot bypass the snapshot's level check.
+  db.update(inventoryItems).set({ equiped: true }).where(eq(inventoryItems.id, owned.id)).run();
+  assert.equal(getPlayerStats(getPlayer(p.id)).strength, p.strength);
+  const target = db.select().from(mobs).where(eq(mobs.id, 0)).get();
+  const state = startCombat(getPlayer(p.id), target);
+  assert.deepEqual(state.moves.map(m => m.id), ['unarmed_strike']);
+  const session = db.select().from(combatSessions).where(eq(combatSessions.id, state.id)).get();
+  assert.throws(() => usePotion(getPlayer(p.id), coffee.id, session, target), /Требуется уровень 3/);
+});
+
+test("equipped items expose strong and guard moves with real round cooldowns and persistent snapshots", () => {
+  const p = player();
+  const [weapon] = give(p.id, catalog('mop').id);
+  const armor = db.select().from(items).where(eq(items.id, 2)).get();
+  const [ownedArmor] = give(p.id, armor.id);
+  for (const entry of [weapon, ownedArmor]) assert.equal(request('post', '/inventory/equip', { playerId: p.id, body: { inventoryItemId: entry.id } }).status, 200);
+  const target = db.insert(mobs).values({ name: 'Durable', description: 'Moves', level: 1, maxHealth: 1000, strength: 0, defense: 0,
+    loot: [], pointsReward: 0, locationId: 'square', respawnSeconds: 1 }).returning().get();
+  const state = startCombat(getPlayer(p.id), target);
+  assert.deepEqual(state.moves.map(m => m.id), ['weapon_attack', 'weapon_strong', 'armor_guard']);
+  const session = () => db.select().from(combatSessions).where(eq(combatSessions.id, state.id)).get();
+  const action = (moveId) => {
+    const s = session();
+    return moveCombatAction(getPlayer(p.id), target, s, 'attack', { sessionId: s.id, round: s.roundNumber,
+      expectedVersion: s.stateVersion, requestId: `${moveId}-${s.roundNumber}`, moveId });
+  };
+  const first = action('weapon_strong');
+  assert.equal(first.moves.find(m => m.id === 'weapon_strong').availableFromRound, 4);
+  assert.throws(() => action('weapon_strong'), /недоступен/);
+  const guard = action('armor_guard');
+  assert.equal(guard.mobHp, first.mobHp);
+  assert.equal(guard.moves.find(m => m.id === 'armor_guard').availableFromRound, 4);
+  assert.ok(guard.events.some(e => e.type === 'block'));
+  // Later catalogue edits do not change the in-progress fighter.
+  db.update(items).set({ damage: 999 }).where(eq(items.id, weapon.itemType)).run();
+  assert.equal(session().battleState.fighters[0].strength, p.strength + 2);
+});
+
+test("NPC buyback is independent of retail price and ignores forged sale prices", () => {
+  const p = player(), item = catalog('old_rifle');
+  const [owned] = give(p.id, item.id);
+  assert.equal(item.price, 2500);
+  assert.equal(item.sellPrice, 100);
+  const sale = request('post', '/shop/sell', { playerId: p.id, body: { itemType: item.id,
+    inventoryItemId: owned.id, quantity: 1, sellPrice: 999999 } });
+  assert.equal(sale.status, 200);
+  assert.equal(sale.body.total, 100);
+  assert.equal(getPlayer(p.id).money, p.money + 100);
+  for (const sellPrice of [-1, 1.5, item.price + 1]) {
+    assert.equal(request('put', '/items/:id', { id: item.id, body: { sellPrice } }).status, 400);
+  }
 });

@@ -1,10 +1,13 @@
 import assert from "node:assert/strict";
-import { after, mock, test } from "node:test";
+import { after, beforeEach, mock, test } from "node:test";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import express from "express";
 import { eq } from "drizzle-orm";
+
+// Keep integration assertions deterministic; accuracy itself is covered separately.
+beforeEach((t) => { t.mock.method(Math, 'random', () => 0); });
 
 const directory = mkdtempSync(path.join(tmpdir(), "mmobot-pvp-"));
 process.env.DATABASE_PATH = path.join(directory, "test.db");
@@ -274,7 +277,7 @@ test('PvP healing stays hidden until both choices, then heals before attack and 
   const random = mock.method(Math, 'random', () => 0);
   try { assert.equal(choose(b, getSession(session.id)).status, 200); } finally { random.mock.restore(); }
   const saved = getSession(session.id);
-  assert.equal(saved.player1Health, 85);
+  assert.equal(saved.player1Health, 90);
   assert.equal(saved.battleState.events[0].type, 'heal');
   assert.equal(saved.battleState.events.filter(e => e.type === 'attack').length, 1);
   assert.equal(saved.player2Health, 35);
@@ -282,6 +285,10 @@ test('PvP healing stays hidden until both choices, then heals before attack and 
   assert.equal(choose(a, session, body).status, 200);
   assert.deepEqual(getSession(session.id), saved);
   assert.equal(db.select().from(inventoryItems).where(eq(inventoryItems.playerId, a.id)).get().quantity, 1);
+  assert.equal(request('get', '/pvp/:id', a.id, session.id).body.healingAvailable, false);
+  const repeatedHeal = command(saved, { action: 'use', itemType: 3 });
+  assert.equal(choose(a, saved, repeatedHeal).status, 400);
+  assert.deepEqual(getSession(session.id), saved);
 });
 
 test('mutual exit does not consume a queued healing item', async () => {

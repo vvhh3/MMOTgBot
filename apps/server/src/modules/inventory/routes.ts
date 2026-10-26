@@ -1,6 +1,6 @@
 import { assertOutsideCombat,resolveInventoryItem } from "./store.js";
 
-import { ItemsResponse } from "@mmobot/shared";
+import { getItemMinLevel,ItemsResponse } from "@mmobot/shared";
 import { and,asc,eq } from "drizzle-orm";
 import type { Express,Request,Response } from "express";
 import { db } from "../../database/connection.js";
@@ -49,6 +49,10 @@ export const InventoryRoutes = (app: Express) => {
         if (!item || (item.type !== "weapon" && item.type !== "armor")) {
             res.status(400).json({ error: "not found item" })
             return
+        }
+
+        if (player.level < getItemMinLevel(item)) {
+            return res.status(400).json({ error: `Требуется уровень ${getItemMinLevel(item)}` });
         }
 
         const equiped = db
@@ -128,6 +132,10 @@ export const InventoryRoutes = (app: Express) => {
         if (item.healAmount <= 0) {
             res.status(400).json({ error: "Эффект этого расходника пока недоступен" })
             return
+        }
+
+        if (player.level < getItemMinLevel(item)) {
+            return res.status(400).json({ error: `Требуется уровень ${getItemMinLevel(item)}` });
         }
 
         if (player.health >= player.maxHealth) {

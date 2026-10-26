@@ -36,6 +36,8 @@ const emptyItem: ItemDto = {
     defense: 0,
     healAmount: 0,
     price: 0,
+    sellPrice: 0,
+    minLevel: 1,
     shopAvailable: false,
     icon: '',
     rarity: 'common', weaponFamily: null, damageCategory: null, damageType: null, passiveId: null, passiveParams: {},
@@ -233,6 +235,8 @@ export const ItemAdmin = ({ token }: ItemAdminProps) => {
 
                         <NumberField label="Цена" min={0} value={draft.price}
                             onChange={(v) => setDraft({ ...draft, price: v })} />
+                        <NumberField label="Выкуп магазином" min={0} value={draft.sellPrice}
+                            onChange={(v) => setDraft({ ...draft, sellPrice: v })} />
                         <label className="flex items-center gap-2">
                             <input
                                 type="checkbox"

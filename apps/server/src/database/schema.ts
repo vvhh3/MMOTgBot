@@ -104,6 +104,7 @@ export const items = sqliteTable("items", {
   defense: integer("defense").notNull().default(0),
   healAmount: integer("heal_amount").notNull().default(0), // зачем это поле? Это поле для показа сколько захилит предмет
   price: integer("price").notNull().default(0),
+  sellPrice: integer("sell_price").notNull().default(0),
   shopAvailable: integer("shop_available", { mode: "boolean" }).notNull().default(false),
   icon: text("icon").notNull().default(""),
   catalogKey: text("catalog_key").unique(),

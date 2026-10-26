@@ -253,11 +253,12 @@ export default function PveFight({
                     onClose={handleCloseInventory}
                     closeDisabled={pending}
                     error={error}
-                    message="Лечебный предмет занимает действие текущего раунда."
+                    message={state.healingAvailable ? "Лечебный предмет занимает действие раунда. Одно лечение за бой." : "Лечение в этом бою уже использовано."}
                     combat={{
                         onUsePotion: (itemType) => handleAction("use", undefined, itemType),
                         busy: pending || playback.busy,
                         healthFull: state.playerHp >= state.playerMaxHp,
+                        healingAvailable: state.healingAvailable,
                     }}
                 />
             )}

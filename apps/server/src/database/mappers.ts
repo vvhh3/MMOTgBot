@@ -1,4 +1,5 @@
 import type { EventDto,InventoryItemDto,ItemDto,LocationDto,MobDto,PlayerDto,QuestsDto } from "@mmobot/shared";
+import { getItemMinLevel } from "@mmobot/shared";
 import { getPlayerStats } from "../modules/combat/pve.js";
 import { getLevelXpBounds } from "../modules/players/level.js";
 import type { EventRow,InventoryItemRow,ItemRow,LocationRow,MobRow,PlayerRow,QuestsRow } from "./schema.js";
@@ -63,6 +64,7 @@ export function toMobDto(row: MobRow): MobDto{
 export function toItemDto(row: ItemRow): ItemDto {
   return {
     id: row.id,
+    catalogKey: row.catalogKey,
     name: row.name,
     description: row.description,
     type: row.type,
@@ -70,6 +72,8 @@ export function toItemDto(row: ItemRow): ItemDto {
     defense: row.defense,
     healAmount: row.healAmount,
     price: row.price,
+    sellPrice: row.sellPrice,
+    minLevel: getItemMinLevel(row),
     shopAvailable: row.shopAvailable,
     icon: row.icon,
     rarity: row.rarity,

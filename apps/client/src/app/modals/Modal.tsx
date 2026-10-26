@@ -83,6 +83,7 @@ export default function Modal({
     case TypeModal.Item:
       return (
         <CenterModalItem
+          playerLevel={player?.level ?? 1}
           combat={combat}
           token={token ?? null}
           item={item ?? null}
