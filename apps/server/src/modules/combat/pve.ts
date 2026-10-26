@@ -19,8 +19,8 @@ import { assertOutsideCombat } from '../inventory/store.js';
 import { createBattle,event,resolveRound } from './battle/engine.js';
 import { BattleError,checkRequest,parseBattleRequest,publicBattle,rememberRequest } from './battle/state.js';
 import { getEquippedItems,mobFighter,playerFighter } from './battle/stats.js';
+import { chooseMobMove,scaleMob } from '../mobs/balance.js';
 
-const mobRespawnUntil = new Map<number, number>();
 export const STALE_SESSION_MS = 5 * 60 * 1000;
 
 function clearCombatAction(playerId: number, sessionId: number) {
@@ -46,12 +46,17 @@ export function expireStaleCombatSessions(): void {
 export function startCombat(player: PlayerRow, mob: MobRow): CombatStateResponse {
     const session = db.transaction(() => {
         assertOutsideCombat(db, player.id);
+        if (!mob.isActive) throw new BattleError('Противник больше не встречается', 409);
+        if (player.health <= 0) throw new BattleError('Восстановите здоровье перед боем', 409);
+        const encounter = scaleMob(mob, player.level, db.select().from(items).all());
         const now = nowGameTime();
-        const state = createBattle([playerFighter(player), mobFighter(mob)]);
+        const state = createBattle([playerFighter(player), mobFighter(encounter.mob)]);
+        state.encounter = { level: encounter.mob.level, rank: encounter.rank, locationId: mob.locationId,
+            pointsReward: encounter.mob.pointsReward, coinReward: encounter.mob.coinReward, loot: structuredClone(encounter.mob.loot) };
         // Mob commits before the player's hidden choice is received.
-        state.choices[1] = 'mob_attack';
+        state.choices[1] = chooseMobMove(state, 1);
         const row = db.insert(combatSessions).values({ playerId: player.id, mobId: mob.id, playerHealth: player.health,
-            mobHealth: mob.maxHealth, status: 'active', startedAt: now, lastActionAt: now,
+            mobHealth: encounter.mob.maxHealth, status: 'active', startedAt: now, lastActionAt: now,
             roundStartedAt: now, battleState: state }).returning().get();
         db.update(players).set({ idTheLastAction: { id: row.id, type: 'TakeAWalk' } }).where(eq(players.id, player.id)).run();
         return row;
@@ -86,7 +91,7 @@ export function moveCombatAction(player: PlayerRow, mob: MobRow, session: Combat
         } else {
             const selected = action === 'use' ? preparePotion(state, 0, player.id, request.itemType, hp[0]) : moveId;
             if (action === 'attack' && state.fighters[0].moves.find(m => m.id === selected)?.itemType !== undefined) throw new BattleError('Используйте предмет через инвентарь', 400);
-            state.choices = [selected, state.choices[1] ?? 'mob_attack'];
+            state.choices = [selected, state.choices[1] ?? chooseMobMove(state, current.roundNumber)];
             const resolved = resolveRound(state, hp, current.roundNumber, now);
             for (const consumed of resolved.consumedItems) consumePotion(player.id, consumed.itemType);
             next = resolved.state; hp = resolved.hp;
@@ -94,20 +99,19 @@ export function moveCombatAction(player: PlayerRow, mob: MobRow, session: Combat
         }
         rememberRequest(next, player.id, request, command);
         const roundNumber = current.roundNumber + (status === 'active' ? 1 : 0);
-        if (status === 'active') next.choices = [null, 'mob_attack'];
+        if (status === 'active') next.choices = [null, chooseMobMove(next, roundNumber)];
         const updated = { ...current, playerHealth: hp[0], mobHealth: hp[1], status, battleState: next,
             roundNumber, roundStartedAt: now, stateVersion: current.stateVersion + 1, lastActionAt: now };
         db.update(combatSessions).set(updated).where(eq(combatSessions.id, current.id)).run();
         db.update(players).set({ health: hp[0], lastRegenTime: now }).where(eq(players.id, player.id)).run();
         if (status !== 'active') {
             clearCombatAction(player.id, current.id);
-            next.droppedItems = endCombatSession(status, player, mob, current.id);
+            next.droppedItems = endCombatSession(status, player, encounterMob(mob, next), current.id);
             db.update(combatSessions).set({ battleState: next }).where(eq(combatSessions.id, current.id)).run();
         }
         changed = true;
         return getCombatState(player, updated, mob);
     });
-    if (changed && result.status === 'victory' && mob.id !== TUTORIAL_MOB_ID) markMobDead(mob);
     if (changed && result.status === 'defeat') movePlayer(toPlayerDto({ ...player, currentLocationId: 'square' }), 'square');
     return result;
 }
@@ -117,10 +121,15 @@ export function usePotion(player: PlayerRow, itemType: number, session: CombatSe
 export function getCombatState(player: PlayerRow, session: CombatSessionRow, mob: MobRow): CombatStateResponse {
     const state = session.battleState;
     return { ...publicBattle(state, session.roundNumber, session.stateVersion, session.roundStartedAt, 0),
-        id: session.id, mob: toMobDto(mob), playerHp: session.playerHealth,
+        id: session.id, mob: { ...toMobDto(encounterMob(mob, state)), rank: state?.encounter?.rank }, playerHp: session.playerHealth,
         playerMaxHp: state?.fighters[0].maxHp ?? player.maxHealth, mobHp: session.mobHealth,
         mobMaxHp: state?.fighters[1].maxHp ?? mob.maxHealth, status: session.status,
         droppedItems: state?.droppedItems ?? [], log: state?.events.map(e => ({ text: e.text, at: e.at })) ?? [] };
+}
+function encounterMob(mob: MobRow, state: BattleState | null): MobRow {
+    if (!state) return mob;
+    return { ...mob, ...state.encounter, name: state.fighters[1].name,
+        maxHealth: state.fighters[1].maxHp, strength: state.fighters[1].strength, defense: state.fighters[1].defense };
 }
 function endCombatSession(status: "victory" | "defeat" | "fled" | "aborted", player: PlayerRow, mob: MobRow, sessionId: number): ItemDto[] {
     const now = nowGameTime();
@@ -181,12 +190,7 @@ function endCombatSession(status: "victory" | "defeat" | "fled" | "aborted", pla
 
 
 export function isMobAlive(mob: MobRow): boolean {
-    const check = mobRespawnUntil.get(mob.id)
-    return !check || nowGameTimeMs() >= check // !check - если моб = undefined то true, Date.now() >= check - возродился ли моб или нет ещё
-}
-
-function markMobDead(mob: MobRow): void {
-    mobRespawnUntil.set(mob.id, nowGameTimeMs() + mob.respawnSeconds * 1000);
+    return mob.isActive;
 }
 
 export const getPlayerStats = (player: PlayerRow) => {

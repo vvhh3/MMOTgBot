@@ -9,7 +9,7 @@ import { broadcastLocation,emitToPlayer } from "../../infrastructure/realtime/so
 import { requireAuth,type AuthedRequest } from "../auth/auth.js";
 import { checkLocationAccess } from "../locations/access.js";
 import { BattleError,parseBattleRequest } from "./battle/state.js";
-import { expireStaleCombatSessions,getCombatState,isMobAlive,moveCombatAction,startCombat } from "./pve.js";
+import { expireStaleCombatSessions,getCombatState,moveCombatAction } from "./pve.js";
 
 export function createCombatRoutes(app: express.Express): void {
   app.post("/combat/start", requireAuth, (req, res) => {
@@ -32,40 +32,8 @@ export function createCombatRoutes(app: express.Express): void {
     const location = db.select().from(locations).where(eq(locations.id, mob.locationId)).get()!;
     if (!checkLocationAccess(player, location, res)) return;
 
-    // 3. Нет ли уже активного боя? (уникальный индекс и так не даст дубль,
-    //    но лучше вернуть понятную ошибку заранее)
-    const active = db
-      .select()
-      .from(combatSessions)
-      .where(and(
-        eq(combatSessions.playerId, player.id),
-        eq(combatSessions.status, "active")
-      ))
-      .get();
-    if (active) {
-      res.status(409).json({ error: "You already have an active combat" });
-      return;
-    }
-
-    // 4. Моб не в респауне?
-    if (!isMobAlive(mob)) {
-      res.status(409).json({ error: "This mob is defeated, come back later" });
-      return;
-    }
-
-    // 5. Игрок жив? После поражения HP = 0, регенерация вернёт его постепенно.
-    if (player.health <= 0) {
-      res.status(409).json({ error: "Восстановите здоровье перед боем" });
-      return;
-    }
-
-    // 6. Начинаем бой
-    let state;
-    try { state = startCombat(player, mob); }
-    catch (error) { return res.status(409).json({ error: (error as Error).message }); }
-    emitToPlayer(player.id, "combatState", state)
-
-    res.json(state)
+    // Encounters are selected by the walk handler, never by a client-supplied mob ID.
+    res.status(409).json({ error: 'Встречи с противниками начинаются через прогулку' });
   });
 
   // СДЕЛАТЬ ХОД: POST /combat/action  (action: "attack" | "flee" | "use")

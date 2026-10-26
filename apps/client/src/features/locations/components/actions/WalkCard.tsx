@@ -1,56 +1,45 @@
 import { CombatStateResponse,LocationStateResponse,PlayerDto } from "@mmobot/shared";
 import { Card,Text } from "@radix-ui/themes";
 import { useNavigate } from "react-router-dom";
-import { getCombatState,startCombat } from "../../../combat/api";
+import { useRef,useState } from 'react';
+import { performLocationAction } from '../../api';
 type WalkProps = {
   token: string| null
   player: PlayerDto| null
   locationState: LocationStateResponse|null
   onError:(value:string)=>void
   onState:(state: CombatStateResponse) => void
+  onPlayer:(player: PlayerDto) => void
 }
-export default function WalkCard({token,player,locationState,onError,onState}:WalkProps){
+export default function WalkCard({token,player,locationState,onError,onState,onPlayer}:WalkProps){
   const navigate = useNavigate()
-   const getState = () => {
-          if(!token) return
-          getCombatState(token)
-          .then((res) => {onState(res), navigate("/TakeAWalk")})
-          .catch(e => (navigate("/",{replace:true}),onError(e instanceof Error ? e.message :"Ошибка"))) 
-      }
+  const [pending, setPending] = useState(false);
+  const locked = useRef(false);
   const functionStartCombat = async () => {
-    if (player?.currentLocationId === null) {
-      alert("Для начала выберите локацию");
-      return;
-    }
-
+    if (!token || !player?.currentLocationId || !locationState || locked.current) return;
+    locked.current = true;
+    setPending(true);
     try {
-      if (!locationState || !token) return;
-      const rand =
-        locationState.mobs[
-          Math.floor(Math.random() * locationState.mobs.length)
-        ];
-
-      // все мобы локации убиты и ещё в респауне — список живых пуст
-      if (!rand) {
-        alert(
-          "Все мобы на этой локации побеждены. Подождите, пока они возродятся.",
-        );
-        return;
+      const response = await performLocationAction(token, player.currentLocationId, 'walk');
+      if (response.combat) {
+        onState(response.combat);
+        navigate('/TakeAWalk');
       }
-
-      await startCombat(token, rand.id);
-      await getState();
+      onPlayer(response.player);
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Ошибка");
+      onError(e instanceof Error ? e.message : 'Не удалось прогуляться');
+    } finally {
+      locked.current = false;
+      setPending(false);
     }
   };
     return(
         <Card className="h-full w-full">
           <div className="flex flex-row  justify-between">
-            <div className="max-w-60" onClick={()=>functionStartCombat()}>
+            <button type="button" className="max-w-60 text-left disabled:opacity-50" disabled={pending} onClick={()=>void functionStartCombat()}>
               <Text as="div" size="2" weight="bold">
                 <div className="flex-row flex gap-2">
-                  Пройтись
+                  {pending ? 'Прогулка…' : 'Пройтись'}
                   <svg
                     height="20px"
                     width="20px"
@@ -146,7 +135,7 @@ export default function WalkCard({token,player,locationState,onError,onState}:Wa
               <Text as="div" color="gray" size="1">
                 Пройтись по локации
               </Text>
-            </div>
+            </button>
           </div>
         </Card>
     )

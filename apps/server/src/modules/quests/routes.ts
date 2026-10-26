@@ -54,6 +54,8 @@ function parseQuestInput(body: unknown, current?: QuestsRow): { data: Omit<Quest
           !db.select({ id: catalog.id }).from(catalog).where(eq(catalog.id, id)).get()) {
         return { error: state.objectiveType === "kill" ? "Моб не найден" : "Предмет не найден" };
       }
+      if (state.objectiveType === 'kill' && !db.select().from(mobs).where(eq(mobs.id, id)).get()?.isActive)
+        return { error: 'Этот противник больше не встречается' };
     }
   }
   return { data: {
@@ -67,6 +69,7 @@ function parseQuestInput(body: unknown, current?: QuestsRow): { data: Omit<Quest
 // Выдаёт игроку дневные квесты (по 1 на каждую сложность, случайный выбор),
 // если на сегодня их ещё нет. Вызывается при запросе GET /quests/daily.
 function assignDailyQuests(playerId: number): void {
+  replaceArchivedDailyQuests(playerId);
   const day = todayGameDate();
   const existing = db
     .select()
@@ -77,12 +80,31 @@ function assignDailyQuests(playerId: number): void {
 
   db.transaction((tx) => {
     for (const difficulty of DIFFICULTIES) {
-      const pool = tx.select().from(quests).where(eq(quests.difficulty, difficulty)).all();
+      const pool = tx.select().from(quests).where(and(eq(quests.difficulty, difficulty), eq(quests.isActive, true))).all();
       if (pool.length === 0) continue; // квестов такой сложности ещё нет в каталоге
       const quest = pool[Math.floor(Math.random() * pool.length)];
       tx.insert(playerQuests)
         .values({ playerId, questId: quest.id, assignedDay: day, progress: 0, status: "waiting" })
         .run();
+    }
+  });
+}
+
+export function replaceArchivedDailyQuests(playerId?: number): void {
+  db.transaction((tx) => {
+    const pending = tx.select({ assignment: playerQuests, quest: quests }).from(playerQuests)
+      .innerJoin(quests, eq(playerQuests.questId, quests.id)).where(and(
+        eq(playerQuests.assignedDay, todayGameDate()), eq(playerQuests.status, 'waiting'), eq(quests.isActive, false),
+        playerId === undefined ? undefined : eq(playerQuests.playerId, playerId),
+      )).all();
+    for (const { assignment, quest } of pending) {
+      const assigned = new Set(tx.select().from(playerQuests).where(and(
+        eq(playerQuests.playerId, assignment.playerId), eq(playerQuests.assignedDay, assignment.assignedDay),
+      )).all().map(row => row.questId));
+      const replacement = tx.select().from(quests).where(and(eq(quests.isActive, true), eq(quests.difficulty, quest.difficulty)))
+        .all().find(row => !assigned.has(row.id));
+      if (replacement) tx.update(playerQuests).set({ questId: replacement.id, progress: 0, completedAt: null })
+        .where(eq(playerQuests.id, assignment.id)).run();
     }
   });
 }
@@ -109,7 +131,8 @@ export function progressQuests(
       eq(playerQuests.playerId, playerId),
       eq(playerQuests.status, "waiting"),
       eq(playerQuests.assignedDay, todayGameDate()),
-      eq(quests.objectiveType, objectiveType)
+      eq(quests.objectiveType, objectiveType),
+      eq(quests.isActive, true)
     ))
     .all();
 
@@ -223,7 +246,7 @@ export const createQuestRoutes = (app: Express) => {
   // ==== CRUD КАТАЛОГА КВЕСТОВ (только админ) ====
 
   app.get("/quests", requireAdmin, (req: Request, res: Response) => {
-    const rows = db.select().from(quests).all();
+    const rows = db.select().from(quests).where(eq(quests.isActive, true)).all();
     const response: QuestsResponse = { quests: rows.map(toQuestDto) };
     res.json(response);
   });
@@ -277,7 +300,7 @@ export const createQuestRoutes = (app: Express) => {
       res.status(400).json({ error: "Quest not found" });
       return;
     }
-    db.delete(quests).where(eq(quests.id, quest.id)).run();
+    db.update(quests).set({ isActive: false }).where(eq(quests.id, quest.id)).run();
     res.status(200).end();
   });
 };

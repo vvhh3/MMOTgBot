@@ -33,7 +33,7 @@ const emptyMob: MobDto = {
     pointsReward: 0,
     coinReward: 0,
     locationId: "square",
-    respawnSeconds: 0
+    respawnSeconds: 1
 }
 
 type NumberFieldProps = {
@@ -195,8 +195,6 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
                             onChange={(v) => setDraft({ ...draft, pointsReward: v })} />
                         <NumberField label="Награда (монеты)" min={0} value={draft.coinReward}
                             onChange={(v) => setDraft({ ...draft, coinReward: v })} />
-                        <NumberField label="Респавн (сек)" min={1} value={draft.respawnSeconds}
-                            onChange={(v) => setDraft({ ...draft, respawnSeconds: v })} />
                     </Grid>
 
                     <div className="space-y-3 rounded-lg border p-3">

@@ -12,7 +12,7 @@ const actions = [
     {
         id: "fight",
         label: "Сражаться",
-        description: "Сражатся с мобами на локации"
+        description: "Сразиться с другим игроком"
     },
     {
         id: "walk",

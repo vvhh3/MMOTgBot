@@ -253,9 +253,10 @@ test('accepted choice and replay receipt survive an actual fresh process', async
 });
 
 test('an active PvE prevents accepting a duel, without changing the invitation', async () => {
-  const { combatSessions } = await import('../dist/database/schema.js');
+  const { combatSessions, mobs } = await import('../dist/database/schema.js');
   const { a, b, session } = duel({ status: 'pending', battleState: null });
-  const pve = db.insert(combatSessions).values({ playerId: a.id, mobId: 0, playerHealth: 100, mobHealth: 10,
+  const target = db.select().from(mobs).where(eq(mobs.catalogKey, 'square_pigeon')).get();
+  const pve = db.insert(combatSessions).values({ playerId: a.id, mobId: target.id, playerHealth: 100, mobHealth: 10,
     status: 'active', startedAt: nowGameTime(), lastActionAt: nowGameTime() }).returning().get();
   assert.equal(request('post', '/pvp/:id/accept', b.id, session.id).status, 409);
   assert.equal(getSession(session.id).status, 'pending');

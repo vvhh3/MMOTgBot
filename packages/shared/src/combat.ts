@@ -14,6 +14,11 @@ export type BattleEvent = {
 };
 export type BattleRequest = { sessionId: number; round: number; expectedVersion: number; requestId: string; itemType?: number; moveId?: string };
 export type BattleState = {
+  // Stats and moves already live in fighters. Only encounter metadata/rewards go here.
+  encounter?: {
+    level: number; rank: import('./contracts/mobs.js').MobRank; locationId: string;
+    pointsReward: number; coinReward: number; loot: import('./contracts/mobs.js').MobLootEntry[];
+  };
   fighters: [BattleFighter, BattleFighter];
   choices: [string | null, string | null];
   cooldowns: [Record<string, number>, Record<string, number>];

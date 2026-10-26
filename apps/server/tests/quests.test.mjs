@@ -138,30 +138,32 @@ test("migration and catalog expansion preserve existing quests, progress, money 
   assert.equal(getPlayer(1).money, 123);
   assert.equal(db.select().from(items).where(eq(items.id, 6)).get().name, "Авторский предмет");
   const catalog = db.select().from(quests).all();
-  assert.equal(catalog.length, 22); // 21 стартовое + 1 авторское
-  assert.equal(catalog.filter((q) => q.objectiveType === "loot").length, 5);
+  assert.equal(catalog.length, 19); // 17 current templates + custom and archived templates
+  assert.equal(catalog.filter((q) => q.objectiveType === "loot" && q.isActive).length, 1);
   assert.equal(catalog.filter((q) => q.objectiveType === "casino_win").length, 4);
   const stick = db.select().from(items).where(eq(items.name, "Палка")).get();
   assert.ok(stick.id > 6);
-  assert.ok(db.select().from(mobs).where(eq(mobs.id, 0)).get().loot.some((entry) => entry.itemType === stick.id));
+  const pigeon = db.select().from(mobs).where(eq(mobs.catalogKey, 'square_pigeon')).get();
+  assert.ok(pigeon.loot.some((entry) => entry.itemType === stick.id));
   assert.deepEqual(db.select().from(locations).where(eq(locations.id, "market")).get().actions, ["mines", "blackjack", "ladder"]);
   const cityPark = buildLocationState("market");
   assert.deepEqual(cityPark.actions, []);
   assert.deepEqual(cityPark.mobs, []);
   assert.ok(buildLocationState("square").actions.some((action) => action.id === "fight"));
-  assert.equal(db.select().from(mobs).where(eq(mobs.id, 1)).get(), undefined);
-  assert.equal(db.select().from(combatSessions).where(eq(combatSessions.playerId, 1)).get(), undefined);
+  assert.equal(db.select().from(mobs).where(eq(mobs.id, 1)).get().isActive, false);
+  assert.equal(db.select().from(combatSessions).where(eq(combatSessions.playerId, 1)).get().status, 'aborted');
   assert.equal(getPlayer(1).idTheLastAction, null);
   const replacedQuest = db.select().from(quests).where(eq(quests.id, 3)).get();
-  assert.equal(replacedQuest.title, "Охота на дронов");
-  assert.equal(replacedQuest.targetId, "2");
+  assert.equal(replacedQuest.title, "Устранить громилу");
+  assert.equal(replacedQuest.targetId, "1");
+  assert.equal(replacedQuest.isActive, false);
   assert.equal(replacedQuest.targetXp, 120);
   assert.equal(assigned(2).questId, 3);
   assert.equal(assigned(2).progress, 1);
   initializeDatabase();
   assert.deepEqual(db.select().from(quests).all(), catalog);
   assert.equal(db.select().from(items).where(eq(items.name, "Палка")).all().length, 1);
-  assert.equal(db.select().from(mobs).where(eq(mobs.id, 0)).get().loot.filter((entry) => entry.itemType === stick.id).length, 1);
+  assert.equal(db.select().from(mobs).where(eq(mobs.id, pigeon.id)).get().loot.filter((entry) => entry.itemType === stick.id).length, 1);
 });
 
 test("admin creates and edits coin rewards and can clear a specific target", () => {
@@ -242,12 +244,13 @@ test("walk and visit quests match location targets", () => {
 
 test("combat loot advances item and kill quests; ordinary collection does not advance loot quests", () => {
   const p = player();
-  const rat = db.select().from(mobs).where(eq(mobs.id, 0)).get();
   const stick = db.select().from(items).where(eq(items.name, "Палка")).get();
+  const rat = db.insert(mobs).values({ name: 'Тестовый противник', description: 'Проверка заданий', level: 1, maxHealth: 1,
+    strength: 0, defense: 0, pointsReward: 1, locationId: 'square', respawnSeconds: 1, loot: [{ itemType: stick.id, chancePercent: 100 }] }).returning().get();
   const loot = assign(p.id, { objectiveType: "loot", targetId: String(stick.id), targetCount: 1 });
   const collect = assign(p.id, { objectiveType: "collect", targetCount: 10 });
   const wrongLoot = assign(p.id, { objectiveType: "loot", targetId: "5" });
-  const kill = assign(p.id, { objectiveType: "kill", targetId: "0", targetCount: 1 });
+  const kill = assign(p.id, { objectiveType: "kill", targetId: String(rat.id), targetCount: 1 });
   progressQuests(p.id, "collect", stick.id);
   assert.equal(assigned(loot.id).progress, 0);
   startCombat(p, rat);

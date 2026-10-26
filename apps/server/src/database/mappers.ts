@@ -46,6 +46,7 @@ export function toPlayerDtoEquipped(row: PlayerRow): PlayerDto {
 
 export function toMobDto(row: MobRow): MobDto{
   return {
+    catalogKey: row.catalogKey,
     id: row.id,
     name: row.name,
     description: row.description,

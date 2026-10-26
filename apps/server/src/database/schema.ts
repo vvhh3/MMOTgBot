@@ -79,6 +79,8 @@ export const players = sqliteTable("players",
 // onDelete: "cascade" — при удалении локации удаляются и все её мобы.
 export const mobs = sqliteTable('mobs', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  catalogKey: text('catalog_key').unique(),
+  isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
   name: text("name").notNull(),
   description: text("description").notNull(),
   level: integer("level").notNull(),
@@ -186,6 +188,7 @@ export const events = sqliteTable("events",
 // targetCount — количество действий/предметов или монет прибыли для casino_win.
 export const quests = sqliteTable("quests", {
   id: integer("id").primaryKey({ autoIncrement: true }),
+  isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
   title: text("title").notNull(),
   description: text("description").notNull(),
   difficulty: text("difficulty", { enum: ["easy", "medium", "hard"] as const }).notNull(),

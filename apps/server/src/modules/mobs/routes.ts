@@ -1,9 +1,9 @@
-import { asc,eq,inArray } from "drizzle-orm";
+import { and,asc,eq,inArray } from "drizzle-orm";
 import { TUTORIAL_MOB_ID } from "@mmobot/shared";
 import type { Express } from "express";
 import { db } from "../../database/connection.js";
 import { toMobDto } from "../../database/mappers.js";
-import { items,locations,mobs,type MobRow } from "../../database/schema.js";
+import { items,locations,mobs,quests,type MobRow } from "../../database/schema.js";
 import { parseLoot } from "../combat/loot.js";
 
 function parseMob(body: unknown, previous?: MobRow): typeof mobs.$inferInsert {
@@ -33,7 +33,7 @@ function parseMob(body: unknown, previous?: MobRow): typeof mobs.$inferInsert {
 
 export const createMobRoutes = (app: Express) => {
   app.get("/mobs", (_req, res) => {
-    res.json({ mobs: db.select().from(mobs).orderBy(asc(mobs.level)).all().filter((mob) => mob.id !== TUTORIAL_MOB_ID).map(toMobDto) });
+    res.json({ mobs: db.select().from(mobs).where(eq(mobs.isActive, true)).orderBy(asc(mobs.level)).all().filter((mob) => mob.id !== TUTORIAL_MOB_ID).map(toMobDto) });
   });
   app.get("/mobs/:id", (req, res) => {
     const mob = db.select().from(mobs).where(eq(mobs.id, Number(req.params.id))).get();
@@ -48,7 +48,7 @@ export const createMobRoutes = (app: Express) => {
   });
   app.put("/mobs/:id", (req, res) => {
     if (Number(req.params.id) === TUTORIAL_MOB_ID) return res.status(409).json({ error: "Учебный противник не редактируется" });
-    const previous = db.select().from(mobs).where(eq(mobs.id, Number(req.params.id))).get();
+    const previous = db.select().from(mobs).where(and(eq(mobs.id, Number(req.params.id)), eq(mobs.isActive, true))).get();
     if (!previous) return res.status(404).json({ error: "Монстр не найден" });
     try {
       const mob = db.update(mobs).set(parseMob(req.body, previous)).where(eq(mobs.id, previous.id)).returning().get();
@@ -59,7 +59,10 @@ export const createMobRoutes = (app: Express) => {
     if (Number(req.params.id) === TUTORIAL_MOB_ID) return res.status(409).json({ error: "Учебный противник не удаляется" });
     const mob = db.select().from(mobs).where(eq(mobs.id, Number(req.params.id))).get();
     if (!mob) return res.status(404).json({ error: "Монстр не найден" });
-    db.delete(mobs).where(eq(mobs.id, mob.id)).run();
+    db.transaction(tx => {
+      tx.update(mobs).set({ isActive: false }).where(eq(mobs.id, mob.id)).run();
+      tx.update(quests).set({ isActive: false }).where(and(eq(quests.objectiveType, 'kill'), eq(quests.targetId, String(mob.id)))).run();
+    });
     res.status(200).end();
   });
 };

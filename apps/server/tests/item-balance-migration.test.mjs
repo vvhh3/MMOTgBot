@@ -44,7 +44,12 @@ test('item balance migrates standard records once, preserving custom items, wall
     `);
     const snapshot = sqlite.prepare('SELECT battle_state FROM combat_sessions').get();
     const mob = sqlite.prepare('SELECT * FROM mobs').get();
-    migrate(db, { migrationsFolder: source });
+    // This test isolates item migration 0032; encounter migration has its own suite.
+    const itemMigration = JSON.parse(readFileSync(path.join(source, 'meta/_journal.json'), 'utf8')).entries.find(e => e.idx === 32);
+    journal.entries.push(itemMigration);
+    writeFileSync(path.join(old, 'meta/_journal.json'), JSON.stringify(journal));
+    copyFileSync(path.join(source, `${itemMigration.tag}.sql`), path.join(old, `${itemMigration.tag}.sql`));
+    migrate(db, { migrationsFolder: old });
     const item = id => sqlite.prepare('SELECT * FROM items WHERE id = ?').get(id);
     assert.equal(item(1).damage, 2);
     assert.equal(item(1).price, 50);
@@ -70,7 +75,7 @@ test('item balance migrates standard records once, preserving custom items, wall
     assert.deepEqual(sqlite.prepare('SELECT battle_state FROM combat_sessions').get(), snapshot);
     assert.deepEqual(sqlite.prepare('SELECT * FROM mobs').get(), mob);
     sqlite.exec('UPDATE items SET price = 222222 WHERE id = 10');
-    migrate(db, { migrationsFolder: source });
+    migrate(db, { migrationsFolder: old });
     assert.equal(item(10).price, 222222);
     assert.deepEqual(sqlite.pragma('foreign_key_check'), []);
   } catch (error) {

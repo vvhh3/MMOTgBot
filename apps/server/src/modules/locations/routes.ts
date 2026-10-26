@@ -1,15 +1,18 @@
-import type { EnterLocationResponse,LocationActionRequest,LocationActionResponse,LocationsResponse } from "@mmobot/shared";
+import type { CombatStateResponse,EnterLocationResponse,LocationActionRequest,LocationActionResponse,LocationsResponse } from "@mmobot/shared";
 import { and,asc,desc,eq,sql } from "drizzle-orm";
 import express from "express";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { db } from "../../database/connection.js";
 import { toEventDto,toInventoryItemDto,toLocationDto,toPlayerDto } from "../../database/mappers.js";
-import { events,inventoryItems,locations,players } from "../../database/schema.js";
-import { broadcastLocation,moveSocketToLocation } from "../../infrastructure/realtime/socket-server.js";
-import { nowGameTime } from "../../shared/time.js";
+import { events,inventoryItems,locations,mobs,players } from "../../database/schema.js";
+import { broadcastLocation,emitToPlayer,moveSocketToLocation } from "../../infrastructure/realtime/socket-server.js";
+import { nowGameTime,nowGameTimeMs } from "../../shared/time.js";
 import { requireAuth,type AuthedRequest } from "../auth/auth.js";
-import { grantItems } from "../inventory/store.js";
+import { assertOutsideCombat } from "../inventory/store.js";
+import { expireStaleCombatSessions,startCombat } from '../combat/pve.js';
+import { BattleError } from '../combat/battle/state.js';
+import { chooseEncounter } from '../mobs/balance.js';
 import { addXpForPlayer } from "../players/level.js";
 import { progressQuests } from "../quests/routes.js";
 import { canBypassLocationRestrictions,checkLocationAccess } from "./access.js";
@@ -74,24 +77,12 @@ export function createLocationRoutes(app: express.Express): void {
 
   // Описание действий на локации + награды за действия
   const locationActions: Record<string, {
-    itemTypes: number[];
-    dropChance: number;
     xp: number;
     points: number;
     eventType: string;
     message: (locationName: string) => string;
   }> = {
-    fight: {
-      itemTypes: [],
-      dropChance: 0,
-      xp: 0,
-      points: 2,
-      eventType: "fight",
-      message: (name) => `Вы сразились с мобами: ${name}.`
-    },
     walk: {
-      itemTypes: [1, 2, 3],
-      dropChance: 0.1,
       xp: 2,
       points: 1,
       eventType: "walk",
@@ -100,27 +91,18 @@ export function createLocationRoutes(app: express.Express): void {
   }
 
   // Антифарм: минимальная пауза между действиями одного игрока.
-  // Без этого спам "walk" даёт бесконечные XP/points/лут.
+  // Проверяем сохранённое событие: перезапуск не сбрасывает паузу.
   const ACTION_COOLDOWN_MS = 2000;
-  const lastPlayerActionAt = new Map<number, number>();
 
   app.post("/locations/:id/action", requireAuth, (req, res) => {
     const player = (req as AuthedRequest).player;
     const body = req.body as LocationActionRequest;
 
-    const action = locationActions[body.actionId];
+    const action = body?.actionId === 'walk' ? locationActions.walk : undefined;
     if (!action) {
       res.status(400).json({ error: "Unknown action" });
       return;
     }
-
-    const nowMs = Date.now();
-    const lastAt = lastPlayerActionAt.get(player.id) ?? 0;
-    if (nowMs - lastAt < ACTION_COOLDOWN_MS) {
-      res.status(429).json({ error: "Слишком часто, подождите немного" });
-      return;
-    }
-    lastPlayerActionAt.set(player.id, nowMs);
 
     if (player.currentLocationId !== req.params.id) {
       res.status(409).json({ error: "Enter this location before acting" });
@@ -133,18 +115,23 @@ export function createLocationRoutes(app: express.Express): void {
       return;
     }
     if (!checkLocationAccess(player, location, res)) return;
+    if (!location.actions.includes('walk')) return res.status(409).json({ error: 'Прогулка в этой локации недоступна' });
 
     const now = nowGameTime();
-    db.transaction((tx) => {
-      if (action.itemTypes.length > 0 && Math.random() < action.dropChance) { // Выдача предмета
-        const itemType = action.itemTypes[Math.floor(Math.random() * action.itemTypes.length)];
-        grantItems(tx, player.id, itemType, 1, now);
-        progressQuests(player.id, "collect", itemType)
-      }
-
-      if (body.actionId === "walk") {
-        progressQuests(player.id, "walk", location.id)
-      }
+    let combat: CombatStateResponse | undefined;
+    expireStaleCombatSessions();
+    try { db.transaction((tx) => {
+      const fresh = tx.select().from(players).where(eq(players.id, player.id)).get()!;
+      assertOutsideCombat(tx, player.id);
+      if (fresh.idTheLastAction) throw new BattleError('Сначала завершите текущее действие');
+      if (fresh.health <= 0) throw new BattleError('Восстановите здоровье перед прогулкой');
+      const lastWalk = tx.select().from(events).where(and(eq(events.playerId, player.id), eq(events.type, 'walk')))
+        .orderBy(desc(events.createdAt), desc(events.id)).limit(1).get();
+      if (lastWalk && nowGameTimeMs() - Date.parse(lastWalk.createdAt) < ACTION_COOLDOWN_MS)
+        throw new BattleError('Слишком часто, подождите немного', 429);
+      const opponent = location.id === 'square' ? chooseEncounter(tx.select().from(mobs).where(eq(mobs.locationId, 'square')).all()) : undefined;
+      if (location.id === 'square' && !opponent) throw new BattleError('На Площади пока нет доступных противников');
+      progressQuests(player.id, "walk", location.id)
 
       tx.update(players)
         .set({ points: sql`${players.points} + ${action.points}`, lastSeenAt: now })
@@ -154,7 +141,10 @@ export function createLocationRoutes(app: express.Express): void {
       addXpForPlayer(player.id, action.xp) // начислить опыт за выполненно действие
 
       tx.insert(events).values({ playerId: player.id, locationId: location.id, type: action.eventType, createdAt: now }).run();
-    });
+      if (opponent) combat = startCombat(tx.select().from(players).where(eq(players.id, player.id)).get()!, opponent);
+    }); } catch (error) {
+      return res.status(error instanceof BattleError ? error.status : 409).json({ error: error instanceof Error ? error.message : 'Не удалось прогуляться' });
+    }
 
     const updatedPlayer = db.select().from(players).where(eq(players.id, player.id)).get()!;
     movePlayer(toPlayerDto(updatedPlayer), location.id);
@@ -182,6 +172,7 @@ export function createLocationRoutes(app: express.Express): void {
       .get()!;
 
     const response: LocationActionResponse = {
+      combat,
       message: action.message(location.name),
       player: toPlayerDto(updatedPlayer),
       inventory: inventory.map(toInventoryItemDto),
@@ -189,6 +180,9 @@ export function createLocationRoutes(app: express.Express): void {
     };
 
     broadcastLocation(location.id)
+    emitToPlayer(player.id, 'player', response.player);
+    emitToPlayer(player.id, 'inventory', response.inventory);
+    if (combat) emitToPlayer(player.id, 'combatState', combat);
 
     res.json(response);
   })

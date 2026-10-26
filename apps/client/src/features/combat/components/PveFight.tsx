@@ -6,7 +6,7 @@ LocationStateResponse,
 PlayerDto,
 } from "@mmobot/shared";
 import { useEffect,useRef,useState } from "react";
-import { TUTORIAL_MOB_ID } from "@mmobot/shared";
+import { MOB_RANK_LABELS,TUTORIAL_MOB_ID } from "@mmobot/shared";
 import { motion,useReducedMotion } from "motion/react";
 import { useNavigate } from "react-router-dom";
 import { getMe } from "../../character/api";
@@ -212,7 +212,7 @@ export default function PveFight({
                 maxImageWidth: 180,
             }}
             opponent={{
-                name: state.mob.name,
+                name: tutorial ? state.mob.name : `${state.mob.name} · ур. ${state.mob.level}${state.mob.rank ? ` · ${MOB_RANK_LABELS[state.mob.rank]}` : ''}`,
                 hp: playback.hp[1],
                 maxHp: state.mobMaxHp,
                 image: getCharacterImage("/character-images/monstr.svg"),

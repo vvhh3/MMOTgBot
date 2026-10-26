@@ -209,7 +209,7 @@ test("admins and the dev stand bypass both gates on the server and map", () => {
 test("a stale resident cannot act or start combat in an unavailable location", () => {
   const p = player({ currentLocationId: "park" });
   assert.equal(request("post", "/locations/:id/action", { playerId: p.id, id: "park", body: { actionId: "walk" } }).status, 403);
-  assert.equal(request("post", "/combat/start", { playerId: p.id, body: { mobId: 2 } }).status, 403);
+  assert.equal(request("post", "/combat/start", { playerId: p.id, body: { mobId: 40 } }).status, 403);
   assert.equal(getPlayer(p.id).xp, 0);
   assert.equal(db.select().from(combatSessions).where(eq(combatSessions.playerId, p.id)).get(), undefined);
 });

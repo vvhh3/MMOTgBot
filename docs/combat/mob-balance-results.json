@@ -1,0 +1,6486 @@
+{
+  "seed": 26102026,
+  "trialsPerCase": 200,
+  "results": [
+    {
+      "level": 1,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.9
+    },
+    {
+      "level": 1,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.8
+    },
+    {
+      "level": 1,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.4
+    },
+    {
+      "level": 1,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5.8
+    },
+    {
+      "level": 1,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 6.9
+    },
+    {
+      "level": 1,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 99.5,
+      "averageRounds": 5.7
+    },
+    {
+      "level": 1,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 39,
+      "averageRounds": 9.4
+    },
+    {
+      "level": 1,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 67,
+      "averageRounds": 7.8
+    },
+    {
+      "level": 1,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 0.5,
+      "averageRounds": 7.8
+    },
+    {
+      "level": 1,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 2,
+      "averageRounds": 8.4
+    },
+    {
+      "level": 1,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.3
+    },
+    {
+      "level": 1,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.9
+    },
+    {
+      "level": 1,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.1
+    },
+    {
+      "level": 1,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.5
+    },
+    {
+      "level": 1,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.7
+    },
+    {
+      "level": 1,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 4.3
+    },
+    {
+      "level": 1,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.5
+    },
+    {
+      "level": 1,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 7.2
+    },
+    {
+      "level": 1,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5.1
+    },
+    {
+      "level": 1,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 8.8
+    },
+    {
+      "level": 1,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.4
+    },
+    {
+      "level": 1,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 7
+    },
+    {
+      "level": 1,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 94.5,
+      "averageRounds": 8.2
+    },
+    {
+      "level": 1,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 86,
+      "averageRounds": 12.5
+    },
+    {
+      "level": 1,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 97.5,
+      "averageRounds": 6.8
+    },
+    {
+      "level": 1,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 87,
+      "averageRounds": 10.5
+    },
+    {
+      "level": 1,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 33,
+      "averageRounds": 8.8
+    },
+    {
+      "level": 1,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 23.5,
+      "averageRounds": 12.4
+    },
+    {
+      "level": 1,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 49,
+      "averageRounds": 9.5
+    },
+    {
+      "level": 1,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 29,
+      "averageRounds": 13.4
+    },
+    {
+      "level": 1,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.4
+    },
+    {
+      "level": 1,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.7
+    },
+    {
+      "level": 1,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.2
+    },
+    {
+      "level": 1,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.3
+    },
+    {
+      "level": 1,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.7
+    },
+    {
+      "level": 1,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 4.4
+    },
+    {
+      "level": 1,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.5
+    },
+    {
+      "level": 1,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 99.5,
+      "averageRounds": 7.2
+    },
+    {
+      "level": 1,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5.1
+    },
+    {
+      "level": 1,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 8.8
+    },
+    {
+      "level": 1,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.3
+    },
+    {
+      "level": 1,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 7.1
+    },
+    {
+      "level": 1,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 94.5,
+      "averageRounds": 8
+    },
+    {
+      "level": 1,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 84.5,
+      "averageRounds": 12.1
+    },
+    {
+      "level": 1,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 96.5,
+      "averageRounds": 6.9
+    },
+    {
+      "level": 1,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 87.5,
+      "averageRounds": 10.2
+    },
+    {
+      "level": 1,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 29,
+      "averageRounds": 9
+    },
+    {
+      "level": 1,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 23.5,
+      "averageRounds": 11.9
+    },
+    {
+      "level": 1,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 46.5,
+      "averageRounds": 9.5
+    },
+    {
+      "level": 1,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 29.5,
+      "averageRounds": 13.6
+    },
+    {
+      "level": 1,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.3
+    },
+    {
+      "level": 1,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.7
+    },
+    {
+      "level": 1,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.3
+    },
+    {
+      "level": 1,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.4
+    },
+    {
+      "level": 1,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.8
+    },
+    {
+      "level": 1,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 4.5
+    },
+    {
+      "level": 1,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.5
+    },
+    {
+      "level": 1,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 7.3
+    },
+    {
+      "level": 1,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5.1
+    },
+    {
+      "level": 1,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 8.9
+    },
+    {
+      "level": 1,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.5
+    },
+    {
+      "level": 1,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 7.1
+    },
+    {
+      "level": 1,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 95,
+      "averageRounds": 8.1
+    },
+    {
+      "level": 1,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 84.5,
+      "averageRounds": 12.7
+    },
+    {
+      "level": 1,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 96,
+      "averageRounds": 6.8
+    },
+    {
+      "level": 1,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 86.5,
+      "averageRounds": 10.4
+    },
+    {
+      "level": 1,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 28.5,
+      "averageRounds": 8.8
+    },
+    {
+      "level": 1,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 19.5,
+      "averageRounds": 12.3
+    },
+    {
+      "level": 1,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 47,
+      "averageRounds": 9.4
+    },
+    {
+      "level": 1,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 29.5,
+      "averageRounds": 13.3
+    },
+    {
+      "level": 1,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.3
+    },
+    {
+      "level": 1,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.7
+    },
+    {
+      "level": 1,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.3
+    },
+    {
+      "level": 1,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.5
+    },
+    {
+      "level": 1,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.8
+    },
+    {
+      "level": 1,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 4.2
+    },
+    {
+      "level": 1,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.7
+    },
+    {
+      "level": 1,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 7.4
+    },
+    {
+      "level": 1,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5
+    },
+    {
+      "level": 1,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 8.4
+    },
+    {
+      "level": 1,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.5
+    },
+    {
+      "level": 1,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 6.8
+    },
+    {
+      "level": 1,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 92,
+      "averageRounds": 8.1
+    },
+    {
+      "level": 1,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 86.5,
+      "averageRounds": 12.3
+    },
+    {
+      "level": 1,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 95.5,
+      "averageRounds": 6.8
+    },
+    {
+      "level": 1,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 85.5,
+      "averageRounds": 10.6
+    },
+    {
+      "level": 1,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 26,
+      "averageRounds": 8.7
+    },
+    {
+      "level": 1,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 17.5,
+      "averageRounds": 12.5
+    },
+    {
+      "level": 1,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 42.5,
+      "averageRounds": 9.6
+    },
+    {
+      "level": 1,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 29.5,
+      "averageRounds": 13.3
+    },
+    {
+      "level": 2,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.1
+    },
+    {
+      "level": 2,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3
+    },
+    {
+      "level": 2,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.8
+    },
+    {
+      "level": 2,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 6.3
+    },
+    {
+      "level": 2,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 7.6
+    },
+    {
+      "level": 2,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 99,
+      "averageRounds": 6.2
+    },
+    {
+      "level": 2,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 15,
+      "averageRounds": 9.3
+    },
+    {
+      "level": 2,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 37.5,
+      "averageRounds": 8.1
+    },
+    {
+      "level": 2,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 0.5,
+      "averageRounds": 7.2
+    },
+    {
+      "level": 2,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 0,
+      "averageRounds": 8.1
+    },
+    {
+      "level": 2,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.3
+    },
+    {
+      "level": 2,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.3
+    },
+    {
+      "level": 2,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.1
+    },
+    {
+      "level": 2,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.3
+    },
+    {
+      "level": 2,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.7
+    },
+    {
+      "level": 2,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 4.1
+    },
+    {
+      "level": 2,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.4
+    },
+    {
+      "level": 2,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 7.2
+    },
+    {
+      "level": 2,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.9
+    },
+    {
+      "level": 2,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 8.4
+    },
+    {
+      "level": 2,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.3
+    },
+    {
+      "level": 2,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 99.5,
+      "averageRounds": 7.2
+    },
+    {
+      "level": 2,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 98,
+      "averageRounds": 8.1
+    },
+    {
+      "level": 2,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 90.5,
+      "averageRounds": 12.6
+    },
+    {
+      "level": 2,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 98.5,
+      "averageRounds": 6.9
+    },
+    {
+      "level": 2,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 93,
+      "averageRounds": 10.5
+    },
+    {
+      "level": 2,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 41.5,
+      "averageRounds": 9.4
+    },
+    {
+      "level": 2,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 30,
+      "averageRounds": 12.8
+    },
+    {
+      "level": 2,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 56.5,
+      "averageRounds": 9.8
+    },
+    {
+      "level": 2,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 35,
+      "averageRounds": 14.4
+    },
+    {
+      "level": 2,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.9
+    },
+    {
+      "level": 2,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.8
+    },
+    {
+      "level": 2,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.9
+    },
+    {
+      "level": 2,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.6
+    },
+    {
+      "level": 2,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.3
+    },
+    {
+      "level": 2,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.7
+    },
+    {
+      "level": 2,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 3.8
+    },
+    {
+      "level": 2,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 6.3
+    },
+    {
+      "level": 2,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.2
+    },
+    {
+      "level": 2,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 7
+    },
+    {
+      "level": 2,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 3.6
+    },
+    {
+      "level": 2,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5.9
+    },
+    {
+      "level": 2,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 99.5,
+      "averageRounds": 6.6
+    },
+    {
+      "level": 2,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 95,
+      "averageRounds": 10.4
+    },
+    {
+      "level": 2,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 99,
+      "averageRounds": 5.7
+    },
+    {
+      "level": 2,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 95.5,
+      "averageRounds": 9.2
+    },
+    {
+      "level": 2,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 59,
+      "averageRounds": 8.4
+    },
+    {
+      "level": 2,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 41.5,
+      "averageRounds": 11.8
+    },
+    {
+      "level": 2,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 80,
+      "averageRounds": 8.8
+    },
+    {
+      "level": 2,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 53,
+      "averageRounds": 12.8
+    },
+    {
+      "level": 2,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.2
+    },
+    {
+      "level": 2,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.5
+    },
+    {
+      "level": 2,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.2
+    },
+    {
+      "level": 2,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.4
+    },
+    {
+      "level": 2,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.7
+    },
+    {
+      "level": 2,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 4.1
+    },
+    {
+      "level": 2,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.3
+    },
+    {
+      "level": 2,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 6.7
+    },
+    {
+      "level": 2,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5
+    },
+    {
+      "level": 2,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 8.1
+    },
+    {
+      "level": 2,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.3
+    },
+    {
+      "level": 2,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 6.8
+    },
+    {
+      "level": 2,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 98.5,
+      "averageRounds": 7.8
+    },
+    {
+      "level": 2,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 93,
+      "averageRounds": 12.2
+    },
+    {
+      "level": 2,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 100,
+      "averageRounds": 6.7
+    },
+    {
+      "level": 2,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 97,
+      "averageRounds": 10.4
+    },
+    {
+      "level": 2,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 51.5,
+      "averageRounds": 9.6
+    },
+    {
+      "level": 2,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 28.5,
+      "averageRounds": 12.8
+    },
+    {
+      "level": 2,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 66,
+      "averageRounds": 9.9
+    },
+    {
+      "level": 2,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 42,
+      "averageRounds": 14.3
+    },
+    {
+      "level": 2,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.2
+    },
+    {
+      "level": 2,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.4
+    },
+    {
+      "level": 2,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.2
+    },
+    {
+      "level": 2,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.1
+    },
+    {
+      "level": 2,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.7
+    },
+    {
+      "level": 2,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 4
+    },
+    {
+      "level": 2,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.5
+    },
+    {
+      "level": 2,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 7
+    },
+    {
+      "level": 2,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.9
+    },
+    {
+      "level": 2,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 8.2
+    },
+    {
+      "level": 2,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.4
+    },
+    {
+      "level": 2,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 6.8
+    },
+    {
+      "level": 2,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 100,
+      "averageRounds": 7.9
+    },
+    {
+      "level": 2,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 94,
+      "averageRounds": 12.4
+    },
+    {
+      "level": 2,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 98,
+      "averageRounds": 6.9
+    },
+    {
+      "level": 2,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 92,
+      "averageRounds": 10.4
+    },
+    {
+      "level": 2,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 49.5,
+      "averageRounds": 9.7
+    },
+    {
+      "level": 2,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 32,
+      "averageRounds": 13.1
+    },
+    {
+      "level": 2,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 59.5,
+      "averageRounds": 9.8
+    },
+    {
+      "level": 2,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 42,
+      "averageRounds": 14.5
+    },
+    {
+      "level": 3,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.9
+    },
+    {
+      "level": 3,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.9
+    },
+    {
+      "level": 3,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.3
+    },
+    {
+      "level": 3,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5.5
+    },
+    {
+      "level": 3,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 6.5
+    },
+    {
+      "level": 3,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 99,
+      "averageRounds": 5.6
+    },
+    {
+      "level": 3,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 24.5,
+      "averageRounds": 8.4
+    },
+    {
+      "level": 3,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 45.5,
+      "averageRounds": 7.4
+    },
+    {
+      "level": 3,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 0,
+      "averageRounds": 7
+    },
+    {
+      "level": 3,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 0,
+      "averageRounds": 7.4
+    },
+    {
+      "level": 3,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.8
+    },
+    {
+      "level": 3,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.8
+    },
+    {
+      "level": 3,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.9
+    },
+    {
+      "level": 3,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.5
+    },
+    {
+      "level": 3,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.2
+    },
+    {
+      "level": 3,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.3
+    },
+    {
+      "level": 3,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 3.8
+    },
+    {
+      "level": 3,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 6.1
+    },
+    {
+      "level": 3,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.2
+    },
+    {
+      "level": 3,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 6.6
+    },
+    {
+      "level": 3,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 3.7
+    },
+    {
+      "level": 3,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5.7
+    },
+    {
+      "level": 3,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 99.5,
+      "averageRounds": 6.7
+    },
+    {
+      "level": 3,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 98,
+      "averageRounds": 10.4
+    },
+    {
+      "level": 3,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 100,
+      "averageRounds": 5.7
+    },
+    {
+      "level": 3,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 98.5,
+      "averageRounds": 8.9
+    },
+    {
+      "level": 3,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 76.5,
+      "averageRounds": 8.7
+    },
+    {
+      "level": 3,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 59,
+      "averageRounds": 12.7
+    },
+    {
+      "level": 3,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 84,
+      "averageRounds": 9.1
+    },
+    {
+      "level": 3,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 69.5,
+      "averageRounds": 13.5
+    },
+    {
+      "level": 3,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.7
+    },
+    {
+      "level": 3,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.6
+    },
+    {
+      "level": 3,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.7
+    },
+    {
+      "level": 3,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.2
+    },
+    {
+      "level": 3,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2
+    },
+    {
+      "level": 3,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.5
+    },
+    {
+      "level": 3,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 3.3
+    },
+    {
+      "level": 3,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5.3
+    },
+    {
+      "level": 3,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 3.9
+    },
+    {
+      "level": 3,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 6.1
+    },
+    {
+      "level": 3,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 3.2
+    },
+    {
+      "level": 3,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5
+    },
+    {
+      "level": 3,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 100,
+      "averageRounds": 5.6
+    },
+    {
+      "level": 3,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 100,
+      "averageRounds": 9
+    },
+    {
+      "level": 3,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 99.5,
+      "averageRounds": 5.2
+    },
+    {
+      "level": 3,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 98.5,
+      "averageRounds": 7.9
+    },
+    {
+      "level": 3,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 87.5,
+      "averageRounds": 7.7
+    },
+    {
+      "level": 3,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 71.5,
+      "averageRounds": 11.2
+    },
+    {
+      "level": 3,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 92.5,
+      "averageRounds": 8
+    },
+    {
+      "level": 3,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 77,
+      "averageRounds": 12
+    },
+    {
+      "level": 3,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.1
+    },
+    {
+      "level": 3,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.3
+    },
+    {
+      "level": 3,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.1
+    },
+    {
+      "level": 3,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3
+    },
+    {
+      "level": 3,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.6
+    },
+    {
+      "level": 3,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.8
+    },
+    {
+      "level": 3,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.3
+    },
+    {
+      "level": 3,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 6.9
+    },
+    {
+      "level": 3,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.8
+    },
+    {
+      "level": 3,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 8.1
+    },
+    {
+      "level": 3,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.2
+    },
+    {
+      "level": 3,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 6.8
+    },
+    {
+      "level": 3,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 100,
+      "averageRounds": 7.7
+    },
+    {
+      "level": 3,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 99,
+      "averageRounds": 12.3
+    },
+    {
+      "level": 3,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 99.5,
+      "averageRounds": 6.7
+    },
+    {
+      "level": 3,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 99,
+      "averageRounds": 10.5
+    },
+    {
+      "level": 3,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 66.5,
+      "averageRounds": 9.7
+    },
+    {
+      "level": 3,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 44.5,
+      "averageRounds": 14.1
+    },
+    {
+      "level": 3,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 75.5,
+      "averageRounds": 10.2
+    },
+    {
+      "level": 3,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 61,
+      "averageRounds": 15.4
+    },
+    {
+      "level": 3,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.2
+    },
+    {
+      "level": 3,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.1
+    },
+    {
+      "level": 3,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2
+    },
+    {
+      "level": 3,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3
+    },
+    {
+      "level": 3,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.6
+    },
+    {
+      "level": 3,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.9
+    },
+    {
+      "level": 3,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.2
+    },
+    {
+      "level": 3,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 7
+    },
+    {
+      "level": 3,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.7
+    },
+    {
+      "level": 3,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 7.6
+    },
+    {
+      "level": 3,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.2
+    },
+    {
+      "level": 3,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 6.5
+    },
+    {
+      "level": 3,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 99,
+      "averageRounds": 7.7
+    },
+    {
+      "level": 3,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 94.5,
+      "averageRounds": 12.1
+    },
+    {
+      "level": 3,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 100,
+      "averageRounds": 6.7
+    },
+    {
+      "level": 3,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 96,
+      "averageRounds": 10.1
+    },
+    {
+      "level": 3,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 57,
+      "averageRounds": 9.5
+    },
+    {
+      "level": 3,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 48,
+      "averageRounds": 13.8
+    },
+    {
+      "level": 3,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 67.5,
+      "averageRounds": 9.9
+    },
+    {
+      "level": 3,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 51,
+      "averageRounds": 14.8
+    },
+    {
+      "level": 4,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.3
+    },
+    {
+      "level": 4,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.2
+    },
+    {
+      "level": 4,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.8
+    },
+    {
+      "level": 4,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 95.5,
+      "averageRounds": 6.3
+    },
+    {
+      "level": 4,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 94.5,
+      "averageRounds": 7.4
+    },
+    {
+      "level": 4,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 94,
+      "averageRounds": 6.1
+    },
+    {
+      "level": 4,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 4.5,
+      "averageRounds": 8.2
+    },
+    {
+      "level": 4,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 17.5,
+      "averageRounds": 7.6
+    },
+    {
+      "level": 4,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 0,
+      "averageRounds": 6.6
+    },
+    {
+      "level": 4,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 0,
+      "averageRounds": 7.1
+    },
+    {
+      "level": 4,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.2
+    },
+    {
+      "level": 4,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.2
+    },
+    {
+      "level": 4,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2
+    },
+    {
+      "level": 4,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3
+    },
+    {
+      "level": 4,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.5
+    },
+    {
+      "level": 4,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 4
+    },
+    {
+      "level": 4,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.2
+    },
+    {
+      "level": 4,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 6.5
+    },
+    {
+      "level": 4,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.6
+    },
+    {
+      "level": 4,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 7.4
+    },
+    {
+      "level": 4,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.1
+    },
+    {
+      "level": 4,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 6.2
+    },
+    {
+      "level": 4,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 98,
+      "averageRounds": 7.7
+    },
+    {
+      "level": 4,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 96.5,
+      "averageRounds": 11.4
+    },
+    {
+      "level": 4,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 99.5,
+      "averageRounds": 6.5
+    },
+    {
+      "level": 4,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 93,
+      "averageRounds": 10.3
+    },
+    {
+      "level": 4,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 50,
+      "averageRounds": 9.2
+    },
+    {
+      "level": 4,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 37.5,
+      "averageRounds": 13.4
+    },
+    {
+      "level": 4,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 57,
+      "averageRounds": 9.8
+    },
+    {
+      "level": 4,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 45.5,
+      "averageRounds": 14.4
+    },
+    {
+      "level": 4,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.8
+    },
+    {
+      "level": 4,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.6
+    },
+    {
+      "level": 4,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.6
+    },
+    {
+      "level": 4,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.4
+    },
+    {
+      "level": 4,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2
+    },
+    {
+      "level": 4,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.9
+    },
+    {
+      "level": 4,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 3.2
+    },
+    {
+      "level": 4,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5.3
+    },
+    {
+      "level": 4,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 3.8
+    },
+    {
+      "level": 4,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5.9
+    },
+    {
+      "level": 4,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 3.2
+    },
+    {
+      "level": 4,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5.3
+    },
+    {
+      "level": 4,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 98.5,
+      "averageRounds": 5.9
+    },
+    {
+      "level": 4,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 97,
+      "averageRounds": 9
+    },
+    {
+      "level": 4,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 99,
+      "averageRounds": 5.3
+    },
+    {
+      "level": 4,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 96.5,
+      "averageRounds": 8
+    },
+    {
+      "level": 4,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 71,
+      "averageRounds": 7.7
+    },
+    {
+      "level": 4,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 56.5,
+      "averageRounds": 10.7
+    },
+    {
+      "level": 4,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 78.5,
+      "averageRounds": 8.1
+    },
+    {
+      "level": 4,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 60.5,
+      "averageRounds": 11.6
+    },
+    {
+      "level": 4,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.5
+    },
+    {
+      "level": 4,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 4
+    },
+    {
+      "level": 4,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.4
+    },
+    {
+      "level": 4,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.6
+    },
+    {
+      "level": 4,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.9
+    },
+    {
+      "level": 4,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 4.5
+    },
+    {
+      "level": 4,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.8
+    },
+    {
+      "level": 4,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 7.7
+    },
+    {
+      "level": 4,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5.4
+    },
+    {
+      "level": 4,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 9.3
+    },
+    {
+      "level": 4,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.8
+    },
+    {
+      "level": 4,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 7.5
+    },
+    {
+      "level": 4,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 97.5,
+      "averageRounds": 8.7
+    },
+    {
+      "level": 4,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 95,
+      "averageRounds": 13.4
+    },
+    {
+      "level": 4,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 98.5,
+      "averageRounds": 7.6
+    },
+    {
+      "level": 4,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 95.5,
+      "averageRounds": 11.7
+    },
+    {
+      "level": 4,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 30,
+      "averageRounds": 10.2
+    },
+    {
+      "level": 4,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 25.5,
+      "averageRounds": 14.4
+    },
+    {
+      "level": 4,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 45,
+      "averageRounds": 11
+    },
+    {
+      "level": 4,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 34,
+      "averageRounds": 15.9
+    },
+    {
+      "level": 4,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.6
+    },
+    {
+      "level": 4,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.8
+    },
+    {
+      "level": 4,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.3
+    },
+    {
+      "level": 4,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.4
+    },
+    {
+      "level": 4,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.9
+    },
+    {
+      "level": 4,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 4.5
+    },
+    {
+      "level": 4,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.7
+    },
+    {
+      "level": 4,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 7.6
+    },
+    {
+      "level": 4,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5.5
+    },
+    {
+      "level": 4,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 8.8
+    },
+    {
+      "level": 4,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.6
+    },
+    {
+      "level": 4,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 7.3
+    },
+    {
+      "level": 4,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 95,
+      "averageRounds": 8.8
+    },
+    {
+      "level": 4,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 90,
+      "averageRounds": 13.1
+    },
+    {
+      "level": 4,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 95.5,
+      "averageRounds": 7.8
+    },
+    {
+      "level": 4,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 90,
+      "averageRounds": 11.3
+    },
+    {
+      "level": 4,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 27,
+      "averageRounds": 9.8
+    },
+    {
+      "level": 4,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 15,
+      "averageRounds": 13.3
+    },
+    {
+      "level": 4,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 36.5,
+      "averageRounds": 10.6
+    },
+    {
+      "level": 4,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 25.5,
+      "averageRounds": 15
+    },
+    {
+      "level": 5,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.1
+    },
+    {
+      "level": 5,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.9
+    },
+    {
+      "level": 5,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.5
+    },
+    {
+      "level": 5,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 94.5,
+      "averageRounds": 5.7
+    },
+    {
+      "level": 5,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 89.5,
+      "averageRounds": 6.6
+    },
+    {
+      "level": 5,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 97.5,
+      "averageRounds": 5.6
+    },
+    {
+      "level": 5,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 7,
+      "averageRounds": 7.3
+    },
+    {
+      "level": 5,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 17.5,
+      "averageRounds": 6.6
+    },
+    {
+      "level": 5,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 0,
+      "averageRounds": 6.2
+    },
+    {
+      "level": 5,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 0,
+      "averageRounds": 6.5
+    },
+    {
+      "level": 5,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.9
+    },
+    {
+      "level": 5,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.7
+    },
+    {
+      "level": 5,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.7
+    },
+    {
+      "level": 5,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.6
+    },
+    {
+      "level": 5,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.2
+    },
+    {
+      "level": 5,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3
+    },
+    {
+      "level": 5,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 3.7
+    },
+    {
+      "level": 5,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5.8
+    },
+    {
+      "level": 5,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.2
+    },
+    {
+      "level": 5,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 6.3
+    },
+    {
+      "level": 5,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 3.5
+    },
+    {
+      "level": 5,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5.7
+    },
+    {
+      "level": 5,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 99.5,
+      "averageRounds": 6.5
+    },
+    {
+      "level": 5,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 98.5,
+      "averageRounds": 10
+    },
+    {
+      "level": 5,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 98,
+      "averageRounds": 5.6
+    },
+    {
+      "level": 5,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 97,
+      "averageRounds": 8.7
+    },
+    {
+      "level": 5,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 58.5,
+      "averageRounds": 8.4
+    },
+    {
+      "level": 5,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 43.5,
+      "averageRounds": 11.9
+    },
+    {
+      "level": 5,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 69.5,
+      "averageRounds": 8.7
+    },
+    {
+      "level": 5,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 52,
+      "averageRounds": 12.8
+    },
+    {
+      "level": 5,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.5
+    },
+    {
+      "level": 5,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.2
+    },
+    {
+      "level": 5,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.6
+    },
+    {
+      "level": 5,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.9
+    },
+    {
+      "level": 5,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.8
+    },
+    {
+      "level": 5,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.4
+    },
+    {
+      "level": 5,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 2.9
+    },
+    {
+      "level": 5,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.7
+    },
+    {
+      "level": 5,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 3.2
+    },
+    {
+      "level": 5,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5.1
+    },
+    {
+      "level": 5,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 3.1
+    },
+    {
+      "level": 5,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.7
+    },
+    {
+      "level": 5,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 99.5,
+      "averageRounds": 5.2
+    },
+    {
+      "level": 5,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 99,
+      "averageRounds": 7.6
+    },
+    {
+      "level": 5,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 99,
+      "averageRounds": 4.8
+    },
+    {
+      "level": 5,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 98,
+      "averageRounds": 7
+    },
+    {
+      "level": 5,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 77,
+      "averageRounds": 7.1
+    },
+    {
+      "level": 5,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 59,
+      "averageRounds": 10
+    },
+    {
+      "level": 5,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 83.5,
+      "averageRounds": 7.5
+    },
+    {
+      "level": 5,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 67,
+      "averageRounds": 11
+    },
+    {
+      "level": 5,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.4
+    },
+    {
+      "level": 5,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 4
+    },
+    {
+      "level": 5,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.4
+    },
+    {
+      "level": 5,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.5
+    },
+    {
+      "level": 5,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.7
+    },
+    {
+      "level": 5,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 4.6
+    },
+    {
+      "level": 5,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.6
+    },
+    {
+      "level": 5,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 7.3
+    },
+    {
+      "level": 5,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5.1
+    },
+    {
+      "level": 5,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 8.6
+    },
+    {
+      "level": 5,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.4
+    },
+    {
+      "level": 5,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 7
+    },
+    {
+      "level": 5,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 97.5,
+      "averageRounds": 8.6
+    },
+    {
+      "level": 5,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 95.5,
+      "averageRounds": 12.9
+    },
+    {
+      "level": 5,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 99.5,
+      "averageRounds": 7.4
+    },
+    {
+      "level": 5,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 97,
+      "averageRounds": 11.6
+    },
+    {
+      "level": 5,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 42.5,
+      "averageRounds": 10.2
+    },
+    {
+      "level": 5,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 32.5,
+      "averageRounds": 14.8
+    },
+    {
+      "level": 5,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 58,
+      "averageRounds": 10.7
+    },
+    {
+      "level": 5,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 36.5,
+      "averageRounds": 15.8
+    },
+    {
+      "level": 5,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.4
+    },
+    {
+      "level": 5,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.7
+    },
+    {
+      "level": 5,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.2
+    },
+    {
+      "level": 5,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.5
+    },
+    {
+      "level": 5,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.8
+    },
+    {
+      "level": 5,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 4.2
+    },
+    {
+      "level": 5,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.8
+    },
+    {
+      "level": 5,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 7.1
+    },
+    {
+      "level": 5,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5.3
+    },
+    {
+      "level": 5,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 8.4
+    },
+    {
+      "level": 5,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.5
+    },
+    {
+      "level": 5,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 7
+    },
+    {
+      "level": 5,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 92.5,
+      "averageRounds": 8.8
+    },
+    {
+      "level": 5,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 90.5,
+      "averageRounds": 12.6
+    },
+    {
+      "level": 5,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 95.5,
+      "averageRounds": 7.5
+    },
+    {
+      "level": 5,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 87,
+      "averageRounds": 11
+    },
+    {
+      "level": 5,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 25,
+      "averageRounds": 9.8
+    },
+    {
+      "level": 5,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 18,
+      "averageRounds": 13.9
+    },
+    {
+      "level": 5,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 39.5,
+      "averageRounds": 10.4
+    },
+    {
+      "level": 5,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 30.5,
+      "averageRounds": 14.9
+    },
+    {
+      "level": 6,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.4
+    },
+    {
+      "level": 6,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.1
+    },
+    {
+      "level": 6,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 4
+    },
+    {
+      "level": 6,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 90.5,
+      "averageRounds": 6.4
+    },
+    {
+      "level": 6,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 89.5,
+      "averageRounds": 7.3
+    },
+    {
+      "level": 6,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 87.5,
+      "averageRounds": 6.3
+    },
+    {
+      "level": 6,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 1.5,
+      "averageRounds": 7.8
+    },
+    {
+      "level": 6,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 12,
+      "averageRounds": 7.3
+    },
+    {
+      "level": 6,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 0,
+      "averageRounds": 5.9
+    },
+    {
+      "level": 6,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 0,
+      "averageRounds": 6.5
+    },
+    {
+      "level": 6,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.1
+    },
+    {
+      "level": 6,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.9
+    },
+    {
+      "level": 6,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.9
+    },
+    {
+      "level": 6,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.7
+    },
+    {
+      "level": 6,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.3
+    },
+    {
+      "level": 6,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.7
+    },
+    {
+      "level": 6,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 3.9
+    },
+    {
+      "level": 6,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 6.3
+    },
+    {
+      "level": 6,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.5
+    },
+    {
+      "level": 6,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 7
+    },
+    {
+      "level": 6,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4
+    },
+    {
+      "level": 6,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 6.2
+    },
+    {
+      "level": 6,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 98.5,
+      "averageRounds": 7.5
+    },
+    {
+      "level": 6,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 95.5,
+      "averageRounds": 11.2
+    },
+    {
+      "level": 6,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 98,
+      "averageRounds": 6.4
+    },
+    {
+      "level": 6,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 97,
+      "averageRounds": 9.8
+    },
+    {
+      "level": 6,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 41,
+      "averageRounds": 8.5
+    },
+    {
+      "level": 6,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 25.5,
+      "averageRounds": 12.1
+    },
+    {
+      "level": 6,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 43.5,
+      "averageRounds": 9.1
+    },
+    {
+      "level": 6,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 34.5,
+      "averageRounds": 12.9
+    },
+    {
+      "level": 6,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.6
+    },
+    {
+      "level": 6,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.3
+    },
+    {
+      "level": 6,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.5
+    },
+    {
+      "level": 6,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.8
+    },
+    {
+      "level": 6,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.8
+    },
+    {
+      "level": 6,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.7
+    },
+    {
+      "level": 6,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 3
+    },
+    {
+      "level": 6,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.8
+    },
+    {
+      "level": 6,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 3.3
+    },
+    {
+      "level": 6,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5.4
+    },
+    {
+      "level": 6,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 2.9
+    },
+    {
+      "level": 6,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.5
+    },
+    {
+      "level": 6,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 99,
+      "averageRounds": 5.3
+    },
+    {
+      "level": 6,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 99,
+      "averageRounds": 8.2
+    },
+    {
+      "level": 6,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 99.5,
+      "averageRounds": 5
+    },
+    {
+      "level": 6,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 97.5,
+      "averageRounds": 7.3
+    },
+    {
+      "level": 6,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 63.5,
+      "averageRounds": 7
+    },
+    {
+      "level": 6,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 46,
+      "averageRounds": 10
+    },
+    {
+      "level": 6,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 64.5,
+      "averageRounds": 7.3
+    },
+    {
+      "level": 6,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 53,
+      "averageRounds": 10.6
+    },
+    {
+      "level": 6,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.7
+    },
+    {
+      "level": 6,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 4.3
+    },
+    {
+      "level": 6,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.6
+    },
+    {
+      "level": 6,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.9
+    },
+    {
+      "level": 6,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.1
+    },
+    {
+      "level": 6,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 5
+    },
+    {
+      "level": 6,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.9
+    },
+    {
+      "level": 6,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 8.3
+    },
+    {
+      "level": 6,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5.7
+    },
+    {
+      "level": 6,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 9.5
+    },
+    {
+      "level": 6,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.9
+    },
+    {
+      "level": 6,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 7.7
+    },
+    {
+      "level": 6,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 98,
+      "averageRounds": 9.7
+    },
+    {
+      "level": 6,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 95,
+      "averageRounds": 14.7
+    },
+    {
+      "level": 6,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 99,
+      "averageRounds": 8.2
+    },
+    {
+      "level": 6,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 96.5,
+      "averageRounds": 12.6
+    },
+    {
+      "level": 6,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 16.5,
+      "averageRounds": 10.2
+    },
+    {
+      "level": 6,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 15,
+      "averageRounds": 14.4
+    },
+    {
+      "level": 6,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 30,
+      "averageRounds": 11.3
+    },
+    {
+      "level": 6,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 20,
+      "averageRounds": 16
+    },
+    {
+      "level": 6,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.6
+    },
+    {
+      "level": 6,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 4.2
+    },
+    {
+      "level": 6,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.5
+    },
+    {
+      "level": 6,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.8
+    },
+    {
+      "level": 6,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.1
+    },
+    {
+      "level": 6,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 4.9
+    },
+    {
+      "level": 6,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5.2
+    },
+    {
+      "level": 6,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 8.1
+    },
+    {
+      "level": 6,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 6
+    },
+    {
+      "level": 6,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 9.4
+    },
+    {
+      "level": 6,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5
+    },
+    {
+      "level": 6,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 8
+    },
+    {
+      "level": 6,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 91.5,
+      "averageRounds": 9.6
+    },
+    {
+      "level": 6,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 83.5,
+      "averageRounds": 14.2
+    },
+    {
+      "level": 6,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 92.5,
+      "averageRounds": 8.3
+    },
+    {
+      "level": 6,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 84.5,
+      "averageRounds": 12.2
+    },
+    {
+      "level": 6,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 10,
+      "averageRounds": 9.6
+    },
+    {
+      "level": 6,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 9.5,
+      "averageRounds": 13.5
+    },
+    {
+      "level": 6,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 14,
+      "averageRounds": 10.5
+    },
+    {
+      "level": 6,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 9,
+      "averageRounds": 14.4
+    },
+    {
+      "level": 7,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.1
+    },
+    {
+      "level": 7,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3
+    },
+    {
+      "level": 7,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.6
+    },
+    {
+      "level": 7,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 90,
+      "averageRounds": 5.8
+    },
+    {
+      "level": 7,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 87,
+      "averageRounds": 6.7
+    },
+    {
+      "level": 7,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 91,
+      "averageRounds": 5.8
+    },
+    {
+      "level": 7,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 4.5,
+      "averageRounds": 7.4
+    },
+    {
+      "level": 7,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 10.5,
+      "averageRounds": 6.7
+    },
+    {
+      "level": 7,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 0,
+      "averageRounds": 5.7
+    },
+    {
+      "level": 7,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 0,
+      "averageRounds": 6
+    },
+    {
+      "level": 7,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.7
+    },
+    {
+      "level": 7,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.4
+    },
+    {
+      "level": 7,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.7
+    },
+    {
+      "level": 7,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.3
+    },
+    {
+      "level": 7,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.2
+    },
+    {
+      "level": 7,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3
+    },
+    {
+      "level": 7,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 3.6
+    },
+    {
+      "level": 7,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5.5
+    },
+    {
+      "level": 7,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 3.9
+    },
+    {
+      "level": 7,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 6
+    },
+    {
+      "level": 7,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 3.5
+    },
+    {
+      "level": 7,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5.3
+    },
+    {
+      "level": 7,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 100,
+      "averageRounds": 6.3
+    },
+    {
+      "level": 7,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 97.5,
+      "averageRounds": 9.6
+    },
+    {
+      "level": 7,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 100,
+      "averageRounds": 5.8
+    },
+    {
+      "level": 7,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 99,
+      "averageRounds": 8.4
+    },
+    {
+      "level": 7,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 56.5,
+      "averageRounds": 8.3
+    },
+    {
+      "level": 7,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 47.5,
+      "averageRounds": 11.9
+    },
+    {
+      "level": 7,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 66,
+      "averageRounds": 8.7
+    },
+    {
+      "level": 7,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 63,
+      "averageRounds": 12.9
+    },
+    {
+      "level": 7,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.6
+    },
+    {
+      "level": 7,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.8
+    },
+    {
+      "level": 7,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.4
+    },
+    {
+      "level": 7,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.5
+    },
+    {
+      "level": 7,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.7
+    },
+    {
+      "level": 7,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.2
+    },
+    {
+      "level": 7,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 2.8
+    },
+    {
+      "level": 7,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.2
+    },
+    {
+      "level": 7,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 3
+    },
+    {
+      "level": 7,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.8
+    },
+    {
+      "level": 7,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 2.7
+    },
+    {
+      "level": 7,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.2
+    },
+    {
+      "level": 7,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 100,
+      "averageRounds": 4.8
+    },
+    {
+      "level": 7,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 99,
+      "averageRounds": 7.2
+    },
+    {
+      "level": 7,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 99.5,
+      "averageRounds": 4.5
+    },
+    {
+      "level": 7,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 100,
+      "averageRounds": 6.3
+    },
+    {
+      "level": 7,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 76,
+      "averageRounds": 6.8
+    },
+    {
+      "level": 7,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 64,
+      "averageRounds": 10
+    },
+    {
+      "level": 7,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 81,
+      "averageRounds": 7.1
+    },
+    {
+      "level": 7,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 74.5,
+      "averageRounds": 10.3
+    },
+    {
+      "level": 7,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.5
+    },
+    {
+      "level": 7,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.8
+    },
+    {
+      "level": 7,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.4
+    },
+    {
+      "level": 7,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.7
+    },
+    {
+      "level": 7,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3
+    },
+    {
+      "level": 7,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 4.7
+    },
+    {
+      "level": 7,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.9
+    },
+    {
+      "level": 7,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 7.9
+    },
+    {
+      "level": 7,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5.4
+    },
+    {
+      "level": 7,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 9.1
+    },
+    {
+      "level": 7,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.7
+    },
+    {
+      "level": 7,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 7.3
+    },
+    {
+      "level": 7,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 100,
+      "averageRounds": 9
+    },
+    {
+      "level": 7,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 99,
+      "averageRounds": 14.2
+    },
+    {
+      "level": 7,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 99.5,
+      "averageRounds": 7.8
+    },
+    {
+      "level": 7,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 99,
+      "averageRounds": 12.5
+    },
+    {
+      "level": 7,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 41,
+      "averageRounds": 10.9
+    },
+    {
+      "level": 7,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 25.5,
+      "averageRounds": 15.5
+    },
+    {
+      "level": 7,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 49.5,
+      "averageRounds": 11.6
+    },
+    {
+      "level": 7,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 38,
+      "averageRounds": 17.5
+    },
+    {
+      "level": 7,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.6
+    },
+    {
+      "level": 7,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.9
+    },
+    {
+      "level": 7,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.4
+    },
+    {
+      "level": 7,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.6
+    },
+    {
+      "level": 7,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.1
+    },
+    {
+      "level": 7,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 4.7
+    },
+    {
+      "level": 7,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.9
+    },
+    {
+      "level": 7,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 8
+    },
+    {
+      "level": 7,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5.6
+    },
+    {
+      "level": 7,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 8.7
+    },
+    {
+      "level": 7,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.8
+    },
+    {
+      "level": 7,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 7.5
+    },
+    {
+      "level": 7,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 97,
+      "averageRounds": 9.3
+    },
+    {
+      "level": 7,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 97,
+      "averageRounds": 13.5
+    },
+    {
+      "level": 7,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 95.5,
+      "averageRounds": 8.1
+    },
+    {
+      "level": 7,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 96.5,
+      "averageRounds": 11.5
+    },
+    {
+      "level": 7,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 18,
+      "averageRounds": 9.8
+    },
+    {
+      "level": 7,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 15,
+      "averageRounds": 13.9
+    },
+    {
+      "level": 7,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 17.5,
+      "averageRounds": 10.6
+    },
+    {
+      "level": 7,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 17,
+      "averageRounds": 15.3
+    },
+    {
+      "level": 8,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.4
+    },
+    {
+      "level": 8,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.2
+    },
+    {
+      "level": 8,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.9
+    },
+    {
+      "level": 8,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 74,
+      "averageRounds": 6.3
+    },
+    {
+      "level": 8,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 62,
+      "averageRounds": 7.1
+    },
+    {
+      "level": 8,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 76,
+      "averageRounds": 6.3
+    },
+    {
+      "level": 8,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 1.5,
+      "averageRounds": 7.3
+    },
+    {
+      "level": 8,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 6,
+      "averageRounds": 6.7
+    },
+    {
+      "level": 8,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 0,
+      "averageRounds": 5.6
+    },
+    {
+      "level": 8,
+      "build": "unarmed",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 0,
+      "averageRounds": 6
+    },
+    {
+      "level": 8,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2
+    },
+    {
+      "level": 8,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.9
+    },
+    {
+      "level": 8,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.9
+    },
+    {
+      "level": 8,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.6
+    },
+    {
+      "level": 8,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.3
+    },
+    {
+      "level": 8,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.2
+    },
+    {
+      "level": 8,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 3.8
+    },
+    {
+      "level": 8,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 6.1
+    },
+    {
+      "level": 8,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.3
+    },
+    {
+      "level": 8,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 6.5
+    },
+    {
+      "level": 8,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 3.8
+    },
+    {
+      "level": 8,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5.9
+    },
+    {
+      "level": 8,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 99.5,
+      "averageRounds": 7.1
+    },
+    {
+      "level": 8,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 97.5,
+      "averageRounds": 10.7
+    },
+    {
+      "level": 8,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 97.5,
+      "averageRounds": 6.4
+    },
+    {
+      "level": 8,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 97.5,
+      "averageRounds": 9.2
+    },
+    {
+      "level": 8,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 47,
+      "averageRounds": 8.5
+    },
+    {
+      "level": 8,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 26.5,
+      "averageRounds": 12.3
+    },
+    {
+      "level": 8,
+      "build": "balanced",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 45,
+      "averageRounds": 9.2
+    },
+    {
+      "level": 8,
+      "build": "balanced",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 34,
+      "averageRounds": 13.1
+    },
+    {
+      "level": 8,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.5
+    },
+    {
+      "level": 8,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.7
+    },
+    {
+      "level": 8,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.4
+    },
+    {
+      "level": 8,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.8
+    },
+    {
+      "level": 8,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 1.6
+    },
+    {
+      "level": 8,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.2
+    },
+    {
+      "level": 8,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 2.9
+    },
+    {
+      "level": 8,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.2
+    },
+    {
+      "level": 8,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 2.9
+    },
+    {
+      "level": 8,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4.8
+    },
+    {
+      "level": 8,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 2.7
+    },
+    {
+      "level": 8,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 4
+    },
+    {
+      "level": 8,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 100,
+      "averageRounds": 4.9
+    },
+    {
+      "level": 8,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 96.5,
+      "averageRounds": 7.2
+    },
+    {
+      "level": 8,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 99.5,
+      "averageRounds": 4.6
+    },
+    {
+      "level": 8,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 99.5,
+      "averageRounds": 6.6
+    },
+    {
+      "level": 8,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 66.5,
+      "averageRounds": 6.8
+    },
+    {
+      "level": 8,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 58,
+      "averageRounds": 9.5
+    },
+    {
+      "level": 8,
+      "build": "attack",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 73,
+      "averageRounds": 7
+    },
+    {
+      "level": 8,
+      "build": "attack",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 62.5,
+      "averageRounds": 9.8
+    },
+    {
+      "level": 8,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.8
+    },
+    {
+      "level": 8,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 4.2
+    },
+    {
+      "level": 8,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.7
+    },
+    {
+      "level": 8,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 4
+    },
+    {
+      "level": 8,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.3
+    },
+    {
+      "level": 8,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 5.2
+    },
+    {
+      "level": 8,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5.3
+    },
+    {
+      "level": 8,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 8.8
+    },
+    {
+      "level": 8,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 6.2
+    },
+    {
+      "level": 8,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 10
+    },
+    {
+      "level": 8,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5.1
+    },
+    {
+      "level": 8,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 8.3
+    },
+    {
+      "level": 8,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 98,
+      "averageRounds": 10.2
+    },
+    {
+      "level": 8,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 95,
+      "averageRounds": 16
+    },
+    {
+      "level": 8,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 96.5,
+      "averageRounds": 9.1
+    },
+    {
+      "level": 8,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 96.5,
+      "averageRounds": 13.6
+    },
+    {
+      "level": 8,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 12.5,
+      "averageRounds": 10.8
+    },
+    {
+      "level": 8,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 9.5,
+      "averageRounds": 15.6
+    },
+    {
+      "level": 8,
+      "build": "defense",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 23.5,
+      "averageRounds": 11.7
+    },
+    {
+      "level": 8,
+      "build": "defense",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 22,
+      "averageRounds": 17.3
+    },
+    {
+      "level": 8,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.8
+    },
+    {
+      "level": 8,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_pigeon",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 4.2
+    },
+    {
+      "level": 8,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 2.7
+    },
+    {
+      "level": 8,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_bag",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 4.1
+    },
+    {
+      "level": 8,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 3.3
+    },
+    {
+      "level": 8,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_seeds",
+      "rank": "normal",
+      "winPercent": 100,
+      "averageRounds": 5
+    },
+    {
+      "level": 8,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5.7
+    },
+    {
+      "level": 8,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_fountain",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 8.3
+    },
+    {
+      "level": 8,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 6.6
+    },
+    {
+      "level": 8,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_bench",
+      "rank": "strong",
+      "winPercent": 99.5,
+      "averageRounds": 9.8
+    },
+    {
+      "level": 8,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 5.4
+    },
+    {
+      "level": 8,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_poster",
+      "rank": "strong",
+      "winPercent": 100,
+      "averageRounds": 8
+    },
+    {
+      "level": 8,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 87.5,
+      "averageRounds": 10.1
+    },
+    {
+      "level": 8,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_golem",
+      "rank": "elite",
+      "winPercent": 85,
+      "averageRounds": 14.8
+    },
+    {
+      "level": 8,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 87.5,
+      "averageRounds": 8.9
+    },
+    {
+      "level": 8,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_speaker",
+      "rank": "elite",
+      "winPercent": 85,
+      "averageRounds": 12.8
+    },
+    {
+      "level": 8,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 3,
+      "averageRounds": 9.7
+    },
+    {
+      "level": 8,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_ilyich",
+      "rank": "boss",
+      "winPercent": 7.5,
+      "averageRounds": 13.8
+    },
+    {
+      "level": 8,
+      "build": "health",
+      "tactic": "attack",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 5,
+      "averageRounds": 10.3
+    },
+    {
+      "level": 8,
+      "build": "health",
+      "tactic": "guard",
+      "mob": "square_fourteen",
+      "rank": "boss",
+      "winPercent": 6.5,
+      "averageRounds": 15
+    }
+  ]
+}

@@ -3,6 +3,7 @@
 import type { InventoryItemDto } from "./items.js";
 import type { MobDto } from "./mobs.js";
 import type { PlayerDto } from "./players.js";
+import type { CombatStateResponse } from "./combat-api.js";
 
 
 
@@ -81,6 +82,7 @@ export type LocationActionRequest = {
 
 
 export type LocationActionResponse = {
+  combat?: CombatStateResponse;
   message: string;
   player: PlayerDto;
   inventory: InventoryItemDto[];

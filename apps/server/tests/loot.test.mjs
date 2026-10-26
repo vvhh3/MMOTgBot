@@ -101,12 +101,13 @@ test("migration preserves old guaranteed drops, duplicates, empty loot and exist
 
 test("admin saves fractional chances, rejects invalid/unknown entries and accepts legacy IDs", () => {
   const p = player();
-  const update = (loot) => request("put", "/mobs/:id", { playerId: p.id, id: 90, body: { loot } });
+  const target = mob([]);
+  const update = (loot) => request("put", "/mobs/:id", { playerId: p.id, id: target.id, body: { loot } });
   assert.equal(update([{ itemType: 1, chancePercent: 0 }, { itemType: 3, chancePercent: 0.25 }]).status, 200);
-  const saved = mobById(90).loot;
+  const saved = mobById(target.id).loot;
   for (const invalid of [null, {}, [null], [0], [-1], [1.2], [{ itemType: 999999, chancePercent: 50 }], ...[-1, 101, "50", NaN, Infinity, null, undefined].map((chancePercent) => [{ itemType: 1, chancePercent }])]) {
     assert.equal(update(invalid).status, 400);
-    assert.deepEqual(mobById(90).loot, saved);
+    assert.deepEqual(mobById(target.id).loot, saved);
   }
   assert.deepEqual(parseLoot([1, 3]), [{ itemType: 1, chancePercent: 100 }, { itemType: 3, chancePercent: 100 }]);
   assert.equal(update([1]).status, 200);
@@ -116,6 +117,7 @@ test("admin saves fractional chances, rejects invalid/unknown entries and accept
 
 test("restart preserves edited probabilities and an empty loot table for mob ID zero", () => {
   const p = player();
+  mob([], { id: 0 });
   assert.equal(request("put", "/mobs/:id", { playerId: p.id, id: 0, body: { loot: [] } }).status, 200);
   db.update(mobs).set({ loot: [{ itemType: 3, chancePercent: 17.5 }] }).where(eq(mobs.id, 90)).run();
   initializeDatabase();
@@ -127,7 +129,7 @@ test("HTTP result, socket, inventory and quests contain only actual drops; repea
   const p = player();
   const target = mob([{ itemType: 1, chancePercent: 100 }, { itemType: 3, chancePercent: 50 }, { itemType: 4, chancePercent: 25 }, { itemType: 5, chancePercent: 0 }]);
   const collected = quest(p.id, "collect"), looted = quest(p.id, "loot"), missed = quest(p.id, "loot", "4"), killed = quest(p.id, "kill", String(target.id));
-  const started = request("post", "/combat/start", { playerId: p.id, body: { mobId: target.id } });
+  const started = { body: startCombat(p, target) };
   assert.deepEqual(started.body.droppedItems, []);
   const draws = [0, 0, 0, 0.1, 0.9]; // order, accuracy, damage, potion succeeds, scrap fails
   const rng = mock.method(Math, "random", () => { assert.ok(draws.length > 0, "unexpected reroll"); return draws.shift(); });

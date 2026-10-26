@@ -232,6 +232,13 @@
       "when": 1792940000000,
       "tag": "0032_item_balance",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "6",
+      "when": 1793030000000,
+      "tag": "0033_square_encounters",
+      "breakpoints": true
     }
   ]
 }

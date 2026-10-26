@@ -9,6 +9,12 @@ export type MobLootEntry = {
 };
 
 
+export type MobRank = 'normal' | 'strong' | 'elite' | 'boss';
+
+export const MOB_RANK_LABELS: Record<MobRank, string> = {
+  normal: 'Обычный', strong: 'Сильный', elite: 'Элита', boss: 'Босс',
+};
+
 export type MobDto = { // описание мобов
   id: number
   name: string
@@ -22,6 +28,8 @@ export type MobDto = { // описание мобов
   coinReward: number
   locationId: string
   respawnSeconds: number
+  catalogKey?: string | null
+  rank?: MobRank
 }
 
 

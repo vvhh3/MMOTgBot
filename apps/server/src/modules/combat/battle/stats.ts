@@ -2,7 +2,7 @@ import { and,eq } from 'drizzle-orm';
 import { db } from "../../../database/connection.js";
 import type { MobRow,PlayerRow } from '../../../database/schema.js';
 import { inventoryItems,items } from '../../../database/schema.js';
-import { basicAttack } from './engine.js';
+import { mobMoves } from '../../mobs/balance.js';
 import { getItemMinLevel } from '@mmobot/shared';
 import { equipmentMoves } from './moves.js';
 export function getEquippedItems(player: PlayerRow) {
@@ -19,5 +19,5 @@ export function playerFighter(player: PlayerRow) {
 }
 export function mobFighter(mob: MobRow) {
   return { name: mob.name, maxHp: mob.maxHealth, strength: mob.strength, defense: mob.defense,
-    moves: [{ ...basicAttack(true), id: 'mob_attack', name: 'Атака', accuracy: 100 }] };
+    moves: mobMoves(mob) };
 }

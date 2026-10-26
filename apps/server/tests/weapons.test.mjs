@@ -318,7 +318,8 @@ test("weapon changes, selling and trading are blocked during active PvE and PvP"
     for (const url of ["/inventory/equip", "/inventory/unequip", "/shop/sell"]) assert.equal(request("post", url, { playerId: a.id, body: { inventoryItemId: weapon.id, itemType: weapon.itemType, quantity: 1 } }).status, 400);
     assert.equal(setOffer(t.id, a.id, [offer(weapon)]).status, 400);
   };
-  const pve = db.insert(combatSessions).values({ playerId: a.id, mobId: 0, playerHealth: 100, mobHealth: 10, startedAt: nowGameTime(), lastActionAt: nowGameTime() }).returning().get();
+  const target = db.select().from(mobs).where(eq(mobs.catalogKey, 'square_pigeon')).get();
+  const pve = db.insert(combatSessions).values({ playerId: a.id, mobId: target.id, playerHealth: 100, mobHealth: 10, startedAt: nowGameTime(), lastActionAt: nowGameTime() }).returning().get();
   check(); db.delete(combatSessions).where(eq(combatSessions.id, pve.id)).run();
   const pvp = db.insert(pvpSessions).values({ player1Id: a.id, player2Id: b.id, player1Health: 100, player2Health: 100, status: "active", turn: "player1", creadetAt: nowGameTime(), lastActionAt: nowGameTime() }).returning().get();
   check(); db.delete(pvpSessions).where(eq(pvpSessions.id, pvp.id)).run();
@@ -365,7 +366,7 @@ test("level requirements are enforced by equip, healing and the authoritative ba
   // Old or tampered equipment cannot bypass the snapshot's level check.
   db.update(inventoryItems).set({ equiped: true }).where(eq(inventoryItems.id, owned.id)).run();
   assert.equal(getPlayerStats(getPlayer(p.id)).strength, p.strength);
-  const target = db.select().from(mobs).where(eq(mobs.id, 0)).get();
+  const target = db.select().from(mobs).where(eq(mobs.catalogKey, 'square_pigeon')).get();
   const state = startCombat(getPlayer(p.id), target);
   assert.deepEqual(state.moves.map(m => m.id), ['unarmed_strike']);
   const session = db.select().from(combatSessions).where(eq(combatSessions.id, state.id)).get();
