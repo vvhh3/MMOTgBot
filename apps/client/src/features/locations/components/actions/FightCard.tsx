@@ -1,3 +1,4 @@
+import { useGroupEvent } from '../../../group-events/GroupEventProvider';
 import { Card,Text } from "@radix-ui/themes";
 import { TypeModal } from "../../../../shared/ui/modal/types";
 type FightProps = {
@@ -6,9 +7,10 @@ type FightProps = {
   setTypeShowIsModal:(value: TypeModal | null) => void
 }
 export default function FightCard({setShowModal,showIsModal,setTypeShowIsModal}:FightProps){
+    const { runSolo } = useGroupEvent();
     return(
         <Card className="h-full w-full">
-          <div onClick={() => {setTypeShowIsModal(TypeModal.SelectOfFriendFight),setShowModal(showIsModal ? false : true)}}>
+          <div onClick={() => { void runSolo('сразиться один на один', async () => { setTypeShowIsModal(TypeModal.SelectOfFriendFight); setShowModal(!showIsModal); }); }}>
             <div className="flex flex-col">
                 <Text size="2" weight="bold">
                   <div className="flex-row flex gap-2">

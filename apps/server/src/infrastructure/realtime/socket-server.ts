@@ -1,3 +1,6 @@
+import { currentPartyMember } from '../../modules/group-events/participation.js';
+import { publishGroup } from '../../modules/group-events/updates.js';
+import { toPlayerDto } from '../../database/mappers.js';
 import type { ClientToServerEvents,ServerToClientEvents } from "@mmobot/shared"
 import { and,eq,or } from "drizzle-orm"
 import type { Server as HttpServer } from "node:http"
@@ -11,7 +14,7 @@ import { db } from "../../database/connection.js"
 import { friendships,players } from "../../database/schema.js"
 import { verifySessionToken } from "../../modules/auth/auth.js"
 import { buildFriendsOverview } from "../../modules/friends/overview.js"
-import { removePlayerFromLocation } from "../../modules/locations/presence.js"
+import { removePlayerFromLocation, movePlayer } from "../../modules/locations/presence.js"
 import { buildLocationState } from "../../modules/locations/state.js"
 
 // Глобальный экземпляр Socket.IO сервера
@@ -102,6 +105,12 @@ export function initRealTime(httpServer: HttpServer): AppServer {
     socket.join(`player:${playerId}`)
 
     const player = db.select().from(players).where(eq(players.id,playerId)).get()
+    const membership = currentPartyMember(db, playerId);
+    if (player && membership && !player.currentLocationId) {
+      db.update(players).set({ currentLocationId: 'square' }).where(eq(players.id, playerId)).run();
+      player.currentLocationId = 'square';
+    }
+    if (player?.currentLocationId) movePlayer(toPlayerDto(player), player.currentLocationId);
     
     if(player?.currentLocationId){
       socket.join(`location:${player.currentLocationId}`)
@@ -127,6 +136,7 @@ export function initRealTime(httpServer: HttpServer): AppServer {
     // Если это первый сокет игрока (был офлайн → стал онлайн) —
     // шлём ему и всем его друзьям свежий список с актуальным статусом.
     if (sockets.size === 1) {
+      if (membership) publishGroup(membership.party.id);
       pushFriendsPresence(playerId)
     }
 
@@ -150,6 +160,8 @@ export function initRealTime(httpServer: HttpServer): AppServer {
         if(localtionId){
           broadcastLocation(localtionId)
         }
+        const group = currentPartyMember(db, playerId);
+        if (group) publishGroup(group.party.id);
         // Игрок ушёл в офлайн — сообщаем друзьям обновлённый статус
         pushFriendsPresence(playerId)
       }

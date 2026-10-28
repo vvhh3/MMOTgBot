@@ -1,3 +1,4 @@
+import GroupEventAdmin from './components/GroupEventAdmin';
 import type { PlayerDto } from "@mmobot/shared";
 import { Tabs } from "@radix-ui/themes";
 import { ItemAdmin } from "./components/ItemAdmin";
@@ -21,8 +22,10 @@ export default function Admin({ token, player, onPlayer }: AdminProps) {
             <Tabs.Trigger className="shrink-0 px-6" value="Items">Предметы</Tabs.Trigger>
             <Tabs.Trigger className="shrink-0 px-6" value="Quests">Квесты</Tabs.Trigger>
             <Tabs.Trigger className="shrink-0 px-6" value="Player">Персонаж</Tabs.Trigger>
+            <Tabs.Trigger className="shrink-0 px-6" value="GroupEvents">События</Tabs.Trigger>
           </Tabs.List>
         </div>
+        <Tabs.Content value="GroupEvents"><GroupEventAdmin token={token} /></Tabs.Content>
         <Tabs.Content value="Mobs"><MobAdmin token={token} /></Tabs.Content>
         <Tabs.Content value="Items"><ItemAdmin token={token} /></Tabs.Content>
         <Tabs.Content value="Quests"><QuestAdmin token={token} /></Tabs.Content>

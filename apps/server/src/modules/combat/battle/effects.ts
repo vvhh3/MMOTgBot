@@ -1,29 +1,30 @@
-import { BATTLE_STATUS_INFO, type BattlePassive, type BattleSide, type BattleState,
-  type BattleStatus, type BattleStatusApplication, type BattleStatusKind, type DamageType } from '@mmobot/shared';
+import type { MultiBattleState, MultiBattleStatus } from '@mmobot/shared';
+import { BATTLE_STATUS_INFO, type BattlePassive,
+  type BattleStatusApplication, type BattleStatusKind, type DamageType } from '@mmobot/shared';
 import { event } from './events.js';
 
-export type BattleContext = {
-  state: BattleState; hp: [number, number]; round: number; at: string; random: () => number;
+export type BattleContext<S extends MultiBattleState = MultiBattleState, H extends number[] = number[]> = {
+  state: S; hp: H; round: number; at: string; random: () => number; target?: number; isFinished?: () => boolean; attackers?: (side: number) => number[];
 };
-export const opponent = (side: BattleSide): BattleSide => side === 0 ? 1 : 0;
-export function statusOf(ctx: BattleContext, side: BattleSide, kind: BattleStatusKind) {
+export const opponent = (side: number, ctx?: BattleContext): number => ctx?.target ?? (side === 0 ? 1 : 0);
+export function statusOf(ctx: BattleContext, side: number, kind: BattleStatusKind) {
   return ctx.state.statuses?.find(s => s.target === side && s.kind === kind && (s.untilRound ?? Infinity) >= ctx.round);
 }
-export function passiveOf(ctx: BattleContext, side: BattleSide, slot: 'weapon' | 'armor'): BattlePassive | undefined {
+export function passiveOf(ctx: BattleContext, side: number, slot: 'weapon' | 'armor'): BattlePassive | undefined {
   if (slot === 'weapon' && statusOf(ctx, side, 'silence')) return;
   return ctx.state.fighters[side].passives?.[slot];
 }
 export const chance = (ctx: BattleContext, percent: number) => percent >= 100 || (percent > 0 && ctx.random() * 100 < percent);
-export function battleStat(ctx: BattleContext, side: BattleSide, stat: 'strength' | 'defense') {
+export function battleStat(ctx: BattleContext, side: number, stat: 'strength' | 'defense') {
   return ctx.state.effects.filter(e => e.target === side && e.stat === stat && e.untilRound >= ctx.round)
     .reduce((n, e) => n * e.multiplier, ctx.state.fighters[side][stat]);
 }
-export function removeStatus(ctx: BattleContext, status: BattleStatus) {
+export function removeStatus(ctx: BattleContext, status: MultiBattleStatus) {
   ctx.state.statuses = (ctx.state.statuses ?? []).filter(s => s !== status);
 }
 
 /** Timed states last through N following rounds; periodic effects tick N times, starting this round. */
-export function applyStatus(ctx: BattleContext, source: BattleSide, target: BattleSide, effect: BattleStatusApplication,
+export function applyStatus(ctx: BattleContext, source: number, target: number, effect: BattleStatusApplication,
   reflected = false) {
   if (ctx.hp[target] <= 0 || ctx.hp[source] <= 0) return;
   if (!chance(ctx, effect.chancePercent ?? 100)) return;
@@ -35,7 +36,9 @@ export function applyStatus(ctx: BattleContext, source: BattleSide, target: Batt
   const periodic = ['poison', 'burn', 'regeneration'].includes(effect.kind);
   const duration = effect.durationRounds ?? (periodic ? 1 : undefined);
   const untilRound = duration === undefined ? undefined : ctx.round + duration - (periodic ? 1 : 0);
-  const existing = statusOf(ctx, target, effect.kind);
+  const existing = effect.kind === 'debt'
+    ? ctx.state.statuses?.find(s => s.target === target && s.kind === 'debt' && s.source === source && (s.untilRound ?? Infinity) >= ctx.round)
+    : statusOf(ctx, target, effect.kind);
   if (existing) {
     // One instance per kind, with no weaker refresh and no repeated DOT stacks.
     existing.untilRound = existing.untilRound === undefined || untilRound === undefined ? undefined : Math.max(existing.untilRound, untilRound);
@@ -55,10 +58,10 @@ export function applyStatus(ctx: BattleContext, source: BattleSide, target: Batt
       ...(effect.kind === 'debt' ? { stacks: 1 } : effect.stacks === undefined ? {} : { stacks: effect.stacks }) });
   }
   event(ctx.state, ctx.round, 'effect', ctx.hp, ctx.at,
-    `${ctx.state.fighters[target].name}: ${BATTLE_STATUS_INFO[effect.kind].name.toLowerCase()}${existing ? ' — эффект обновлён' : ''}`, source);
+    `${ctx.state.fighters[target].name}: ${BATTLE_STATUS_INFO[effect.kind].name.toLowerCase()}${existing ? ' — эффект обновлён' : ''}`, source, { target });
 }
 
-export function heal(ctx: BattleContext, side: BattleSide, amount: number) {
+export function heal(ctx: BattleContext, side: number, amount: number) {
   if (ctx.hp[side] <= 0) return 0;
   const reduction = statusOf(ctx, side, 'poison')?.healingReductionPercent ?? 0;
   const restored = Math.min(Math.max(0, Math.floor(amount * (1 - reduction / 100))), ctx.state.fighters[side].maxHp - ctx.hp[side]);
@@ -67,7 +70,7 @@ export function heal(ctx: BattleContext, side: BattleSide, amount: number) {
 }
 
 /** Armor resistances and shields apply once; reactive passives are invoked separately for direct hits. */
-export function takeDamage(ctx: BattleContext, target: BattleSide, amount: number, damageType?: DamageType, direct = false) {
+export function takeDamage(ctx: BattleContext, target: number, amount: number, damageType?: DamageType, direct = false) {
   let damage = Math.max(0, Math.floor(amount));
   const armor = passiveOf(ctx, target, 'armor');
   if (damageType === 'psychic' && armor?.id === 'clear_mind') damage = Math.floor(damage * (1 - armor.params.damageReductionPercent / 100));
@@ -91,7 +94,7 @@ export function takeDamage(ctx: BattleContext, target: BattleSide, amount: numbe
   return lost;
 }
 
-export function cleanse(ctx: BattleContext, side: BattleSide, positive: boolean) {
+export function cleanse(ctx: BattleContext, side: number, positive: boolean) {
   const statuses = (ctx.state.statuses ?? []).filter(s => s.target === side && (s.untilRound ?? Infinity) >= ctx.round && BATTLE_STATUS_INFO[s.kind].positive === positive);
   const legacy = ctx.state.effects.filter(e => e.target === side && e.untilRound >= ctx.round && (e.multiplier > 1) === positive);
   const count = statuses.length + legacy.length;
@@ -104,20 +107,20 @@ export function cleanse(ctx: BattleContext, side: BattleSide, positive: boolean)
 
 /** DOT for both sides is resolved before deciding the winner, so a double knockout is possible. */
 export function finishRoundEffects(ctx: BattleContext) {
-  if (ctx.hp.some(hp => hp <= 0)) return;
+  if (ctx.isFinished ? ctx.isFinished() : ctx.hp.some(hp => hp <= 0)) return;
   const periodic = (ctx.state.statuses ?? []).filter(s => (s.untilRound ?? Infinity) >= ctx.round && ['poison', 'burn'].includes(s.kind));
   for (const status of periodic) {
     if (ctx.hp[status.target] <= 0) continue;
     const raw = Math.max(1, Math.floor(status.value - battleStat(ctx, status.target, 'defense')));
     const damage = takeDamage(ctx, status.target, raw, status.damageType);
     event(ctx.state, ctx.round, 'effect', ctx.hp, ctx.at,
-      `${ctx.state.fighters[status.target].name}: ${BATTLE_STATUS_INFO[status.kind].name.toLowerCase()} — ${damage} урона`, status.source, { source: 'status' });
+      `${ctx.state.fighters[status.target].name}: ${BATTLE_STATUS_INFO[status.kind].name.toLowerCase()} — ${damage} урона`, status.source, { source: 'status', target: status.target });
   }
   // Healing cannot revive or undo an already reached end condition.
-  if (ctx.hp.every(hp => hp > 0)) for (const status of ctx.state.statuses ?? []) {
+  if (ctx.isFinished ? !ctx.isFinished() : ctx.hp.every(hp => hp > 0)) for (const status of ctx.state.statuses ?? []) {
     if (status.kind !== 'regeneration' || (status.untilRound ?? Infinity) < ctx.round) continue;
     const restored = heal(ctx, status.target, status.value);
-    event(ctx.state, ctx.round, 'heal', ctx.hp, ctx.at, `${ctx.state.fighters[status.target].name}: восстановление — ${restored} HP`, status.target, { source: 'status' });
+    event(ctx.state, ctx.round, 'heal', ctx.hp, ctx.at, `${ctx.state.fighters[status.target].name}: восстановление — ${restored} HP`, status.target, { source: 'status', target: status.target });
   }
 }
 

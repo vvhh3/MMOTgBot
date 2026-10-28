@@ -1,3 +1,5 @@
+import { GroupEventProvider } from '../features/group-events/GroupEventProvider';
+import GroupEventFight from '../features/group-events/components/GroupEventFight';
 import type { CombatStateResponse,FriendsOverviewResponse,InventoryItemDto,LocationStateResponse,PlayerDto,PvpStateDto,TradeStateDto } from "@mmobot/shared";
 import { Theme } from "@radix-ui/themes";
 import { useCallback,useEffect,useRef,useState } from "react";
@@ -305,6 +307,7 @@ export default function App() {
   return (
     <>
       <Theme>
+        <GroupEventProvider token={token} player={player} onPlayer={setPlayer} onInventory={setInventory}>
         <ScrollToTop pathname={displayedLocation.pathname} />
         {screenReady ? (
           player && !player.isCreated ? (
@@ -326,6 +329,7 @@ export default function App() {
               <Route path="Casino/Blackjack" element={<BlackjackGame token={token} player={player} onPlayer={setPlayer} />} />
               <Route path="Casino/Ladder" element={<LadderGame token={token} player={player} onPlayer={setPlayer} />} />
             </Route>
+            <Route path="/GroupEvent" element={<GroupEventFight token={token} player={player} inventory={inventory} onPlayer={setPlayer} onInventory={setInventory} />} />
             <Route path="/TakeAWalk" element={<PveFight token={token} player={player} inventory={inventory} onPlayer={setPlayer} onInventory={setInventory} locationState={locationState} onError={setError} error={error} onState={updateCombatState} state={state} />} />
             <Route path="/Fight" element={<Fight token={token} player={player} inventory={inventory} onPlayer={setPlayer} onInventory={setInventory} pvpState={pvpState} onPvpState={updatePvpState} />} />
           </Routes>
@@ -336,6 +340,7 @@ export default function App() {
             onRetry={retryLoading}
           />
         )}
+        </GroupEventProvider>
       </Theme>
       <PageCurtain target={routeLocation} displayed={displayedLocation} onCovered={setDisplayedLocation} ready={screenReady || !!loadingError} />
     </>

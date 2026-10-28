@@ -1,3 +1,5 @@
+import { useGroupEvent } from '../../group-events/GroupEventProvider';
+import { PartyInviteNotification } from '../../group-events/components/PartyInviteNotification';
 import { PvpStateDto,TradeStateDto } from "@mmobot/shared";
 import { AnimatePresence } from "motion/react";
 import React from "react";
@@ -30,14 +32,16 @@ export function ModalNotification({
   setPvpState,
   setTradeState
 }: ModalNotificationProps) {
+  const { overview } = useGroupEvent();
   return (
     <AnimatePresence>
     {showIsModal && (
     <TopModal
       key="notifications"
       notifRef={notifRef}
-      isEmpty={!incomingPvp && !incomingTrade}
+      isEmpty={!incomingPvp && !incomingTrade && !overview?.invites.length}
     >
+      <PartyInviteNotification />
       {incomingPvp && (
         <PvpNotification key="pvp" setPvpState={setPvpState} token={token} pvpState={pvpState} onError={onError} />
       )}

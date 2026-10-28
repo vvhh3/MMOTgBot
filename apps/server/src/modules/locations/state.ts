@@ -1,3 +1,4 @@
+import { currentGroupEvent } from '../group-events/availability.js';
 import type { LocationStateResponse } from "@mmobot/shared";
 import { TUTORIAL_MOB_ID } from "@mmobot/shared";
 import { desc,eq } from "drizzle-orm";
@@ -9,6 +10,7 @@ import { isMobAlive } from "../combat/pve.js";
 import { getPlayersInLocation } from "./presence.js";
 
 const actions = [
+    { id: "special_walk", label: "Особая прогулка с компанией", description: "Зачистка волн втроём во время события" },
     {
         id: "fight",
         label: "Сражаться",
@@ -47,6 +49,7 @@ export function buildLocationState(locationId: string): LocationStateResponse | 
     const aliveMobs = locationMobs.filter((mob) => mob.id !== TUTORIAL_MOB_ID && isMobAlive(mob));
     return {
         location: toLocationDto(location),
+        groupEvent: locationId === 'square' ? currentGroupEvent() : null,
         players: getPlayersInLocation(locationId),
         actions: actions.filter((action) => location.actions.includes(action.id)),
         mobs: aliveMobs.map(toMobDto),

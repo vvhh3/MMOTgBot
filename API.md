@@ -821,3 +821,28 @@ io(url, { auth: { token: "<jwt>" } })
 - Ответ покупки и продажи: `{ player: PlayerDto, inventory: InventoryItemDto[], total: number }`. Изменение кошелька и предметов выполняется в одной транзакции. ID каталога и инвентаря не ограничены числом 99.
 
 Миграция `0026_weapon_instances` разделяет старые стопки оружия, сохраняет количество и экипировку одной копии. Старые незавершённые выкладки с оружием очищаются вместе с готовностью обеих сторон: игроки должны заново выбрать экземпляры. Расходники, материалы и броня остаются стопками.
+
+
+## Особая прогулка с компанией
+
+Правила и административная настройка: [реализованное событие](docs/combat/GROUP_EVENT_IMPLEMENTATION.md). Все маршруты требуют Bearer-токен; `/admin/group-events` также требует административные права.
+
+| Метод и путь | Тело / ответ |
+| --- | --- |
+| `GET /group-events/me` | `GroupEventOverview`: доступность, своя группа, приглашения, активное/последнее завершённое прохождение и ревизия |
+| `POST /group-events/:id/parties` | `{ targetId, slot?, requestId }`: создать группу с первым приглашением одной транзакцией |
+| `POST /event-parties/:id/invite` | `{ targetId, slot?, requestId }` |
+| `POST /event-parties/:id/respond` | `{ accept: boolean, requestId }`: ответ адресата на своё приглашение |
+| `POST /event-parties/:id/ready` | `{ ready: boolean, requestId }` |
+| `POST /event-parties/:id/remove` | `{ memberId, requestId }`: исключение участника / отмена приглашения |
+| `POST /event-parties/:id/leave` | `{ requestId }` |
+| `POST /event-parties/:id/start` | Запуск лидером, повтор возвращает уже созданное прохождение |
+| `GET /group-event-runs/:id` | `GroupEventStateDto`, доступно только участникам этого прохождения |
+| `POST /group-event-runs/:id/actions` | `{ wave, round, expectedVersion, requestId, moveId?, itemType?, targetId? }`; для атаки нужна живая вражеская цель |
+| `POST /group-event-runs/:id/leave` | Подтверждённый выход из начатого прохождения |
+| `GET /admin/group-events` | `{ windows: GroupEventWindowDto[] }` |
+| `POST /admin/group-events`, `PATCH /admin/group-events/:id` | `{ enabled, startsAt, endsAt, minLevel, config }`, даты — UTC ISO |
+
+Мутации группы/боя возвращают `GroupEventOverview`. Персональное Socket.IO-событие `groupEventUpdate` передаёт тот же обзор; принятые скрытые приёмы и цели не публикуются до расчёта раунда. `revision` упорядочивает ответы, `stateVersion` относится к бою.
+
+Обычная прогулка, создание и принятие PvP проверяют членство на сервере. Для самого игрока ошибка имеет вид `{ error, code: "PARTY_EXIT_REQUIRED" }`, статус `409`. Исключение не выполняется автоматически: клиент сначала получает подтверждение пользователя, вызывает соответствующий выход, затем повторяет одиночный сценарий. Если в группе соперник, возвращается `PLAYER_BUSY`.

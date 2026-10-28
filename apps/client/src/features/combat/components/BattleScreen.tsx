@@ -5,6 +5,7 @@ import type { BattleStatusView } from '@mmobot/shared';
 import BattleStatusBadges from './BattleStatusBadges';
 
 type Fighter = {
+    id?: string; selected?: boolean; onSelect?: () => void;
     name: string;
     hp: number;
     maxHp: number;
@@ -22,6 +23,7 @@ type BattleAction = {
 };
 
 type BattleScreenProps = {
+    teams?: { allies: Fighter[]; enemies: Fighter[] };
     battleId: string;
     background: string;
     player: Fighter;
@@ -43,6 +45,7 @@ type BattleScreenProps = {
 // Общая сцена и панель боя. Запросы и состояние режимов остаются в PveFight и Fight.
 export default function BattleScreen({
     battleId,
+    teams,
     background,
     player,
     opponent,
@@ -97,6 +100,21 @@ export default function BattleScreen({
                     </div>
                 )}
                 <div>
+                    {teams ? <div className="group-battle-scene">
+                        {error && <Card role="alert"><Text color="red">{error}</Text></Card>}
+                        {[teams.enemies, teams.allies].map((team, row) => <div className="group-battle-team" key={row} aria-label={row === 0 ? 'Противники — выберите цель' : 'Ваша группа'}>
+                            {team.map((fighter, index) => <button type="button" key={fighter.id ?? index}
+                                className={`group-battle-fighter ${fighter.selected ? 'is-selected' : ''} ${fighter.hp <= 0 ? 'is-defeated' : ''}`}
+                                aria-pressed={row === 0 ? !!fighter.selected : undefined} disabled={!fighter.onSelect || fighter.hp <= 0}
+                                onClick={fighter.onSelect} aria-label={`${fighter.name}, ${fighter.hp} из ${fighter.maxHp} HP`}>
+                                <span className="group-fighter-name">{fighter.name}</span>
+                                <small>{fighter.hp}/{fighter.maxHp} HP</small>
+                                <Progress color={fighter.hp <= 0 ? 'red' : 'green'} value={healthPercent(fighter)} />
+                                <BattleStatusBadges statuses={fighter.statuses ?? []} fighterName={fighter.name} />
+                                <DamageEffect health={fighter.hp}><img src={fighter.image} alt="" /></DamageEffect>
+                            </button>)}
+                        </div>)}
+                    </div> : <>
                     <div className="grid w-full grid-cols-2 items-start gap-x-2 px-2">
                         {error && (
                             <Card className="col-span-2" role="alert">
@@ -134,6 +152,7 @@ export default function BattleScreen({
                             </DamageEffect>
                         ))}
                     </div>
+                    </>}
                     {status && (
                         <div className="mb-2 px-2">
                             <Card>

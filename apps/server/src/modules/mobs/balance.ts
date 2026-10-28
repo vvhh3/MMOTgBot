@@ -40,7 +40,11 @@ export function mobMoves(mob: MobRow): BattleMove[] {
 
 // Runs before the player submits an action; does not inspect their hidden choice.
 export function chooseMobMove(state: BattleState, round: number, random: () => number = Math.random): string {
-  const available = state.fighters[1].moves.filter(move => (state.cooldowns[1][move.id] ?? 1) <= round);
+  return chooseFighterMove(state.fighters[1].moves, state.cooldowns[1], round, random);
+}
+
+export function chooseFighterMove(moves: BattleMove[], cooldowns: Record<string, number>, round: number, random: () => number = Math.random): string {
+  const available = moves.filter(move => (cooldowns[move.id] ?? 1) <= round);
   if (available.length === 1) return available[0].id;
   const guard = available.find(move => move.kind === 'defend');
   const strong = available.find(move => move.id === 'mob_strong');

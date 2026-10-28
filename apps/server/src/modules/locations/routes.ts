@@ -1,3 +1,5 @@
+import { assertOutsideParty, currentPartyMember } from '../group-events/participation.js';
+import { GroupEventError } from '../group-events/availability.js';
 import type { CombatStateResponse,EnterLocationResponse,LocationActionRequest,LocationActionResponse,LocationsResponse } from "@mmobot/shared";
 import { and,asc,desc,eq,sql } from "drizzle-orm";
 import express from "express";
@@ -52,6 +54,7 @@ export function createLocationRoutes(app: express.Express): void {
       return;
     }
     if (!checkLocationAccess(player, location, res)) return;
+    if (location.id !== 'square' && currentPartyMember(db, player.id)) return res.status(409).json({ error: 'Сначала выйдите из группы', code: 'PARTY_EXIT_REQUIRED' });
 
     db.update(players)
       .set({ currentLocationId: location.id, lastSeenAt: nowGameTime() })
@@ -122,6 +125,7 @@ export function createLocationRoutes(app: express.Express): void {
     expireStaleCombatSessions();
     try { db.transaction((tx) => {
       const fresh = tx.select().from(players).where(eq(players.id, player.id)).get()!;
+      assertOutsideParty(tx, player.id);
       assertOutsideCombat(tx, player.id);
       if (fresh.idTheLastAction) throw new BattleError('Сначала завершите текущее действие');
       if (fresh.health <= 0) throw new BattleError('Восстановите здоровье перед прогулкой');
@@ -143,7 +147,7 @@ export function createLocationRoutes(app: express.Express): void {
       tx.insert(events).values({ playerId: player.id, locationId: location.id, type: action.eventType, createdAt: now }).run();
       if (opponent) combat = startCombat(tx.select().from(players).where(eq(players.id, player.id)).get()!, opponent);
     }); } catch (error) {
-      return res.status(error instanceof BattleError ? error.status : 409).json({ error: error instanceof Error ? error.message : 'Не удалось прогуляться' });
+      return res.status(error instanceof BattleError ? error.status : 409).json({ error: error instanceof Error ? error.message : 'Не удалось прогуляться', code: error instanceof GroupEventError ? error.code : undefined });
     }
 
     const updatedPlayer = db.select().from(players).where(eq(players.id, player.id)).get()!;

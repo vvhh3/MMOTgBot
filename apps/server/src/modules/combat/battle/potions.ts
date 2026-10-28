@@ -1,4 +1,4 @@
-import type { BattleSide,BattleState } from '@mmobot/shared';
+import type { MultiBattleState } from '@mmobot/shared';
 import { BATTLE_STATUS_INFO, getItemMinLevel, getPassiveDefinition, resolvePassiveParams } from '@mmobot/shared';
 import { and,eq } from 'drizzle-orm';
 import { db } from "../../../database/connection.js";
@@ -6,7 +6,7 @@ import { inventoryItems,items,players } from '../../../database/schema.js';
 import { BattleError } from './state.js';
 
 /** Called inside the action transaction. Stock is spent only when the action executes. */
-export function preparePotion(state: BattleState, side: BattleSide, playerId: number, itemType: number | undefined, hp: number) {
+export function preparePotion(state: MultiBattleState, side: number, playerId: number, itemType: number | undefined, hp: number) {
   if (!Number.isSafeInteger(itemType) || itemType! < 1) throw new BattleError('Выберите лечебный предмет', 400);
   const owned = db.select().from(inventoryItems).where(and(eq(inventoryItems.playerId, playerId), eq(inventoryItems.itemType, itemType!))).get();
   const item = db.select().from(items).where(eq(items.id, itemType!)).get();

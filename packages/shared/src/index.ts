@@ -18,3 +18,6 @@ export * from './contracts/trades.js';
 export * from './weapons.js';
 export * from './item-balance.js';
 export * from './mob-balance.js';
+
+export * from './contracts/group-events.js';
+export * from './battle-core.js';

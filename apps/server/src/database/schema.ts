@@ -1,3 +1,4 @@
+import type { GroupEventConfig, GroupBattleState, PartyMemberStatus } from '@mmobot/shared';
 import type { BattleState } from '@mmobot/shared';
 import { check,index,integer,real,sqliteTable,text,uniqueIndex } from "drizzle-orm/sqlite-core";
 import { nowGameTime } from "../shared/time.js";
@@ -122,7 +123,8 @@ export const items = sqliteTable("items", {
 // Сессии боя: у игрока в каждый момент может быть максимум один активный бой с мобом.
 // Частичный uniqueIndex на playerId ограничивает только активные сессии.
 // onDelete: "cascade" — при удалении игрока/моба его сессии боя удаляются автоматически.
-// Завершённые сессии сохраняются; aborted — техническое прекращение без наград.
+// Завершённые сессии хранятся 24 часа для чтения результата и повторов команд.
+// aborted — техническое прекращение без наград.
 export const combatSessions = sqliteTable('combat_sessions', {
   roundNumber: integer("round_number").notNull().default(1),
   roundStartedAt: text("round_started_at"),
@@ -137,7 +139,11 @@ export const combatSessions = sqliteTable('combat_sessions', {
   startedAt: text("started_at").notNull(),
   lastActionAt: text("last_action_at").notNull()
 },
-  (table) => [uniqueIndex("combat_sessions_player_idx").on(table.playerId).where(sql`${table.status} = 'active'`), index("combat_sessions_mob_idx").on(table.mobId)]
+  (table) => [
+    uniqueIndex("combat_sessions_player_idx").on(table.playerId).where(sql`${table.status} = 'active'`),
+    index("combat_sessions_mob_idx").on(table.mobId),
+    index("combat_sessions_status_last_action_idx").on(table.status, table.lastActionAt),
+  ]
 )
 
 // Оружие хранится по экземплярам (quantity=1, собственный weaponLevel).
@@ -176,7 +182,8 @@ export const events = sqliteTable("events",
   },
   (table) => [
     index("events_location_created_idx").on(table.locationId, table.createdAt),
-    index("events_player_idx").on(table.playerId)
+    index("events_player_idx").on(table.playerId),
+    index("events_created_idx").on(table.createdAt),
   ]
 );
 
@@ -273,6 +280,7 @@ export const pvpSessions = sqliteTable("pvp_sessions", {
 }, (table) => [
   index("pvp_player1_idx").on(table.player1Id),
   index("pvp_player2_idx").on(table.player2Id),
+  index("pvp_status_last_action_idx").on(table.status, table.lastActionAt),
 ])
 
 export const casinoSessions = sqliteTable("casino_sessions", {
@@ -312,3 +320,78 @@ export type TradeRow = typeof trades.$inferSelect
 export type PvpSessionRow = typeof pvpSessions.$inferSelect
 export type FriendshipRow = typeof friendships.$inferSelect
 export type CasinoSessionRow = typeof casinoSessions.$inferSelect
+
+// Special co-op event. Membership is persisted independently of socket presence.
+export const groupEventWindows = sqliteTable('group_event_windows', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  locationId: text('location_id').notNull().references(() => locations.id),
+  enabled: integer('enabled', { mode: 'boolean' }).notNull().default(false),
+  startsAt: text('starts_at').notNull(), endsAt: text('ends_at').notNull(),
+  minLevel: integer('min_level').notNull().default(1),
+  config: text('config', { mode: 'json' }).$type<GroupEventConfig>().notNull(),
+  createdAt: text('created_at').notNull(), updatedAt: text('updated_at').notNull(),
+}, t => [
+  check('group_event_window_dates', sql`${t.startsAt} < ${t.endsAt}`),
+  check('group_event_window_level', sql`${t.minLevel} >= 1 AND ${t.minLevel} = CAST(${t.minLevel} AS INTEGER)`),
+  check('group_event_window_enabled', sql`${t.enabled} IN (0,1)`),
+  index('group_event_window_access_idx').on(t.locationId, t.enabled, t.startsAt, t.endsAt),
+]);
+export const eventParties = sqliteTable('event_parties', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  eventWindowId: integer('event_window_id').notNull().references(() => groupEventWindows.id),
+  leaderPlayerId: integer('leader_player_id').notNull().references(() => players.id),
+  status: text('status', { enum: ['forming','active','finished','disbanded','expired'] }).notNull().default('forming'),
+  version: integer('version').notNull().default(0),
+  creationRequestId: text('creation_request_id').notNull(), creationFingerprint: text('creation_fingerprint').notNull(),
+  processedRequests: text('processed_requests', { mode: 'json' }).$type<{ playerId: number; requestId: string; fingerprint: string }[]>().notNull().default([]),
+  createdAt: text('created_at').notNull(), updatedAt: text('updated_at').notNull(), expiresAt: text('expires_at').notNull(),
+}, t => [
+  check('event_party_status', sql`${t.status} IN ('forming','active','finished','disbanded','expired')`),
+  check('event_party_version', sql`${t.version} >= 0 AND ${t.version} = CAST(${t.version} AS INTEGER)`),
+  uniqueIndex('event_party_creation_unique').on(t.leaderPlayerId, t.creationRequestId), index('event_party_status_expiry_idx').on(t.status,t.expiresAt)]);
+export const eventPartyMembers = sqliteTable('event_party_members', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  partyId: integer('party_id').notNull().references(() => eventParties.id),
+  playerId: integer('player_id').notNull().references(() => players.id),
+  invitedByPlayerId: integer('invited_by_player_id').references(() => players.id),
+  slot: integer('slot').notNull(),
+  status: text('status').$type<PartyMemberStatus>().notNull(),
+  ready: integer('ready', { mode: 'boolean' }).notNull().default(false),
+  createdAt: text('created_at').notNull(), inviteExpiresAt: text('invite_expires_at'), joinedAt: text('joined_at'), endedAt: text('ended_at'),
+}, t => [
+  check('event_member_status', sql`${t.status} IN ('invited','joined','active','left','declined','cancelled','expired','finished')`),
+  check('event_member_slot', sql`${t.slot} IN (0,1,2)`), check('event_member_ready', sql`${t.ready} IN (0,1)`),
+  uniqueIndex('event_member_current_unique').on(t.playerId).where(sql`${t.status} IN ('joined','active')`),
+  uniqueIndex('event_member_slot_unique').on(t.partyId,t.slot).where(sql`${t.status} IN ('invited','joined','active')`),
+  uniqueIndex('event_member_party_player_unique').on(t.partyId,t.playerId).where(sql`${t.status} IN ('invited','joined','active')`),
+  index('event_member_invite_idx').on(t.playerId,t.status,t.inviteExpiresAt),
+]);
+export const groupEventRuns = sqliteTable('group_event_runs', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  partyId: integer('party_id').notNull().references(() => eventParties.id),
+  eventWindowId: integer('event_window_id').notNull().references(() => groupEventWindows.id),
+  status: text('status', { enum: ['active','victory','defeat','aborted'] }).notNull().default('active'),
+  configSnapshot: text('config_snapshot', { mode: 'json' }).$type<GroupEventConfig>().notNull(),
+  battleState: text('battle_state', { mode: 'json' }).$type<GroupBattleState>().notNull(),
+  waveNumber: integer('wave_number').notNull().default(1), roundNumber: integer('round_number').notNull().default(1),
+  stateVersion: integer('state_version').notNull().default(0),
+  roundStartedAt: text('round_started_at').notNull(), roundDeadlineAt: text('round_deadline_at').notNull(),
+  startedAt: text('started_at').notNull(), lastActionAt: text('last_action_at').notNull(), expiresAt: text('expires_at').notNull(), finishedAt: text('finished_at'),
+}, t => [
+  check('group_event_run_status', sql`${t.status} IN ('active','victory','defeat','aborted')`),
+  check('group_event_run_numbers', sql`${t.waveNumber} >= 1 AND ${t.waveNumber} = CAST(${t.waveNumber} AS INTEGER) AND ${t.roundNumber} >= 1 AND ${t.roundNumber} = CAST(${t.roundNumber} AS INTEGER) AND ${t.stateVersion} >= 0 AND ${t.stateVersion} = CAST(${t.stateVersion} AS INTEGER)`),
+  uniqueIndex('group_event_run_party_unique').on(t.partyId), index('group_event_run_deadline_idx').on(t.status,t.roundDeadlineAt), index('group_event_run_expiry_idx').on(t.status,t.expiresAt)]);
+export const groupEventRewards = sqliteTable('group_event_rewards', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  runId: integer('run_id').notNull().references(() => groupEventRuns.id),
+  eventWindowId: integer('event_window_id').notNull().references(() => groupEventWindows.id),
+  playerId: integer('player_id').notNull().references(() => players.id),
+  xp: integer('xp').notNull(), points: integer('points').notNull(), coins: integer('coins').notNull(),
+  items: text('items', { mode: 'json' }).$type<{ name: string; quantity: number; itemType: number }[]>().notNull(),
+  grantedAt: text('granted_at').notNull(),
+}, t => [
+  check('group_event_reward_amounts', sql`${t.xp} >= 0 AND ${t.xp} = CAST(${t.xp} AS INTEGER) AND ${t.points} >= 0 AND ${t.points} = CAST(${t.points} AS INTEGER) AND ${t.coins} >= 0 AND ${t.coins} = CAST(${t.coins} AS INTEGER)`),
+  uniqueIndex('group_event_reward_unique').on(t.runId,t.playerId), index('group_event_reward_player_idx').on(t.playerId,t.eventWindowId)]);
+export type EventPartyRow = typeof eventParties.$inferSelect;
+export type GroupEventRunRow = typeof groupEventRuns.$inferSelect;
+export type GroupEventWindowRow = typeof groupEventWindows.$inferSelect;

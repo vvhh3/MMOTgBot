@@ -1,3 +1,4 @@
+import type { GroupEventWindowDto } from './group-events.js';
 
 
 import type { InventoryItemDto } from "./items.js";
@@ -61,6 +62,7 @@ export type LocationsResponse = {
 
 
 export type LocationStateResponse = {
+  groupEvent?: GroupEventWindowDto | null;
   location: LocationDto;
   players: PlayerDto[];
   actions: ActionDto[];

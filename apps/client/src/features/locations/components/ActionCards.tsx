@@ -1,3 +1,4 @@
+import SpecialWalkCard from './actions/SpecialWalkCard';
 import { CombatStateResponse,LocationDto,LocationStateResponse,PlayerDto } from "@mmobot/shared";
 import ButtonAnimation from "../../../shared/ui/animations/ButtonAnimation";
 import EnterAnimation from "../../../shared/ui/animations/EnterAnimation";
@@ -11,6 +12,7 @@ import MoneyCard from "./actions/MoneyCard";
 import ShopCard from "./actions/ShopCard";
 import WalkCard from "./actions/WalkCard";
 const cards = {
+  special_walk: SpecialWalkCard,
   exchange: ExchangeCard,
   fight: FightCard,
   money: MoneyCard,

@@ -9,7 +9,7 @@ import type { Express,Request,Response } from "express";
 import { db } from "../../database/connection.js";
 import { toItemDto } from "../../database/mappers.js";
 import type { ItemRow } from "../../database/schema.js";
-import { inventoryItems,items,mobs,quests } from "../../database/schema.js";
+import { inventoryItems,items,mobs,quests,groupEventWindows,groupEventRuns } from "../../database/schema.js";
 
 function member<T extends string>(value: unknown, values: readonly T[], label: string): T {
   if (typeof value !== "string" || !values.includes(value as T)) throw new Error(`Некорректное поле: ${label}`);
@@ -92,7 +92,9 @@ export const createItemRoutes = (app: Express) => {
     const owned = db.select({ id: inventoryItems.id }).from(inventoryItems).where(eq(inventoryItems.itemType, item.id)).get();
     const inLoot = db.select({ loot: mobs.loot }).from(mobs).all().some((mob) => mob.loot.some((entry) => entry.itemType === item.id));
     const inQuest = db.select().from(quests).all().some((q) => ["collect", "loot"].includes(q.objectiveType) && q.targetId === String(item.id));
-    if (owned || inLoot || inQuest || item.catalogKey) return res.status(409).json({ error: "Предмет используется в игре. Его можно отредактировать или убрать из магазина" });
+    const inEvent = db.select().from(groupEventWindows).all().some(w => w.config.reward.loot.some(e => e.itemType === item.id))
+      || db.select().from(groupEventRuns).where(eq(groupEventRuns.status, 'active')).all().some(r => r.configSnapshot.reward.loot.some(e => e.itemType === item.id));
+    if (owned || inLoot || inQuest || inEvent || item.catalogKey) return res.status(409).json({ error: "Предмет используется в игре. Его можно отредактировать или убрать из магазина" });
     db.delete(items).where(eq(items.id, item.id)).run();
     res.status(200).end();
   });

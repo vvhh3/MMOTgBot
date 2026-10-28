@@ -1,3 +1,4 @@
+import { currentPartyMember } from '../group-events/participation.js';
 import { Deck,SUIT,type Card as DeckCard } from "@block52/deck";
 import type { CasinoGameType,CasinoSessionResponse,LastAction,PlayingCardDto } from "@mmobot/shared";
 import { and,eq,sql } from "drizzle-orm";
@@ -170,7 +171,7 @@ export function createCasinoRoutes(app: Express) {
     if (!["mines", "blackjack", "ladder"].includes(game)) return res.status(400).json({ error: "Неизвестная игра" });
     if (!Number.isInteger(bet) || bet < MIN_BET) return res.status(400).json({ error: "Ставка должна быть целым положительным числом" });
     if (player.currentLocationId !== CITY_PARK_ID) return res.status(409).json({ error: "Играть можно только в Сити парке" });
-    if (player.idTheLastAction || activeSession(player.id)) return res.status(409).json({ error: "Сначала завершите текущее действие" });
+    if (currentPartyMember(db, player.id) || player.idTheLastAction || activeSession(player.id)) return res.status(409).json({ error: "Сначала завершите текущее действие" });
     if (player.money < bet) return res.status(409).json({ error: "Недостаточно монет" });
 
     let state: Record<string, unknown>;

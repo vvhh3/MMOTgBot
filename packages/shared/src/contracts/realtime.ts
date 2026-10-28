@@ -1,3 +1,4 @@
+import type { GroupEventOverview } from './group-events.js';
 
 
 import type { CombatStateResponse,PvpStateDto } from "./combat-api.js";
@@ -14,6 +15,7 @@ import type { TradeStateDto } from "./trades.js";
 // ClientToServerEvents — что клиент отправляет серверу
 
 export type ServerToClientEvents = {
+  groupEventUpdate: (state: GroupEventOverview) => void;
   locationState: (state: LocationStateResponse) => void;
   combatState: (state: CombatStateResponse) => void;
   player: (player: PlayerDto) => void

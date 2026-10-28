@@ -246,6 +246,20 @@
       "when": 1793031000000,
       "tag": "0034_mob_constructor",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "6",
+      "when": 1793032000000,
+      "tag": "0035_session_retention",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "6",
+      "when": 1793045926839,
+      "tag": "0036_group_events",
+      "breakpoints": true
     }
   ]
 }

@@ -6,6 +6,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { config } from "../config/env.js";
+import { nowGameTime } from "../shared/time.js";
 import { balanceCatalogItem } from "../modules/items/catalogs/balance.js";
 import { seedMemeItemCatalog } from "../modules/items/catalogs/meme-items.js";
 import { seedWeaponCatalog } from "../modules/items/catalogs/weapons.js";
@@ -58,7 +59,7 @@ export function initializeDatabase(): void {
   // Ниже — сид (начальные данные), который заносится в БД при первом запуске.
   // Список стартовых локаций: id, название, описание и координаты.
   const seedLocations: LocationDto[] = [
-    { id: "square", name: "Площадь", description: "Описание площади", x: 31, y: 40 ,homeImg:"square-home.svg",fightImg:"square-fight.svg",actions:["fight","walk","money",], minLevel: 1, isOpen: true},
+    { id: "square", name: "Площадь", description: "Описание площади", x: 31, y: 40 ,homeImg:"square-home.svg",fightImg:"square-fight.svg",actions:["fight","walk","money","special_walk"], minLevel: 1, isOpen: true},
     { id: "rialto", name: "Рынок", description: "Описание рынка", x: 39, y: 37 ,homeImg:"square-home.svg",fightImg:"square-fight.svg",actions:["exchange","shop"], minLevel: 1, isOpen: true},
     { id: "market", name: "Сити парк", description: "Описание сити парка", x: 42, y: 33 ,homeImg:"market-home.svg",fightImg:"market-fight.svg",actions:["mines","blackjack","ladder"], minLevel: 1, isOpen: true},
     { id: "park", name: "Парк Победы", description: "Описание парка победы", x: 39, y: 27,homeImg:"park-home.svg",fightImg:"park-fight.svg",actions:["fight","walk"], minLevel: 1, isOpen: false},
@@ -192,7 +193,7 @@ function resetUnavailablePlayerLocations(): void {
         currentLocationId: null,
         ...(player.idTheLastAction?.type === "TakeAWalk" ? { idTheLastAction: null } : {}),
       }).where(eq(players.id, player.id)).run();
-      tx.update(combatSessions).set({ status: "fled" })
+      tx.update(combatSessions).set({ status: "fled", lastActionAt: nowGameTime() })
         .where(and(eq(combatSessions.playerId, player.id), eq(combatSessions.status, "active"))).run();
     }
   });

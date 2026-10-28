@@ -1,3 +1,4 @@
+import type { MultiBattleState } from './battle-core.js';
 import type { BattleSide, BattleState } from './combat.js';
 import type { DamageType } from './weapons.js';
 
@@ -54,8 +55,10 @@ export function describeBattleStatus(kind: BattleStatusKind, value: number, seco
 }
 
 /** Public, absolute sides (0/1), shared by HTTP, sockets and message playback. */
-export function battleStatusViews(state: BattleState, round: number): [BattleStatusView[], BattleStatusView[]] {
-  const views: [BattleStatusView[], BattleStatusView[]] = [[], []];
+export function battleStatusViews(state: BattleState, round: number): [BattleStatusView[], BattleStatusView[]];
+export function battleStatusViews(state: MultiBattleState, round: number): BattleStatusView[][];
+export function battleStatusViews(state: MultiBattleState, round: number): BattleStatusView[][] {
+  const views: BattleStatusView[][] = state.fighters.map(() => []);
   for (const status of state.statuses ?? []) {
     if ((status.untilRound ?? Infinity) < round) continue;
     views[status.target].push({ kind: status.kind, ...BATTLE_STATUS_INFO[status.kind], value: status.value,

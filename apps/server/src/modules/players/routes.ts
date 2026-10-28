@@ -1,3 +1,5 @@
+import { invalidatePartyReady } from '../group-events/parties.js';
+import { publishGroup } from '../group-events/updates.js';
 import type { CharacterCreateRequest,CharacterCreateResponse,CharacterSkinsResponse,MeResponse,SpendStatPointRequest } from "@mmobot/shared";
 import { isFactionId } from "@mmobot/shared";
 import { and,asc,desc,eq } from "drizzle-orm";
@@ -77,7 +79,11 @@ export function createPlayerRoutes(app: express.Express): void {
       }
     }
 
-    db.update(players).set(next).where(eq(players.id, player.id)).run();
+    const partyId = db.transaction(() => {
+      db.update(players).set(next).where(eq(players.id, player.id)).run();
+      return invalidatePartyReady(player.id);
+    });
+    if (partyId !== null) publishGroup(partyId);
     const updated = db.select().from(players).where(eq(players.id, player.id)).get()!;
     emitToPlayer(player.id, "player", toPlayerDto(updated));
     res.json({ player: toPlayerDtoEquipped(updated) });

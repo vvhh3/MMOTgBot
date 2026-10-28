@@ -1,3 +1,5 @@
+import { createGroupEventRoutes } from './modules/group-events/routes.js';
+import { createGroupEventAdminRoutes } from './modules/admin/group-events.routes.js';
 import cors from "cors";
 import express from "express";
 import { config } from "./config/env.js";
@@ -102,6 +104,8 @@ export function createApp(): express.Express {
   createLeaderboardRoutes(app);
   createTutorialRoutes(app);
 
+  createGroupEventRoutes(app);
+  createGroupEventAdminRoutes(app);
   serveClient(app);
 
   return app;

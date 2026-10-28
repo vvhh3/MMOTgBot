@@ -1,3 +1,5 @@
+import { invalidatePartyReady } from '../group-events/parties.js';
+import { publishGroup } from '../group-events/updates.js';
 import { assertOutsideCombat,resolveInventoryItem } from "./store.js";
 
 import { getItemMinLevel,ItemsResponse } from "@mmobot/shared";
@@ -68,7 +70,9 @@ export const InventoryRoutes = (app: Express) => {
             ))
             .all()
 
+        let partyId: number | null = null;
         db.transaction(() => {
+        partyId = invalidatePartyReady(player.id);
         for (const row of equiped) {
             if (row.item.type === item.type) {
                 db.update(inventoryItems)
@@ -91,6 +95,7 @@ export const InventoryRoutes = (app: Express) => {
 
         });
 
+        if (partyId !== null) publishGroup(partyId);
         const update = db.select().from(inventoryItems).where(eq(inventoryItems.playerId, player.id)).all()
         const updatedPlayer = db.select().from(players).where(eq(players.id, player.id)).get()!
         res.json({ player: toPlayerDtoEquipped(updatedPlayer), inventory: update.map(toInventoryItemDto) })
@@ -180,10 +185,11 @@ export const InventoryRoutes = (app: Express) => {
             return
         }
 
-        db.update(inventoryItems)
-            .set({ equiped: false })
-            .where(eq(inventoryItems.id, inventoryItem.id))
-            .run()
+        const partyId = db.transaction(() => {
+            db.update(inventoryItems).set({ equiped: false }).where(eq(inventoryItems.id, inventoryItem.id)).run();
+            return invalidatePartyReady(player.id);
+        });
+        if (partyId !== null) publishGroup(partyId);
 
         const update = db.select().from(inventoryItems).where(eq(inventoryItems.playerId, player.id)).all()
         const updatedPlayer = db.select().from(players).where(eq(players.id, player.id)).get()!

@@ -1,4 +1,4 @@
-import type { BattleEvent, BattleStatusView } from "@mmobot/shared";
+import type { MultiBattleEvent, BattleStatusView } from "@mmobot/shared";
 import { useEffect,useState } from "react";
 
 type BattleMessageCursor = {
@@ -9,9 +9,9 @@ type BattleMessageCursor = {
 // После восстановления показываем текущие HP, а новые сообщения читаются по нажатию.
 export function useBattlePlayback(
     battleId: string,
-    health: [number, number],
-    events: BattleEvent[],
-    statuses: [BattleStatusView[], BattleStatusView[]] = [[], []],
+    health: number[],
+    events: MultiBattleEvent[],
+    statuses: BattleStatusView[][] = [[], []],
 ) {
     const latestSequence = events.at(-1)?.sequence ?? 0;
     const [cursor, setCursor] = useState<BattleMessageCursor>({

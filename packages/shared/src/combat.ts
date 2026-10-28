@@ -22,7 +22,7 @@ export type BattleFighter = {
 };
 export type BattleEvent = {
   sequence: number; round: number; type: 'attack' | 'miss' | 'defend' | 'block' | 'reflect' | 'effect' | 'flee' | 'finish' | 'heal';
-  side?: BattleSide; text: string; hp: [number, number]; at: string;
+  side?: BattleSide; target?: BattleSide; text: string; hp: [number, number]; at: string;
   statuses?: [BattleStatusView[], BattleStatusView[]];
   source?: 'item' | 'passive' | 'status';
   critical?: boolean;

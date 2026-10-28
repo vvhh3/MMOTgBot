@@ -1,28 +1,29 @@
-import type { BattleMove, BattleSide, DamageType } from '@mmobot/shared';
+import type { BattleMove, DamageType } from '@mmobot/shared';
 import { applyStatus, battleStat, chance, cleanse, heal, opponent, passiveOf, removeStatus, statusOf, type BattleContext } from './effects.js';
 import { event } from './events.js';
 
-export function onDefend(ctx: BattleContext, side: BattleSide) {
+export function onDefend(ctx: BattleContext, side: number) {
   const armor = passiveOf(ctx, side, 'armor');
-  if (armor?.id === 'soaking') applyStatus(ctx, side, opponent(side), {
+  if (armor?.id === 'soaking') applyStatus(ctx, side, opponent(side, ctx), {
     kind: 'wet', value: 0, durationRounds: armor.params.durationRounds, chancePercent: armor.params.chancePercent,
   });
   const weapon = passiveOf(ctx, side, 'weapon');
   if (weapon?.id === 'family_justice') applyStatus(ctx, side, side, {
     kind: 'attack_boost', value: weapon.params.damageBonusPercent,
   });
-  const source = opponent(side);
-  const other = passiveOf(ctx, source, 'weapon');
-  const progress = ctx.state.passiveProgress![source];
-  if (other?.id === 'fine_print' && !progress.debtUsed) {
-    progress.debtUsed = true;
-    applyStatus(ctx, source, side, { kind: 'debt', value: other.params.damageBonusPerMarkPercent, durationRounds: 1 });
+  for (const source of ctx.attackers?.(side) ?? [opponent(side, ctx)]) {
+    const other = passiveOf(ctx, source, 'weapon');
+    const progress = ctx.state.passiveProgress![source];
+    if (other?.id === 'fine_print' && !progress.debtUsed) {
+      progress.debtUsed = true;
+      applyStatus(ctx, source, side, { kind: 'debt', value: other.params.damageBonusPerMarkPercent, durationRounds: 1 });
+    }
   }
 }
 
 /** Attempt bonuses are consumed before accuracy, including on a miss. */
-export function attackModifiers(ctx: BattleContext, side: BattleSide, move: BattleMove) {
-  const target = opponent(side), weapon = passiveOf(ctx, side, 'weapon');
+export function attackModifiers(ctx: BattleContext, side: number, move: BattleMove) {
+  const target = opponent(side, ctx), weapon = passiveOf(ctx, side, 'weapon');
   const progress = ctx.state.passiveProgress![side];
   let bonus = 0, armorIgnore = 0, accuracy = move.accuracy, criticalChance = move.criticalChancePercent ?? 0;
   for (const kind of ['fear', 'confusion', 'attack_boost', 'armor_piercing', 'aim'] as const) {
@@ -54,7 +55,7 @@ export function attackModifiers(ctx: BattleContext, side: BattleSide, move: Batt
         if ((move.damageType ?? ctx.state.fighters[side].damageType) === 'psychic') bonus += statusOf(ctx, side, 'psychic_charge')?.value ?? 0;
         break;
       case 'fine_print': {
-        const debt = statusOf(ctx, target, 'debt');
+        const debt = ctx.state.statuses?.find(s => s.kind === 'debt' && s.target === target && s.source === side && (s.untilRound ?? Infinity) >= ctx.round);
         if (move.id === 'weapon_strong' && debt?.source === side) {
           bonus += (debt.stacks ?? 1) * p.damageBonusPerMarkPercent;
           removeStatus(ctx, debt);
@@ -69,7 +70,7 @@ export function attackModifiers(ctx: BattleContext, side: BattleSide, move: Batt
     accuracy: Math.max(0, Math.min(100, accuracy)), criticalChance: Math.max(0, Math.min(50, criticalChance)) };
 }
 
-export function onMiss(ctx: BattleContext, side: BattleSide, move: BattleMove) {
+export function onMiss(ctx: BattleContext, side: number, move: BattleMove) {
   ctx.state.passiveProgress![side].capsStacks = 0;
   const charge = statusOf(ctx, side, 'psychic_charge');
   if (charge) removeStatus(ctx, charge);
@@ -80,14 +81,14 @@ export function onMiss(ctx: BattleContext, side: BattleSide, move: BattleMove) {
   });
 }
 
-export function onGuardReduced(ctx: BattleContext, side: BattleSide) {
+export function onGuardReduced(ctx: BattleContext, side: number) {
   const weapon = passiveOf(ctx, side, 'weapon');
   if (weapon?.id === 'long_handle') applyStatus(ctx, side, side, {
     kind: 'armor_piercing', value: weapon.params.armorIgnorePercent,
   });
 }
 
-export function afterDirectDamage(ctx: BattleContext, side: BattleSide) {
+export function afterDirectDamage(ctx: BattleContext, side: number) {
   const armor = passiveOf(ctx, side, 'armor');
   if (armor?.id !== 'veteran_resident' || ctx.hp[side] <= 0) return;
   const progress = ctx.state.passiveProgress![side], maxHp = ctx.state.fighters[side].maxHp;
@@ -97,9 +98,9 @@ export function afterDirectDamage(ctx: BattleContext, side: BattleSide) {
   }
 }
 
-export function onDirectHit(ctx: BattleContext, side: BattleSide, damage: number, rawPower: number,
+export function onDirectHit(ctx: BattleContext, side: number, damage: number, rawPower: number,
   extraHit: (power: number, type: DamageType | undefined, label: string) => void) {
-  const target = opponent(side), weapon = passiveOf(ctx, side, 'weapon');
+  const target = opponent(side, ctx), weapon = passiveOf(ctx, side, 'weapon');
   if (!weapon || damage <= 0 || ctx.hp[side] <= 0) return;
   const p = weapon.params, attack = Math.max(0, Math.floor(battleStat(ctx, side, 'strength')));
   const progress = ctx.state.passiveProgress![side];
@@ -145,17 +146,17 @@ export function onDirectHit(ctx: BattleContext, side: BattleSide, damage: number
   }
 }
 
-export function potionHealing(ctx: BattleContext, side: BattleSide, move: BattleMove) {
+export function potionHealing(ctx: BattleContext, side: number, move: BattleMove) {
   return move.passive?.id === 'primordial_dumpling'
     ? ctx.state.fighters[side].maxHp * move.passive.params.healingPercent / 100 : move.healAmount ?? 0;
 }
-export function onPotion(ctx: BattleContext, side: BattleSide, move: BattleMove) {
+export function onPotion(ctx: BattleContext, side: number, move: BattleMove) {
   const passive = move.passive;
   if (passive?.id === 'mothers_care') applyStatus(ctx, side, side, {
     kind: 'regeneration', value: Math.max(1, Math.floor(ctx.state.fighters[side].maxHp * passive.params.healingPercent / 100)), durationRounds: passive.params.durationRounds,
   });
   if (passive?.id === 'primordial_dumpling') cleanse(ctx, side, false);
-  if (passive?.id === 'soaking') applyStatus(ctx, side, opponent(side), {
+  if (passive?.id === 'soaking') applyStatus(ctx, side, opponent(side, ctx), {
     kind: 'wet', value: 0, durationRounds: passive.params.durationRounds, chancePercent: passive.params.chancePercent,
   });
 }

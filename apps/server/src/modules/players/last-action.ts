@@ -1,3 +1,5 @@
+import { groupOverview } from '../group-events/state.js';
+import { expireGroupEvents } from '../group-events/runs.js';
 import { and,eq } from "drizzle-orm";
 import type { Express,Request,Response } from "express";
 import { db } from "../../database/connection.js";
@@ -12,6 +14,11 @@ export const receivingTheLastAction =(app: Express) => {
     app.post("/theLastAction", (req: Request, res: Response) => {
             const id = (req as AuthedRequest).player.id;
             const player1 = db.select().from(players).where(eq(players.id,id)).get()
+            if (player1?.idTheLastAction?.type === 'GroupEvent' || player1?.idTheLastAction?.type === 'GroupEventLobby') {
+                expireGroupEvents();
+                const overview = groupOverview(id);
+                return res.json({ info: player1.idTheLastAction.type === 'GroupEvent' ? overview.run : overview.party });
+            }
             if(player1?.idTheLastAction !=null){
                 if(player1.idTheLastAction.type === "Fight"){
                     // Восстановление использует те же HP, сторону и признак завершения, что и сокет.

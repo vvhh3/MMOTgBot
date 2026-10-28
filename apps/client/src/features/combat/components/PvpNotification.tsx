@@ -1,3 +1,4 @@
+import { useGroupEvent } from '../../group-events/GroupEventProvider';
 import { PvpStateDto } from "@mmobot/shared";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -16,6 +17,7 @@ export default function PvpNotification({
   onError,
   setPvpState
 }: PvpNotificationProps) {
+  const { runSolo } = useGroupEvent();
   const navigate = useNavigate();
   const [pending, setPending] = useState(false);
 
@@ -23,8 +25,7 @@ export default function PvpNotification({
     if (!token || !pvpState || pending) return;
     setPending(true);
     try {
-      await acceptPvp(token, pvpState.id);
-      navigate("/Fight");
+      await runSolo('принять бой один на один', async () => { await acceptPvp(token, pvpState.id); navigate('/Fight'); });
     } catch (e) {
       onError(e instanceof Error ? e.message : "Ошибка принятия боя");
     } finally {

@@ -1,3 +1,4 @@
+import { useGroupEvent } from '../../group-events/GroupEventProvider';
 import { PlayerDto,PvpStateDto } from "@mmobot/shared";
 import { Badge,Button,Card,Text } from "@radix-ui/themes";
 import { useEffect,useState } from "react";
@@ -23,6 +24,7 @@ export default function LowerModalFight({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const { runSolo } = useGroupEvent();
   const navigate = useNavigate();
 
   // Онлайн-игроков запрашиваем один раз при открытии модалки
@@ -54,7 +56,7 @@ export default function LowerModalFight({
     setLoading(true);
     setError(null);
     try {
-      await createPvp(token, playerId);
+      await runSolo('сразиться один на один', () => createPvp(token, playerId));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Не удалось вызвать соперника");
     } finally {

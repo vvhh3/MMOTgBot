@@ -1,3 +1,4 @@
+import { useGroupEvent } from '../../../group-events/GroupEventProvider';
 import { CombatStateResponse,LocationStateResponse,PlayerDto } from "@mmobot/shared";
 import { Card,Text } from "@radix-ui/themes";
 import { useNavigate } from "react-router-dom";
@@ -12,20 +13,24 @@ type WalkProps = {
   onPlayer:(player: PlayerDto) => void
 }
 export default function WalkCard({token,player,locationState,onError,onState,onPlayer}:WalkProps){
+  const { runSolo } = useGroupEvent();
   const navigate = useNavigate()
   const [pending, setPending] = useState(false);
   const locked = useRef(false);
   const functionStartCombat = async () => {
     if (!token || !player?.currentLocationId || !locationState || locked.current) return;
+    const locationId = player.currentLocationId;
     locked.current = true;
     setPending(true);
     try {
-      const response = await performLocationAction(token, player.currentLocationId, 'walk');
+      await runSolo('прогуляться одному', async () => {
+      const response = await performLocationAction(token, locationId, 'walk');
       if (response.combat) {
         onState(response.combat);
         navigate('/TakeAWalk');
       }
       onPlayer(response.player);
+      });
     } catch (e) {
       onError(e instanceof Error ? e.message : 'Не удалось прогуляться');
     } finally {

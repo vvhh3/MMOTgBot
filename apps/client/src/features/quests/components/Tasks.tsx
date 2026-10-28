@@ -99,7 +99,7 @@ export default function Tasks({ token, onPlayer }: TasksProps) {
   );
 }
 
-function QuestCard({ quest, claiming, onClaim }: {
+export function QuestCard({ quest, claiming, onClaim }: {
   quest: PlayerQuestDto;
   claiming: boolean;
   onClaim: (id: number, card: HTMLDivElement) => Promise<void>;

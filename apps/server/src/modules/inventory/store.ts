@@ -1,3 +1,4 @@
+import { isInGroupBattle } from '../group-events/participation.js';
 import { and,eq,isNull,or } from "drizzle-orm";
 import type { db } from "../../database/connection.js";
 import type { InventoryItemRow } from "../../database/schema.js";
@@ -58,5 +59,5 @@ export function assertOutsideCombat(tx: InventoryDatabase, playerId: number): vo
   const pvp = tx.select({ id: pvpSessions.id }).from(pvpSessions).where(and(
     or(eq(pvpSessions.player1Id, playerId), eq(pvpSessions.player2Id, playerId)), eq(pvpSessions.status, "active"),
   )).get();
-  if (pve || pvp) throw new Error("Дождитесь окончания боя");
+  if (pve || pvp || isInGroupBattle(tx, playerId)) throw new Error("Дождитесь окончания боя");
 }

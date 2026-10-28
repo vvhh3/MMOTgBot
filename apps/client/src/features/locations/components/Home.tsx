@@ -1,3 +1,4 @@
+import { PartySlots } from '../../group-events/components/PartySlots';
 import {
 CombatStateResponse,
 FriendsOverviewResponse,
@@ -72,12 +73,7 @@ export default function Home({
             {location?.name}
           </header>
         </div>
-        <Grid columns="3" rows="1">
-          <div className="flex flex-col justify-center items-center ">
-            <button className="flex justify-center items-center rounded-4xl h-4 w-4 bg-[#E85D2F] text-amber-50 ">
-              +
-            </button>
-          </div>
+        <PartySlots>
           <div className="flex flex-col justify-center items-center px-1.25">
             <div className="bg-[#00000074] rounded-2xl px-2.5 m-0.75">
               <p className="font-medium text-[#ffffff65]  ">{player?.name}</p>
@@ -92,21 +88,7 @@ export default function Home({
             </Box>
             <img className="h-50 min-w-35 object-cover" src={getSkins(player?.avatar)} />
           </div>
-          <div className="flex flex-col justify-center items-center ">
-            <button className="flex justify-center items-center rounded-4xl h-4 w-4 bg-[#E85D2F] text-amber-50 ">
-              +
-            </button>
-          </div>
-          {/* <div className='flex flex-col justify-center items-center pr-[5px] pl-[5px]'>
-                     <div className="bg-[#00000074] rounded-[16px] pr-[10px] pl-[10px] m-[3px]"> 
-                        <p className='font-medium text-[#ffffff65]  '>Xz</p>
-                    </div>
-                    <Box width="100%" maxWidth="120px" height="9px" >
-                        <Progress style={{background:"white"}} size="1" color='green' value={69}/>
-                    </Box>
-                    <img className='h-[150px] min-w-[140px]' src={player2} />
-                </div> */}
-        </Grid>
+        </PartySlots>
       </div>
       {location ? 
         <Grid

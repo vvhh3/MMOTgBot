@@ -1,3 +1,5 @@
+import { assertOutsideParty, currentPartyMember } from '../group-events/participation.js';
+import { GroupEventError } from '../group-events/availability.js';
 import type { BattleFinishReason,BattleSide } from '@mmobot/shared';
 import { PvpOverviewResponse,PvpStateDto } from "@mmobot/shared";
 import { and,eq,or,sql } from "drizzle-orm";
@@ -214,6 +216,8 @@ export const createPvpRoutes = (app: Express) => {
         if (!Number.isInteger(toPlayerId)) return res.status(400).json({ error: "toPlayerId error" })
         if (toPlayerId === player.id) return res.status(400).json({ error: "Нельзя драться с самим собой" })
 
+        if (currentPartyMember(db, player.id)) return res.status(409).json({ error: 'Сначала выйдите из группы', code: 'PARTY_EXIT_REQUIRED' });
+        if (currentPartyMember(db, toPlayerId)) return res.status(409).json({ error: 'Этот игрок состоит в группе', code: 'PLAYER_BUSY' });
         const target = db.select().from(players).where(eq(players.id, toPlayerId)).get()
         if (!target) return res.status(404).json({ error: "Игрок не найден" })
 
@@ -263,6 +267,8 @@ export const createPvpRoutes = (app: Express) => {
 
         try {
             const updated = db.transaction(() => {
+                assertOutsideParty(db, player.id);
+                if (currentPartyMember(db, p1.id)) throw new GroupEventError('Соперник состоит в группе', 'PLAYER_BUSY');
                 assertOutsideCombat(db, p1.id); assertOutsideCombat(db, player.id);
                 if (hasActivePvp(p1.id, session.id) || hasActivePvp(player.id, session.id)) throw new BattleError('Игрок уже занят');
                 const now = nowGameTime();
@@ -275,7 +281,7 @@ export const createPvpRoutes = (app: Express) => {
             });
             notifyBoth(updated);
             res.json({ ok: true, state: buildPvpState(updated, player.id) });
-        } catch (error) { if (error instanceof Error) return res.status(409).json({ error: error.message }); throw error; }
+        } catch (error) { if (error instanceof Error) return res.status(409).json({ error: error.message, code: error instanceof GroupEventError ? error.code : undefined }); throw error; }
     });
 
     // Pending invitations can be cancelled; active battles require mutual exit consent.

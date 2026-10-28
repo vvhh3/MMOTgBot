@@ -1,0 +1,102 @@
+{
+  "seed": 27102026,
+  "trialsPerCase": 100,
+  "results": [
+    {
+      "level": 1,
+      "tactic": "focus",
+      "winPercent": 92,
+      "averageRounds": 23.9
+    },
+    {
+      "level": 1,
+      "tactic": "guard",
+      "winPercent": 59,
+      "averageRounds": 43
+    },
+    {
+      "level": 2,
+      "tactic": "focus",
+      "winPercent": 100,
+      "averageRounds": 23.3
+    },
+    {
+      "level": 2,
+      "tactic": "guard",
+      "winPercent": 88,
+      "averageRounds": 42.4
+    },
+    {
+      "level": 3,
+      "tactic": "focus",
+      "winPercent": 100,
+      "averageRounds": 19.7
+    },
+    {
+      "level": 3,
+      "tactic": "guard",
+      "winPercent": 100,
+      "averageRounds": 35.3
+    },
+    {
+      "level": 4,
+      "tactic": "focus",
+      "winPercent": 98,
+      "averageRounds": 22.9
+    },
+    {
+      "level": 4,
+      "tactic": "guard",
+      "winPercent": 86,
+      "averageRounds": 40
+    },
+    {
+      "level": 5,
+      "tactic": "focus",
+      "winPercent": 93,
+      "averageRounds": 20.3
+    },
+    {
+      "level": 5,
+      "tactic": "guard",
+      "winPercent": 66,
+      "averageRounds": 36
+    },
+    {
+      "level": 6,
+      "tactic": "focus",
+      "winPercent": 79,
+      "averageRounds": 22.6
+    },
+    {
+      "level": 6,
+      "tactic": "guard",
+      "winPercent": 45,
+      "averageRounds": 39.3
+    },
+    {
+      "level": 7,
+      "tactic": "focus",
+      "winPercent": 100,
+      "averageRounds": 19.4
+    },
+    {
+      "level": 7,
+      "tactic": "guard",
+      "winPercent": 99,
+      "averageRounds": 33.7
+    },
+    {
+      "level": 8,
+      "tactic": "focus",
+      "winPercent": 98,
+      "averageRounds": 21.4
+    },
+    {
+      "level": 8,
+      "tactic": "guard",
+      "winPercent": 86,
+      "averageRounds": 37.3
+    }
+  ]
+}

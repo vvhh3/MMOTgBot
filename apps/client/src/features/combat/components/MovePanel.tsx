@@ -3,7 +3,7 @@ import { Card,Grid,Text } from "@radix-ui/themes";
 
 type MovePanelProps = {
     tutorial?: boolean;
-    state: BattlePublicState;
+    state: Pick<BattlePublicState, 'moves' | 'round' | 'actionSubmitted'>;
     disabled: boolean;
     onMove: (moveId: string) => void;
     onBack: () => void;

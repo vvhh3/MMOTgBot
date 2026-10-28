@@ -1,3 +1,4 @@
+import { currentPartyMember } from '../group-events/participation.js';
 // ============================================================================
 // ОБМЕН ПРЕДМЕТАМИ МЕЖДУ ИГРОКАМИ
 // ============================================================================
@@ -220,6 +221,8 @@ export const createTradeRoutes = (app: Express) => {
       return
     }
 
+    if (currentPartyMember(db, player.id) || currentPartyMember(db, toPlayerId)) return res.status(409).json({ error: 'Сначала завершите участие в группе', code: 'PLAYER_BUSY' });
+
     // и у меня, и у него не должно быть активного трейда
     if (hasActiveTrade(player.id) || hasActiveTrade(toPlayerId)) {
       res.status(409).json({ error: "Один из игроков уже участвует в обмене" });
@@ -249,6 +252,8 @@ export const createTradeRoutes = (app: Express) => {
       res.status(404).json({ error: "Приглашение не найдено" });
       return;
     }
+
+    if (currentPartyMember(db, trade.fromPlayerId) || currentPartyMember(db, trade.toPlayerId)) return res.status(409).json({ error: 'Участник обмена состоит в группе', code: 'PLAYER_BUSY' });
 
     // нельзя открыть окно, если уже участвуешь в другой сделке
     // (само это приглашение исключаем — иначе оно бы само себя заблокировало)

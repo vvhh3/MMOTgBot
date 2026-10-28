@@ -35,7 +35,11 @@ test('round migration preserves progress/HP, releases old active sessions and ad
           (2, 1, 2, 100, 100, 'pending', 'player1', 'start', NULL),
           (3, 1, 2, 90, 0, 'finished', 'player1', 'start', 'last');`);
     const before = connection.prepare("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name").all();
-    migrate(drizzle(connection), { migrationsFolder: source });
+    // Scope the no-new-tables assertion to the round migration being tested.
+    journal.entries = JSON.parse(readFileSync(path.join(source, 'meta/_journal.json'), 'utf8')).entries.filter(e => e.idx <= 28);
+    writeFileSync(path.join(old, 'meta/_journal.json'), JSON.stringify(journal));
+    copyFileSync(path.join(source, '0028_round_combat.sql'), path.join(old, '0028_round_combat.sql'));
+    migrate(drizzle(connection), { migrationsFolder: old });
     assert.deepEqual(connection.prepare("SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name").all(), before);
     assert.deepEqual(connection.prepare('SELECT health FROM players ORDER BY id').all().map(r => r.health), [70, 30, 42]);
     assert.deepEqual(connection.prepare('SELECT xp, money FROM players ORDER BY id').all(), [{ xp: 123, money: 55 }, { xp: 456, money: 66 }, { xp: 789, money: 77 }]);
