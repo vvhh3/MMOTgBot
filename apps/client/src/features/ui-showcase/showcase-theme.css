@@ -1,0 +1,159 @@
+/* Только раскладка витрины и варианты эффектов для сравнения.
+   Оформление компонентов подключается из shared/ui/components.css. */
+.ui-showcase, .ui-showcase-overlays {
+ --preview-action-color: var(--game-accent);
+ --preview-card-border: var(--game-card-border);
+ --preview-card-fill: var(--game-card-fill);
+ --preview-card-shadow: var(--game-card-shadow);
+}
+.ui-showcase #indicators .ui-indicator-option { display: flex; flex-direction: column; gap: 16px; padding: 16px; border: 1px solid var(--game-card-border); border-radius: 16px; background: #fffc; }
+.ui-showcase #indicators .ui-indicator-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.ui-showcase #indicators .ui-indicator-value { font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.ui-showcase #indicators .ui-indicator-caption { color: var(--game-muted); font-size: 11px; }
+.ui-showcase #indicators .ui-indicator-count { justify-content: center; min-width: 28px; font-weight: 800; }
+.ui-showcase #combat .ui-effect-options { align-items: start; }
+
+.ui-showcase #combat .ui-effect-option {
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid var(--preview-card-border);
+    border-radius: 16px;
+    background: var(--preview-card-fill);
+    color: #2b2a27;
+}
+
+.ui-showcase #combat .ui-effect-option .battle-status-list {
+    gap: 6px;
+    margin-top: 14px;
+}
+
+.ui-showcase #combat .ui-effect-option .battle-status-trigger {
+    display: block;
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+.ui-showcase #combat .ui-effect-option .battle-status-trigger:focus-visible {
+    outline: 2px solid var(--preview-action-color);
+    outline-offset: 3px;
+}
+
+.ui-showcase #combat .ui-effect-option .battle-status-badge {
+    --effect-ink: #b91c1c;
+    --effect-fill: #fef2f2;
+    --effect-border: #fecaca;
+
+    gap: 6px;
+    padding: 5px 8px;
+    border: 1px solid var(--effect-border);
+    border-radius: 999px;
+    background: var(--effect-fill);
+    color: var(--effect-ink);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 16px;
+}
+
+.ui-showcase #combat .ui-effect-option .battle-status-badge[data-positive="true"] {
+    --effect-ink: #166534;
+    --effect-fill: #f0fdf4;
+    --effect-border: #bbf7d0;
+}
+
+.ui-showcase #combat .ui-effect-option .battle-status-badge[data-kind="wet"] {
+    --effect-ink: #1d4ed8;
+    --effect-fill: #eff6ff;
+    --effect-border: #bfdbfe;
+}
+
+.ui-showcase #combat .ui-effect-option .battle-status-icon {
+    min-width: 16px;
+    flex-shrink: 0;
+    font-size: 16px;
+    line-height: 20px;
+    text-align: center;
+}
+
+.ui-showcase #combat .ui-effect-option .battle-status-label { min-width: 0; }
+.ui-showcase #combat .ui-effect-option .battle-status-name { overflow-wrap: anywhere; }
+
+.ui-showcase #combat .ui-effect-option .battle-status-value {
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.ui-showcase #combat .ui-effect-option[data-variant="icons"] .battle-status-list { gap: 12px; }
+
+.ui-showcase #combat .ui-effect-option[data-variant="icons"] .battle-status-badge {
+    position: relative;
+    justify-content: center;
+    box-sizing: border-box;
+    width: 40px;
+    height: 40px;
+    overflow: visible;
+    padding: 0;
+    border-radius: 12px;
+}
+
+.ui-showcase #combat .ui-effect-option[data-variant="icons"] .battle-status-icon { font-size: 20px; }
+.ui-showcase #combat .ui-effect-option[data-variant="icons"] .battle-status-label { display: contents; }
+
+.ui-showcase #combat .ui-effect-option[data-variant="icons"] :is(.battle-status-name, .battle-status-separator) {
+    display: none;
+}
+
+.ui-showcase #combat .ui-effect-option[data-variant="icons"] .battle-status-value {
+    position: absolute;
+    right: -5px;
+    bottom: -5px;
+    min-width: 16px;
+    padding: 0 3px;
+    border: 1px solid var(--effect-border);
+    border-radius: 999px;
+    background: #fff;
+    font-size: 9px;
+    line-height: 14px;
+    text-align: center;
+}
+
+.ui-showcase #combat .ui-effect-option[data-variant="list"] .battle-status-list { flex-direction: column; }
+
+.ui-showcase #combat .ui-effect-option[data-variant="list"] :is(.battle-status-list > li, .battle-status-trigger) {
+    width: 100%;
+}
+
+.ui-showcase #combat .ui-effect-option[data-variant="list"] .battle-status-badge {
+    display: flex;
+    width: 100%;
+    box-sizing: border-box;
+    gap: 8px;
+    padding: 7px 10px;
+    border-left-width: 3px;
+    border-radius: 10px;
+}
+
+.ui-showcase #combat .ui-effect-option[data-variant="list"] .battle-status-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex: 1;
+}
+
+.ui-showcase #combat .ui-effect-option[data-variant="list"] .battle-status-separator { display: none; }
+
+.ui-showcase #combat .ui-effect-option[data-variant="list"] .battle-status-value {
+    flex-shrink: 0;
+    padding: 1px 5px;
+    border: 1px solid var(--effect-border);
+    border-radius: 6px;
+    background: #fff;
+    font-size: 10px;
+    line-height: 14px;
+}
+
+.ui-showcase #combat .ui-effect-option[data-variant="list"] .battle-status-value::after {
+    content: attr(data-unit);
+}
+

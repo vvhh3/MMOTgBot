@@ -36,7 +36,7 @@ export default function CombatInventoryDialog({ title, onClose, closeDisabled, l
     <dialog
       ref={dialogRef}
       aria-labelledby={titleId}
-      className="combat-inventory-dialog fixed inset-0 m-0 h-dvh max-h-none w-screen max-w-none bg-white p-0 text-[#594F43]"
+      className="modal-surface combat-inventory-dialog fixed inset-0 m-0 h-dvh max-h-none w-screen max-w-none p-0!"
       onCancel={(event) => {
         event.preventDefault();
         if (!closeDisabled) onClose();
@@ -45,7 +45,7 @@ export default function CombatInventoryDialog({ title, onClose, closeDisabled, l
       <Theme className="flex h-full flex-col" style={{ minHeight: 0 }}>
         <div className="combat-inventory-header flex shrink-0 items-center justify-between gap-3 border-b">
           <h2 id={titleId} className="min-w-0 break-words font-bold text-[14px]">{title}</h2>
-          <button disabled={closeDisabled} className="min-h-11 shrink-0 rounded-xl border px-3 py-2 disabled:opacity-50" onClick={onClose}>Назад</button>
+          <button disabled={closeDisabled} className="modal-close-button" aria-label="Закрыть инвентарь" onClick={onClose}>×</button>
         </div>
         {message && <p className="px-4 py-2 text-sm">{message}</p>}
         {loading && <p role="status" className="px-4 text-sm">Обновление инвентаря…</p>}

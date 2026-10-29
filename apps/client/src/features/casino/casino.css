@@ -1,0 +1,34 @@
+/* Общие поверхности и состояния клеток всех игр казино. */
+.casino-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    border: 1px solid var(--game-glass-border);
+    border-radius: 10px;
+    background: linear-gradient(150deg, #ffffffe6, #ffffff80);
+    color: #c2410c;
+    box-shadow: inset 0 1px 0 #ffffff1a;
+    font-weight: 700;
+    cursor: pointer;
+}
+.casino-cell[data-state="safe"] { border-color: #86efac; background: #f0fdf4; color: #166534; }
+.casino-cell[data-state="bomb"] { border-color: #fca5a5; background: #fef2f2; color: #b91c1c; }
+.casino-cell[data-exploded="true"] { outline: 2px solid #fca5a5; outline-offset: 1px; }
+.casino-cell:disabled { cursor: default; }
+.casino-cell[data-state="closed"]:disabled { opacity: .55; }
+.casino-cell:not(:disabled):hover { border-color: var(--game-accent); box-shadow: inset 0 0 0 1px var(--game-accent); }
+.casino-cell:focus-visible { outline: 2px solid var(--game-accent); outline-offset: 2px; }
+.casino-field { border: 1px solid var(--game-glass-border); border-radius: 12px; background: #ffffff66; }
+.casino-choice { min-height: 32px; padding: 4px 8px; border: 1px solid var(--game-glass-border); border-radius: 8px; background: #ffffff66; color: var(--game-ink); font: inherit; font-size: 12px; cursor: pointer; }
+.casino-choice[aria-pressed="true"] { border-color: var(--game-accent); background: #e8603c14; color: #c2410c; }
+.casino-choice:focus-visible { outline: 2px solid var(--game-accent); outline-offset: 2px; }
+.playing-card {
+    border: 1px solid var(--game-border);
+    border-radius: 8px;
+    background: linear-gradient(150deg, #ffffffe6, #ffffff80);
+    box-shadow: inset 0 1px 0 #fff9, 0 4px 12px #3b304f1a;
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+}
+.playing-card--closed { background: repeating-linear-gradient(135deg, #e8603c12 0 3px, transparent 3px 7px), linear-gradient(150deg, #ffffffe6, #ffffff80); color: #c2410c; }

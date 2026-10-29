@@ -156,7 +156,7 @@ export default function CharacterCreation({ token, player, onCreated }: Characte
         type="button"
         onClick={submit}
         disabled={!token || !factionId || name.trim().length < 2 || saving || !avatar || isChangingAvatar || loadingAvatar || avatarLoadError}
-        className="rounded-lg bg-[#E8603C] px-6 py-3 font-bold text-white disabled:opacity-50"
+        className="game-button game-button--lg"
       >
         {saving ? "Сохранение..." : "Создать персонажа"}
       </button>

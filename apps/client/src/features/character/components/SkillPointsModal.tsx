@@ -104,13 +104,10 @@ export default function CenterModalSkillPoints({
     } catch {}
   };
 
-  const buttonClass =
-    "flex h-8 w-8 items-center justify-center rounded-lg border-2 text-lg font-bold leading-none transition-all active:scale-90 disabled:cursor-not-allowed disabled:opacity-30";
-
   return (
     <CenterModal onClose={() => setShowModal(false)}>
-      <div className="mb-4 text-center">
-        <Text as="div" size="5" weight="bold" className="mb-1">
+      <div className="modal-heading mb-4 px-8 text-center">
+        <Text as="div" size="5" weight="bold" className="modal-title mb-1">
           Характеристики
         </Text>
         <Text as="div" size="2" color="gray">
@@ -124,7 +121,6 @@ export default function CenterModalSkillPoints({
       <div className="flex flex-col gap-2">
         {(Object.keys(STAT_CONFIG) as StatKey[]).map((key) => {
           const cfg = STAT_CONFIG[key];
-          const buttonStyle = { borderColor: cfg.color, color: cfg.color };
           return (
             <div
               key={key}
@@ -151,8 +147,8 @@ export default function CenterModalSkillPoints({
                 <button
                   onClick={() => changePoint(key, -1)}
                   disabled={points[key] < 1}
-                  className={buttonClass}
-                  style={buttonStyle}
+                  aria-label={`Уменьшить: ${cfg.sub}`}
+                  className="game-button game-button--step game-button--neutral"
                 >
                   -
                 </button>
@@ -162,8 +158,8 @@ export default function CenterModalSkillPoints({
                 <button
                   onClick={() => changePoint(key, 1)}
                   disabled={available <= 0}
-                  className={buttonClass}
-                  style={buttonStyle}
+                  aria-label={`Увеличить: ${cfg.sub}`}
+                  className="game-button game-button--step"
                 >
                   +
                 </button>
@@ -173,9 +169,9 @@ export default function CenterModalSkillPoints({
         })}
 
         <div className="flex flex-row justify-end">
-          <Button
+          <Button className="game-button"
             onClick={handleSpend}
-            style={{ background: "#E8603C", borderRadius: "16px" }}
+
           >
             Подтвердить
           </Button>

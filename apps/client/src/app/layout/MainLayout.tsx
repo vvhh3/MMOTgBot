@@ -1,3 +1,4 @@
+import LevelBadge from "../../shared/ui/LevelBadge";
 import { useGroupEvent } from '../../features/group-events/GroupEventProvider';
 import { CombatStateResponse,PlayerDto,PvpStateDto,TradeStateDto } from "@mmobot/shared";
 import { Avatar } from "@radix-ui/themes";
@@ -95,7 +96,7 @@ export default function MainLayout({ onCombatState,infoMessages,player, setTypeS
     const ids = [828311361,1762717096]
     // const adminId = (import.meta.env.VITE_ADMIN_IDS ?? "").split(",").map(Number).filter(Boolean)
     const isAdmin = (import.meta.env.VITE_ADMIN_PANEL == "true" ? true :  (ids.map(Number).filter(Boolean).includes(player?.id ?? -1) ? true : false ))
-    
+
     return (
         <div className="flex flex-col w-full overflow-hidden" style={{ height: "var(--tg-viewport-stable-height, 100dvh)", "--top-panel-offset": `calc(var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)) + var(--tg-content-safe-area-inset-top, 0px) + ${topBarHeight + 20}px)` } as React.CSSProperties}>
             <div  ref={topBarRef} className="pointer-events-none fixed inset-x-0 z-30 px-3 " style={{ top: "calc(var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)) + var(--tg-content-safe-area-inset-top, 0px) + 8px)", }}>
@@ -104,7 +105,7 @@ export default function MainLayout({ onCombatState,infoMessages,player, setTypeS
                         MMONSK
                     </Link>
                     <div className="ml-auto flex flex-row flex-wrap items-center justify-end gap-1.5">
-                   
+
                     {import.meta.env.VITE_DEV_MODE === "true" && (
                         <button
                             className=" px-2 text-[10px] text-[#D94E2B]"
@@ -124,9 +125,8 @@ export default function MainLayout({ onCombatState,infoMessages,player, setTypeS
                     )}
                     <NotificationButton incoming={pvpIncoiming || tradeIncoiming || !!groupOverview?.invites.length} setTypeShowIsModal={setTypeShowIsModal} setShowModal={setShowModal} showIsModal={showIsModal && typeShowIsModal === TypeModal.Notification} notifRef={notifRef} />
                     <div className="flex flex-row items-center gap-1.5">
-                        <button className="gap-1 px-3 text-[#D94E2B]" onClick={()=>{setShowModal(true),setTypeShowIsModal(TypeModal.SkillPoints)}}>
-                            <span className="text-[11px] font-semibold text-[#D94E2B]">Lv</span>
-                            <span className="text-[13px] font-semibold text-[#D94E2B]">{player?.level ?? 0}</span>
+                        <button className="gap-1  text-[#D94E2B]" onClick={()=>{setShowModal(true),setTypeShowIsModal(TypeModal.SkillPoints)}}>
+                            <LevelBadge level={player?.level ?? 0} />
                         </button>
                         <NavLink to="/Profile" className="  w-11" aria-label="Профиль">
                             <Avatar radius="full" fallback={player?.name?.[0] ?? "А"} color="orange" size="2" />
@@ -136,7 +136,7 @@ export default function MainLayout({ onCombatState,infoMessages,player, setTypeS
               </div>
               {error && <p role="alert" className="top-bar pointer-events-auto mx-auto mt-2 max-w-[600px] rounded-2xl px-3 py-2 text-xs text-red-500">{error}</p>}
             </div>
-            
+
             <div className="relative w-full min-h-0 flex-1 overflow-y-auto overflow-x-hidden" style={{ paddingTop: `calc(var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)) + var(--tg-content-safe-area-inset-top, 0px) + ${topBarHeight + 20}px)`, paddingBottom: "calc(108px + max(var(--tg-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)), var(--tg-content-safe-area-inset-bottom, 0px)))" }}>
                 {/* Выпадающая панель уведомлений */}
                 <Modal infoMessages={infoMessages} setPvpState={setPvpState}  setTradeState={setTradeState} typeModal={typeShowIsModal} token={token} pvpState={pvpState} tradeState={tradeState}  showIsModal={showIsModal} tradeIncoiming={tradeIncoiming} pvpIncoiming={pvpIncoiming} notifRef={notifRef}  onError={onError}  setShowModal={setShowModal} player={player}  onPlayer={onPlayer} />

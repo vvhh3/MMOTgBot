@@ -21,7 +21,7 @@ export default function TopModal({ notifRef, isEmpty, children }: TopModalProps)
       ref={notifRef}
       role="dialog"
       aria-label="Уведомления"
-      className="notification-panel fixed inset-x-3 z-20 mx-auto max-w-[600px] overflow-y-auto rounded-[28px] p-3"
+      className="modal-surface notification-panel fixed inset-x-3 z-20 mx-auto max-w-[600px] overflow-y-auto rounded-[28px] p-3"
       style={{
         top: "var(--top-panel-offset, 80px)",
         transformOrigin: "top center",
@@ -33,9 +33,9 @@ export default function TopModal({ notifRef, isEmpty, children }: TopModalProps)
       transition={spring}
     >
       <div className="mb-3 flex min-h-8 items-center justify-between gap-2 px-1">
-        <p className="text-xs font-semibold ">Уведомления{cards.length > 0 && ` · ${cards.length}`}</p>
+        <p className="modal-title text-xs font-semibold">Уведомления{cards.length > 0 && ` · ${cards.length}`}</p>
         {cards.length > 1 && (
-          <button className="top-glass-button px-3 text-[10px]" aria-expanded={!stacked} onClick={() => setExpanded(!expanded)}>
+          <button className="game-button px-3 text-[10px]" aria-expanded={!stacked} onClick={() => setExpanded(!expanded)}>
             {stacked ? "Развернуть" : "Свернуть"}
           </button>
         )}
@@ -57,7 +57,7 @@ export default function TopModal({ notifRef, isEmpty, children }: TopModalProps)
             ))}
             <span className="notification-card relative flex min-h-20 items-center justify-between gap-3 rounded-[20px] p-4 text-xs text-[#756B5C]">
               <span>Новые приглашения</span>
-              <span className="rounded-full bg-[#E8603C]/10 px-3 py-2 font-semibold text-[#D94E2B]">{cards.length}</span>
+              <span className="game-badge justify-center font-extrabold">{cards.length}</span>
             </span>
           </motion.button>
         ) : (

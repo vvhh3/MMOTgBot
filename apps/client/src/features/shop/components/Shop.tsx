@@ -77,7 +77,7 @@ export default function Shop({ token, player, inventory, onPlayer, onInventory }
     const key = `${action}-${entry?.id ?? item.id}`;
     const busy = busyItem === key;
     return (
-      <Card key={key} className="w-full">
+      <Card key={key} className="game-card w-full">
         <div className="flex items-start gap-3">
           {item.icon && <div className="h-10 w-10 shrink-0 [&_svg]:h-full [&_svg]:w-full" dangerouslySetInnerHTML={{ __html: item.icon }} />}
           <div className="min-w-0 flex-1">
@@ -95,7 +95,7 @@ export default function Shop({ token, player, inventory, onPlayer, onInventory }
         </div>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
           {entry?.weaponLevel != null ? <Text size="1">Один экземпляр</Text> : quantityPicker(key, entry?.quantity)}
-          <Button
+          <Button className="game-button"
             color={action === "buy" ? "orange" : "green"}
             disabled={busyItem !== null || Boolean(entry?.equiped) || (action === "buy" && (player?.money ?? 0) < item.price)}
             onClick={() => transact(item, action, entry)}

@@ -130,11 +130,11 @@ export const ItemAdmin = ({ token }: ItemAdminProps) => {
             setError(e instanceof Error ? e.message : "Ошибка удаления")
         }
     }
-    
+
     return (
-        
+
         <Flex direction="column" gap="4">
-            <Card size="3">
+            <Card className="game-card" size="3">
                 <form onSubmit={(event) => { event.preventDefault(); void save(); }}>
                 <fieldset disabled={busy} className="min-w-0">
                 <Flex direction="column" gap="4">
@@ -143,7 +143,7 @@ export const ItemAdmin = ({ token }: ItemAdminProps) => {
                             {draft.id > 0 ? `Редактирование предмета #${draft.id}` : "Новый предмет"}
                         </Heading>
                         {draft.id > 0 && (
-                            <Button type="button" variant="ghost" size="1" color="gray" onClick={() => setDraft(emptyItem)}>
+                            <Button className="game-button game-button--danger game-button--sm" type="button" variant="ghost" size="1" color="gray" onClick={() => setDraft(emptyItem)}>
                                 Отменить
                             </Button>
                         )}
@@ -271,11 +271,11 @@ export const ItemAdmin = ({ token }: ItemAdminProps) => {
 
                     <Flex gap="3" justify="end">
                         {draft.id > 0 && (
-                            <Button type="button" variant="soft" color="gray" onClick={() => setDraft(emptyItem)}>
+                            <Button className="game-button game-button--danger" type="button" variant="soft" color="gray" onClick={() => setDraft(emptyItem)}>
                                 Отмена
                             </Button>
                         )}
-                        <Button type="submit" disabled={busy}>
+                        <Button className="game-button" type="submit" disabled={busy}>
                             {busy ? 'Сохранение…' : draft.id > 0 ? "Сохранить" : "Создать"}
                         </Button>
                     </Flex>
@@ -284,8 +284,8 @@ export const ItemAdmin = ({ token }: ItemAdminProps) => {
                 </form>
             </Card>
 
-            <Card size="3">
-                <Table.Root variant="surface">
+            <Card className="game-card" size="3">
+                <Table.Root className="game-table" variant="ghost">
                     <Table.Header>
                         <Table.Row>
                             <Table.ColumnHeaderCell justify="center">id</Table.ColumnHeaderCell>
@@ -341,14 +341,14 @@ export const ItemAdmin = ({ token }: ItemAdminProps) => {
                                 </Table.Cell>
                                 <Table.Cell justify="end">
                                     <Flex gap="2" justify="end">
-                                        <Button size="1" variant="soft" onClick={() => {
+                                        <Button className="game-button game-button--sm" size="1" variant="soft" onClick={() => {
                                             setDraft(item)
                                             setError(null)
                                             window.scrollTo({ top: 0, behavior: "smooth" }) // для скрола на верх
                                         }}>
                                             Изменить
                                         </Button>
-                                        <Button size="1" color="red" variant="soft" onClick={() => remove(item.id)}>
+                                        <Button className="game-button game-button--danger game-button--sm" size="1" color="red" variant="soft" onClick={() => remove(item.id)}>
                                             Удалить
                                         </Button>
                                     </Flex>

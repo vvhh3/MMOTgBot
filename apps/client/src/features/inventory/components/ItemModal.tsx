@@ -99,7 +99,7 @@ export default function CenterModalItem({
           )}
         </div>
 
-        <p className="mt-3 text-center text-lg font-bold">{item.name}</p>
+        <p className="modal-title mt-3 text-center text-lg font-bold">{item.name}</p>
         <p className="mt-0.5 text-xs text-gray-500">{TYPE_LABEL[item.type]}</p>
         {(quantity !== undefined || inventoryEntry) && (
           <p className="mt-1 text-xs text-gray-500">В инвентаре: {quantity ?? inventoryEntry?.quantity} шт.</p>
@@ -169,7 +169,7 @@ export default function CenterModalItem({
       {item.type === "potion" && (
         <div className="flex justify-center">
           <button
-            className="p-3 bg-green-500 rounded-2xl m-4 text-white disabled:opacity-50"
+            className="game-button p-3 m-4 disabled:opacity-50"
             disabled={busy || levelLocked || combat?.busy || healthFull || combat?.healingAvailable === false || !healingSupported}
             onClick={handleUse}
           >
@@ -181,8 +181,7 @@ export default function CenterModalItem({
       {(item.type === "armor" || item.type === "weapon") && (
         <div className="flex justify-center">
           <button
-            className="p-3 rounded-2xl m-4 text-white disabled:opacity-50"
-            style={{ backgroundColor: equiped ? "#E85D2F" : "#22c55e" }}
+            className="game-button p-3 m-4 disabled:opacity-50"
             disabled={busy || !!combat || (levelLocked && !equiped)}
             onClick={handleUse}
           >

@@ -12,5 +12,5 @@ export function PartySlots({ children }: { children: ReactNode }) {
     return { slot, member: member ? { name: member.name, image: getSkins(member.avatar), hp: member.hp, maxHp: member.maxHp,
       pending: member.status === 'invited', ready: member.ready } : undefined };
   });
-  return <PartySlotsView places={places} canInvite={available && player?.currentLocationId === 'square' && party?.status !== 'active'} onInvite={openInvite} onOpenLobby={openLobby}>{children}</PartySlotsView>;
+  return <PartySlotsView compactMemberInfo places={places} canInvite={available && player?.currentLocationId === 'square' && party?.status !== 'active'} onInvite={openInvite} onOpenLobby={openLobby}>{children}</PartySlotsView>;
 }

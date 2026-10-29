@@ -1,6 +1,7 @@
 import type { FriendDto } from '@mmobot/shared';
 import { useState } from 'react';
 import LowerModal from '../../../shared/ui/modal/LowerModal';
+import LevelBadge from '../../../shared/ui/LevelBadge';
 import { useGroupEvent } from '../GroupEventProvider';
 
 export function InviteFriendModal({ friends, slot, onClose }: { friends: FriendDto[]; slot?: number; onClose: () => void }) {
@@ -21,9 +22,13 @@ export function InviteFriendModal({ friends, slot, onClose }: { friends: FriendD
     {!friends.length && <p>Список друзей пуст. Добавить друзей можно на экране «Команда».</p>}
     {friends.map(friend => {
       const invited = overview?.party?.members.some(m => m.playerId === friend.id);
-      return <div className="group-friend-row" key={friend.id}>
-        <span>{friend.name}<small>Уровень {friend.level} · {friend.online ? 'В сети' : 'Не в сети'}</small></span>
-        <button className="top-glass-button.accept" disabled={busy || !available || !friend.online || invited} onClick={() => void invite(friend.id)}>{invited ? 'В группе' : 'Пригласить'}</button>
+      return <div className="game-card game-card--white flex items-center justify-between gap-3 p-3" key={friend.id}>
+        <div className="flex min-w-0 flex-col gap-1">
+          <span className="text-sm font-semibold [overflow-wrap:anywhere]">{friend.name}</span>
+          <LevelBadge level={friend.level} />
+          <span className="game-badge self-start" data-tone={friend.online ? 'ready' : 'offline'}>{friend.online ? 'В сети' : 'Не в сети'}</span>
+        </div>
+        <button className="game-button" disabled={busy || !available || !friend.online || invited} onClick={() => void invite(friend.id)}>{invited ? 'В группе' : 'Пригласить'}</button>
       </div>;
     })}
   </LowerModal>;

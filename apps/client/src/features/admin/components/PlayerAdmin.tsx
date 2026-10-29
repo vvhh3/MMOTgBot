@@ -4,6 +4,7 @@ import { useEffect,useState } from "react";
 import { getCharacterSkins } from "../../character/api";
 import { getCharacterImage } from "../../character/lib/skins";
 import { getAdminPlayers,updateAdminPlayer } from "../api";
+import LevelBadge from "../../../shared/ui/LevelBadge";
 
 type PlayerAdminProps = {
   token: string | null;
@@ -81,7 +82,7 @@ export function PlayerAdmin({ token, player, onPlayer }: PlayerAdminProps) {
   };
 
   return (
-    <Card className="m-4">
+    <Card className="game-card m-4">
       <Flex direction="column" gap="4">
         <div>
           <Heading size="4">Управление игроками</Heading>
@@ -90,11 +91,11 @@ export function PlayerAdmin({ token, player, onPlayer }: PlayerAdminProps) {
 
         <Flex gap="2">
           <TextField.Root className="flex-1" placeholder="Имя или ID игрока" value={query} onChange={(event) => setQuery(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void search(); }} />
-          <Button color="orange" variant="soft" onClick={() => void search()}>Найти</Button>
+          <Button className="game-button" color="orange" variant="soft" onClick={() => void search()}>Найти</Button>
         </Flex>
 
         <div className="max-h-56 overflow-auto">
-          <Table.Root size="1">
+          <Table.Root className="game-table" variant="ghost" size="1">
             <Table.Header>
               <Table.Row><Table.ColumnHeaderCell>ID</Table.ColumnHeaderCell><Table.ColumnHeaderCell>Имя</Table.ColumnHeaderCell><Table.ColumnHeaderCell>Уровень</Table.ColumnHeaderCell><Table.ColumnHeaderCell /></Table.Row>
             </Table.Header>
@@ -103,8 +104,8 @@ export function PlayerAdmin({ token, player, onPlayer }: PlayerAdminProps) {
                 <Table.Row key={item.id} align="center">
                   <Table.Cell>{item.id}</Table.Cell>
                   <Table.Cell>{item.name}</Table.Cell>
-                  <Table.Cell>{item.level}</Table.Cell>
-                  <Table.Cell><Button size="1" color="orange" variant={selectedPlayer?.id === item.id ? "solid" : "soft"} onClick={() => selectPlayer(item)}>Выбрать</Button></Table.Cell>
+                  <Table.Cell><LevelBadge level={item.level} /></Table.Cell>
+                  <Table.Cell><Button className="game-button game-button--sm" size="1" color="orange" variant={selectedPlayer?.id === item.id ? "solid" : "soft"} onClick={() => selectPlayer(item)}>Выбрать</Button></Table.Cell>
                 </Table.Row>
               ))}
               {players.length === 0 && <Table.Row><Table.Cell colSpan={4}>Игроки не найдены</Table.Cell></Table.Row>}
@@ -143,7 +144,7 @@ export function PlayerAdmin({ token, player, onPlayer }: PlayerAdminProps) {
 
         {error && <Callout.Root color="red"><Callout.Text>{error}</Callout.Text></Callout.Root>}
         {saved && <Callout.Root color="green"><Callout.Text>Данные персонажа обновлены.</Callout.Text></Callout.Root>}
-        <Button color="orange" onClick={save} disabled={!token || !selectedPlayer || saving || name.trim().length < 2}>
+        <Button className="game-button" color="orange" onClick={save} disabled={!token || !selectedPlayer || saving || name.trim().length < 2}>
           {saving ? "Сохраняю…" : "Применить изменения"}
         </Button>
       </Flex>

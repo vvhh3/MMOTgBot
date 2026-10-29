@@ -125,7 +125,7 @@ export default function Exchange({
       {tradeState.status === "open" && (
         <>
           <div className="flex flex-col p-5 gap-2">
-            <Card>
+            <Card className="game-card">
               <div className="flex flex-col gap-1">
                 <Text color="red" size="2" weight="bold">
                   Вы отдаёте:
@@ -199,7 +199,7 @@ export default function Exchange({
           </div>
 
           <div className="flex flex-col p-5">
-            <Card>
+            <Card className="game-card">
               <div className="flex flex-col gap-1">
                 <Text color="green" size="2" weight="bold">
                   Вы получаете:
@@ -238,26 +238,22 @@ export default function Exchange({
             </div>
 
             <div className="w-full flex flex-col gap-2">
-              <Button
+              <Button className="game-button"
                 onClick={handleSubmitOffer}
-                style={{ background: "#E85D2F", border: "solid 2px black" }}
+
               >
                 Выложить на стол
               </Button>
-              <Button
+              <Button className="game-button"
                 disabled={offerDirty}
                 onClick={handleReady}
-                style={{ background: "#22c55e", color: "white", border: "solid 2px black" }}
+
               >
                 {offerDirty ? "Сначала выложите изменения на стол" : "Готово"}
               </Button>
-              <Button
+              <Button className="game-button game-button--danger"
                 onClick={handleCancel}
-                style={{
-                  background: "#ffff",
-                  color: "#E8603C",
-                  border: "solid 2px black",
-                }}
+
               >
                 Отмена
               </Button>

@@ -1,4 +1,10 @@
 @import "tailwindcss";
+@import "../shared/ui/components.css";
+@import "../shared/ui/table.css";
+@import "../features/quests/quests.css";
+@import "../features/group-events/party.css";
+@import "../features/combat/combat.css";
+@import "../features/casino/casino.css";
 
 .combat-inventory-dialog {
     height: var(--tg-viewport-stable-height, 100dvh);
@@ -17,10 +23,6 @@
     margin: 8px auto 16px;
     padding: 16px;
     overflow: hidden;
-    border: 1px solid #fed7aa;
-    border-radius: 20px;
-    background: linear-gradient(145deg, #fff7ed, #fff);
-    box-shadow: 0 6px 20px #9a341210;
 }
 
 .tutorial-guide-complete {
@@ -48,7 +50,6 @@
     }
 }
 
-
 @theme {
     --font-sans: "Rubik", system-ui, sans-serif;
     --font-display: "Unbounded", "Rubik", system-ui, sans-serif;
@@ -69,8 +70,6 @@ h2.text-2xl {
     font-family: var(--font-display);
 }
 .rt-Card {
-    border: solid 2px;
-    --base-card-border-width: 2px;
     /* Avoid backdrop recompositing while cards scroll or animate their scale. */
     --color-panel: var(--color-panel-solid);
     --backdrop-filter-panel: none;
@@ -86,51 +85,26 @@ h2.text-2xl {
 }
 
 .bottom-nav,
-.top-bar,
-.notification-panel,
-.lower-panel {
-    background: rgba(250, 247, 240, 0.88);
-    border: 1px solid rgba(255, 255, 255, 0.75);
-    box-shadow: 0 12px 36px rgba(57, 44, 26, 0.16),
+.top-bar {
+    background: #fff;
+    border: 0;
+    box-shadow: 0 12px 36px rgba(43, 42, 39, 0.12),
         inset 0 1px 0 rgba(255, 255, 255, 0.95),
-        inset 0 -1px 0 rgba(126, 105, 76, 0.1);
+        inset 0 -1px 0 rgba(43, 42, 39, 0.08);
 }
 
 @supports ((backdrop-filter: blur(24px)) or (-webkit-backdrop-filter: blur(24px))) {
     .bottom-nav,
-    .top-bar,
-    .notification-panel,
-    .lower-panel {
-        background: linear-gradient(160deg, rgba(255, 255, 255, 0.68), rgba(245, 239, 226, 0.48));
+    .top-bar {
+        background: #fff;
         -webkit-backdrop-filter: blur(24px) saturate(180%);
         backdrop-filter: blur(24px) saturate(180%);
     }
 }
 
-.notification-card {
-    background: linear-gradient(145deg, #fff, rgba(255, 255, 255, 0.94));
-    border: 1px solid rgba(255, 255, 255, 0.85);
-    box-shadow: inset 0 1px 0 white, 0 3px 12px rgba(87, 65, 40, 0.08);
-}
-
 .top-bar {
-    border-color: rgba(255, 255, 255, 0.4);
-    box-shadow: 0 6px 24px rgba(57, 44, 26, 0.08),
+    box-shadow: 0 6px 24px rgba(43, 42, 39, 0.08),
         inset 0 1px 0 rgba(255, 255, 255, 0.6);
-}
-
-.notification-panel,
-.lower-panel {
-    background: linear-gradient(160deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.86));
-    border-color: rgba(255, 255, 255, 0.95);
-}
-
-.lower-panel .rt-Card {
-    background: linear-gradient(145deg, #fff, rgba(255, 255, 255, 0.94));
-    border: 1px solid rgba(255, 255, 255, 0.85);
-    border-radius: 20px;
-    box-shadow: inset 0 1px 0 white, 0 3px 12px rgba(87, 65, 40, 0.08);
-    --base-card-border-width: 1px;
 }
 
 .lower-panel button:focus-visible {
@@ -141,11 +115,6 @@ h2.text-2xl {
 .notification-card > div {
     border-bottom: 0;
     padding-bottom: 0;
-}
-
-.top-glass-button.notification-accept {
-    background: linear-gradient(145deg, #fce5dc, #fff4ef);
-    color: #d94e2b;
 }
 
 .notification-panel button:disabled {
@@ -160,48 +129,14 @@ h2.text-2xl {
     outline-offset: 2px;
 }
 
-.top-glass-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    min-height: 44px;
-    border-radius: 999px;
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.2));
-    border: 1px solid rgba(255, 255, 255, 0.75);
-    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 2px 6px rgba(87, 65, 40, 0.06);
-    -webkit-tap-highlight-color: transparent;
-    transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
-}
-
-@media (hover: hover) {
-    .top-glass-button:hover {
-        background-color: rgba(255, 255, 255, 0.5);
-        box-shadow: inset 0 1px 1px white, 0 3px 10px rgba(87, 65, 40, 0.12);
-    }
-}
-
-.top-glass-button:active {
-    transform: scale(0.94);
-}
-
-.top-glass-button:focus-visible {
-    outline: 2px solid #e8603c;
-    outline-offset: 2px;
-}
-
-.top-glass-button[aria-expanded="true"],
-.top-profile-button[aria-current="page"] {
-    background-color: rgba(232, 96, 60, 0.13);
-    color: #d94e2b;
-}
+.top-profile-button[aria-current="page"] { background-color: #e8603c21; color: #d94e2b; }
 
 .bottom-nav-glass {
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.28) 48%, rgba(232, 96, 60, 0.12));
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    box-shadow: 0 3px 10px rgba(87, 65, 40, 0.12),
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.6));
+    border: 0;
+    box-shadow: 0 3px 10px rgba(43, 42, 39, 0.12),
         inset 0 1px 2px rgba(255, 255, 255, 0.95),
-        inset 0 -1px 2px rgba(166, 127, 90, 0.12);
+        inset 0 -1px 2px rgba(43, 42, 39, 0.08);
 }
 
 .bottom-nav-item {
@@ -225,49 +160,18 @@ h2.text-2xl {
     .bottom-nav-item {
         transition: none;
     }
-    .top-glass-button {
-        transition: none;
-    }
-    .top-glass-button:active {
-        transform: none;
-    }
-}
-
-/* Индикаторы над игроками; панели боя используют общие Card из Radix. */
-.battle-round-header {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-
-
-
-.battle-last-seconds {
-    padding: 5px 9px;
-    color: #a23620;
-    background: #fff0e9;
-    border: 1px solid #d99779;
-    border-radius: 999px;
-    font-size: 11px;
-    font-variant-numeric: tabular-nums;
 }
 
 /* Special walk: two invitation places keep the player's character centered. */
 .party-character-row { display: grid; grid-template-columns: minmax(0,1fr) minmax(130px,1.4fr) minmax(0,1fr); width: 100%; max-width: 700px; align-items: center; }
 .party-side-slot { min-width: 0; display: flex; justify-content: center; align-items: center; padding: 4px; }
-.party-add-button { min-width: 40px; min-height: 40px; border-radius: 50%; background: #e85d2f; color: white; font-size: 28px; line-height: 1; }
 .party-companion { display: flex; flex-direction: column; align-items: center; width: 100%; min-width: 0; font-size: 12px; color: white; text-shadow: 0 1px 3px #000; }
 .party-companion span { overflow-wrap: anywhere; text-align: center; }
 .party-companion small { font-size: 10px; }
 .party-companion img { height: 140px; max-width: 100%; object-fit: contain; }
-.group-friend-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 0; }
-.group-friend-row > span { min-width: 0; overflow-wrap: anywhere; }
-.group-friend-row small { display: block; font-size: 10px; color: #756b5c; }
 .group-battle-scene { padding: 8px; display: flex; flex-direction: column; gap: 12px; }
 .group-battle-team { display: grid; grid-auto-columns: minmax(0,1fr); grid-auto-flow: column; gap: 6px; }
-.group-battle-fighter { min-width: 0; border: 2px solid transparent; border-radius: 12px; background: #fffc; padding: 5px; text-align: center; }
+.group-battle-fighter { min-width: 0; padding: 5px; text-align: center; }
 .group-battle-fighter.is-selected { border-color: #e85d2f; box-shadow: 0 0 0 2px #e85d2f44; }
 .group-battle-fighter.is-defeated { opacity: .5; }
 .group-fighter-name { display: block; font-size: 11px; font-weight: 600; overflow-wrap: anywhere; min-height: 30px; }

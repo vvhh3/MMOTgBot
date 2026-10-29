@@ -12,7 +12,7 @@ export function PartyInviteNotification() {
   };
   return <>{overview?.invites.map(invite => <div className="flex flex-col gap-2" key={invite.id}>
     <p className="text-xs">{invite.fromName} приглашает вас на особую прогулку втроём!</p>
-    <div className="flex gap-2"><button className="top-glass-button flex-1" disabled={busy} onClick={() => void respond(invite.partyId, true)}>Принять</button>
-      <button className="top-glass-button flex-1" disabled={busy} onClick={() => void respond(invite.partyId, false)}>Отклонить</button></div>
+    <div className="flex gap-2"><button className="game-button flex-1" disabled={busy} onClick={() => void respond(invite.partyId, true)}>Принять</button>
+      <button className="game-button game-button--danger flex-1" disabled={busy} onClick={() => void respond(invite.partyId, false)}>Отклонить</button></div>
   </div>)}{error && <p role="alert" className="text-xs text-red-600">{error}</p>}</>;
 }

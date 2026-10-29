@@ -1,0 +1,21 @@
+/* Таблицы рейтинга и админки используют одну стеклянную поверхность. */
+.game-table {
+    --table-cell-padding: 12px 14px;
+    --table-cell-min-height: 48px;
+    overflow: hidden;
+    border: 1px solid var(--game-border);
+    border-radius: 16px;
+    background: var(--game-glass-fill);
+    color: var(--game-ink);
+    box-shadow: var(--game-glass-shadow);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    font-variant-numeric: tabular-nums;
+}
+.game-table .rt-TableRootTable { --table-row-box-shadow: none; font-size: 12px; line-height: 18px; }
+.game-table .rt-TableCell { vertical-align: middle; border-bottom: 1px solid #ffffff80; }
+.game-table .rt-TableHeader .rt-TableCell { height: 40px; background: #ffffff66; color: var(--game-muted); font-size: 10px; font-weight: 600; }
+.game-table .rt-TableBody > tr:last-child > .rt-TableCell { border-bottom: 0; }
+.game-table .rt-TableBody > tr[data-current="true"] > .rt-TableCell { background: #e8603c0a; }
+.game-table .rt-TableBody > tr[data-current="true"] > .rt-TableCell:first-child { box-shadow: inset 3px 0 0 var(--game-accent); }
+.rank-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; border: 1px solid #fff; border-radius: 50%; background: #ffffff80; color: #9a3412; font-size: 11px; font-weight: 700; }

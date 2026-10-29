@@ -19,7 +19,7 @@ export default function Loading({ progress = 0, error, onRetry }: LoadingProps) 
                         {error ? (
                             <>
                                 <p role="alert" className="max-w-sm px-4 text-center text-red-500">{error}</p>
-                                <button type="button" onClick={onRetry} className="mt-4 rounded-lg bg-[#E8603C] px-5 py-2 text-white">
+                                <button type="button" onClick={onRetry} className="game-button mt-4 px-5 py-2">
                                     Повторить загрузку
                                 </button>
                             </>

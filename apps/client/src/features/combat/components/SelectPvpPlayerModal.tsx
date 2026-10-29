@@ -1,6 +1,7 @@
+import LevelBadge from "../../../shared/ui/LevelBadge";
 import { useGroupEvent } from '../../group-events/GroupEventProvider';
 import { PlayerDto,PvpStateDto } from "@mmobot/shared";
-import { Badge,Button,Card,Text } from "@radix-ui/themes";
+import { Button,Card,Text } from "@radix-ui/themes";
 import { useEffect,useState } from "react";
 import { useNavigate } from "react-router-dom";
 import LowerModal from "../../../shared/ui/modal/LowerModal";
@@ -87,7 +88,7 @@ export default function LowerModalFight({
           <p className="px-2 text-xs leading-relaxed text-[#756B5C]">Ожидаем ответ соперника.....</p>
           <button
             onClick={() => handleCancel(pvpState.id)}
-            className="top-glass-button w-full px-4 text-xs"
+            className="game-button game-button--danger w-full px-4 text-xs"
           >
             Отмена
           </button>
@@ -104,21 +105,19 @@ export default function LowerModalFight({
           {onlinePlayers.map((player) => (
             <Card
               key={player.id}
-              className="flex ! flex-row flex-wrap items-center justify-between gap-2 bg-[none] rounded-[10px]!"
+              className="game-card flex flex-row flex-wrap items-center justify-between gap-2"
             >
               <div className="flex min-w-0 flex-wrap items-center gap-2">
                 <Text size="2" weight="bold">
                   {player.name}
                 </Text>
-                <Badge size="1" color="orange" style={{ maxWidth: "50px" }}>
-                  Lv {player.level}
-                </Badge>
+                <LevelBadge level={player.level} />
               </div>
               <div className="pt-1">
                 <Button
                   disabled={loading}
                   onClick={() => handlePvp(player.id)}
-                  className="top-glass-button notification-accept px-4 text-[11px]"
+                  className="game-button px-4 text-[11px]"
                 >
                   {"Вызвать на бой"}
                 </Button>

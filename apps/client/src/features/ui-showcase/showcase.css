@@ -1,14 +1,14 @@
 /* Оформление только витрины. Стили игровых компонентов остаются в своих файлах. */
 .ui-showcase {
     min-height: 100dvh;
-    background: #faf7f0;
+    background: #fff;
     color: #2b2a27;
 }
 
 .ui-showcase-header {
     padding-top: env(safe-area-inset-top, 0px);
     border-bottom: 1px solid #594f431a;
-    background: #faf7f0f2;
+    background: #fffffff2;
 }
 
 .ui-showcase-header-inner,
@@ -185,7 +185,7 @@
 .ui-specimen-label { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 5px 12px; padding: 14px 18px; border-bottom: 1px solid #e6e0d6; }
 .ui-specimen-label h3 { font-size: 12px; font-weight: 600; }
 .ui-specimen-label > span { color: #9b8f7b; font-size: 10px; }
-.ui-specimen-preview { min-width: 0; min-height: 100px; padding: 24px; background: #f4efe5; }
+.ui-specimen-preview { min-width: 0; min-height: 100px; padding: 24px; background: #fff; }
 .ui-showcase[data-surface="dark"] .ui-specimen-preview { background: #30283b; color: #f7f3ff; }
 .ui-showcase[data-surface="map"] .ui-specimen-preview { background: linear-gradient(#ffffff36, #ffffff36), url("/mapMat.png") center / cover; }
 .ui-sample-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 16px; }
@@ -195,11 +195,19 @@
 .ui-sample-battle { overflow: hidden; max-width: 600px; margin-inline: auto; border-radius: 16px; }
 .ui-sample-battle > div > div { max-height: 540px; }
 .ui-sample-casino { padding: 16px; border: 1px solid #594d70; border-radius: 14px; background: #211936; color: #f7f3ff; }
-.ui-sample-window { max-width: 180px; height: 94px; padding: 10px; border: 1px solid #d4c9b5; border-radius: 12px; background: #fff9; }
+.ui-sample-window { max-width: 180px; height: 94px; padding: 10px; border: 1px solid var(--game-border); border-radius: 12px; background: #fff9; }
 .ui-sample-window > div { display: flex; gap: 4px; padding-bottom: 10px; }
 .ui-sample-window span { width: 5px; height: 5px; border-radius: 50%; background: #e8603c88; }
 .ui-sample-window > i { display: block; width: 85%; height: 6px; margin-block: 7px; border-radius: 3px; background: #d6cdbb; }
 .ui-sample-window > i:last-child { width: 50%; }
+
+.ui-button-surfaces { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.ui-button-surface { position: relative; display: grid; place-items: center; min-width: 0; min-height: 160px; padding: 24px 16px 42px; overflow: hidden; border: 1px solid #594f4326; border-radius: 18px; background: #fff; }
+.ui-button-surface > span { position: absolute; bottom: 13px; left: 16px; color: #756b5c; font-size: 11px; }
+.ui-button-surface[data-background="dark"] { background: radial-gradient(ellipse at 20% 0%, #65526f, transparent 75%), #211936; }
+.ui-button-surface[data-background="map"] { background: linear-gradient(#21193620, #21193655), url("/mapMat.png") center / cover; }
+.ui-button-surface:is([data-background="dark"], [data-background="map"]) > span { color: #fff; text-shadow: 0 1px 4px #211936; }
+
 .ui-showcase-empty { padding: 60px 24px; text-align: center; }
 .ui-showcase-empty h2 { font-size: 22px; font-weight: 600; }
 .ui-showcase-empty p { margin-block: 12px 20px; color: #756b5c; font-size: 14px; }
@@ -212,7 +220,8 @@
 
 .ui-showcase[data-viewport="phone"] .ui-showcase-grid,
 .ui-showcase[data-viewport="phone"] .ui-sample-columns,
-.ui-showcase[data-viewport="phone"] .ui-sample-action-grid { grid-template-columns: minmax(0, 1fr); }
+.ui-showcase[data-viewport="phone"] .ui-sample-action-grid,
+.ui-showcase[data-viewport="phone"] .ui-button-surfaces { grid-template-columns: minmax(0, 1fr); }
 
 @media (max-width: 700px) {
     .ui-showcase-header-inner, .ui-showcase-main { width: calc(100% - 32px); }
@@ -223,7 +232,7 @@
     .ui-showcase-intro-bottom { gap: 8px 12px; font-size: 10px; }
     .ui-showcase-intro-bottom > span + span::before { margin-right: 12px; }
     .ui-showcase-search { width: 100%; }
-    .ui-showcase-grid, .ui-sample-columns { grid-template-columns: minmax(0, 1fr); }
+    .ui-showcase-grid, .ui-sample-columns, .ui-button-surfaces { grid-template-columns: minmax(0, 1fr); }
     .ui-sample-action-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .ui-specimen-preview { padding: 16px; }
     .ui-specimen-label { padding: 12px 16px; }

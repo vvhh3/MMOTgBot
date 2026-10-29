@@ -129,8 +129,8 @@ export function GroupEventProvider({ token, player, onPlayer, onInventory, child
       {intent.runId ? <p className="mt-2 text-sm">Вы покинете начатое событие и не получите награду за его завершение.</p>
         : overview?.party?.leaderPlayerId === player?.id && <p className="mt-2 text-sm">Вы — лидер. Выход распустит группу.</p>}
       {error && <p role="alert" className="mt-2 text-sm text-red-600">{error}</p>}
-      <div className="mt-4 flex gap-2"><button className="top-glass-button flex-1" disabled={busy} onClick={() => { setIntent(null); setError(null); }}>Остаться в группе</button>
-        <button className="top-glass-button flex-1" disabled={busy} onClick={() => void confirmLeave()}>{busy ? 'Выходим…' : 'Выйти и продолжить'}</button></div>
+      <div className="mt-4 flex gap-2"><button className="game-button flex-1" disabled={busy} onClick={() => { setIntent(null); setError(null); }}>Остаться в группе</button>
+        <button className="game-button game-button--danger flex-1" disabled={busy} onClick={() => void confirmLeave()}>{busy ? 'Выходим…' : 'Выйти и продолжить'}</button></div>
     </CenterModal>}
     {!intent && error && <CenterModal title="Сообщение" onClose={() => setError(null)}><p role="alert">{error}</p></CenterModal>}
   </Context.Provider>;

@@ -45,7 +45,7 @@ export default function GroupEventFight({ token, player, inventory, onPlayer, on
   useEffect(() => {
     if (token && state && state.status !== 'active') void getMe(token).then(d => { onPlayer(d.player); onInventory(d.inventory); });
   }, [token, state?.id, state?.status, onPlayer, onInventory]);
-  if (!state || !me) return <div className="p-5"><p>Восстанавливаем особую прогулку…</p><button className="top-glass-button mt-3" onClick={() => navigate('/')}>На Площадь</button></div>;
+  if (!state || !me) return <div className="p-5"><p>Восстанавливаем особую прогулку…</p><button className="game-button mt-3" onClick={() => navigate('/')}>На Площадь</button></div>;
   const displayFighter = (f: typeof me, enemy: boolean) => ({
     id: f.id, name: f.name, hp: f.left ? 0 : playback.hp[f.index] ?? f.hp, maxHp: f.maxHp,
     image: getSkins(f.avatar ?? (enemy ? '/character-images/monstr.svg' : player?.avatar)),
@@ -72,7 +72,7 @@ export default function GroupEventFight({ token, player, inventory, onPlayer, on
         <strong>{state.status === 'victory' ? 'Победа над боссом!' : state.status === 'defeat' ? 'Поражение группы' : 'Прохождение завершено'}</strong>
         {state.reward && <><p>+{state.reward.xp} опыта · +{state.reward.coins} монет · +{state.reward.points} очков</p>
           {state.reward.items.map((item, i) => <p key={i}>{item.name} ×{item.quantity}</p>)}</>}
-        <button className="top-glass-button mt-3" onClick={() => navigate('/')}>На Площадь</button>
+        <button className="game-button mt-3" onClick={() => navigate('/')}>На Площадь</button>
       </div>}
     </BattleScreen>
     {inventoryOpen && <CombatInventoryDialog title="Инвентарь в командном бою" token={token} player={player} inventory={inventory}

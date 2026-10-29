@@ -135,14 +135,14 @@ export const QuestAdmin = ({ token }: QuestAdminProps) => {
     return (
 
         <Flex direction="column" gap="4">
-            <Card size="3">
+            <Card className="game-card" size="3">
                 <Flex direction="column" gap="4">
                     <Flex align="center" gap="2">
                         <Heading size="4">
                             {draft.id > 0 ? `Редактирование квеста #${draft.id}` : "Новый квест"}
                         </Heading>
                         {draft.id > 0 && (
-                            <Button variant="ghost" size="1" color="gray" onClick={() => setDraft(emptyQuest)}>
+                            <Button className="game-button game-button--danger game-button--sm" variant="ghost" size="1" color="gray" onClick={() => setDraft(emptyQuest)}>
                                 Отменить
                             </Button>
                         )}
@@ -258,19 +258,19 @@ export const QuestAdmin = ({ token }: QuestAdminProps) => {
 
                     <Flex gap="3" justify="end">
                         {draft.id > 0 && (
-                            <Button variant="soft" color="gray" onClick={() => setDraft(emptyQuest)}>
+                            <Button className="game-button game-button--danger" variant="soft" color="gray" onClick={() => setDraft(emptyQuest)}>
                                 Отмена
                             </Button>
                         )}
-                        <Button onClick={save}>
+                        <Button className="game-button" onClick={save}>
                             {draft.id > 0 ? "Сохранить" : "Создать"}
                         </Button>
                     </Flex>
                 </Flex>
             </Card>
 
-            <Card size="3">
-                <Table.Root variant="surface">
+            <Card className="game-card" size="3">
+                <Table.Root className="game-table" variant="ghost">
                     <Table.Header>
                         <Table.Row>
                             <Table.ColumnHeaderCell justify="center">id</Table.ColumnHeaderCell>
@@ -308,14 +308,14 @@ export const QuestAdmin = ({ token }: QuestAdminProps) => {
                                 <Table.Cell justify="center">{quest.targetCoins}</Table.Cell>
                                 <Table.Cell justify="end">
                                     <Flex gap="2" justify="end">
-                                        <Button size="1" variant="soft" onClick={() => {
+                                        <Button className="game-button game-button--sm" size="1" variant="soft" onClick={() => {
                                             setDraft(quest)
                                             setError(null)
                                             window.scrollTo({ top: 0, behavior: "smooth" }) // для скрола на верх
                                         }}>
                                             Изменить
                                         </Button>
-                                        <Button size="1" color="red" variant="soft" onClick={() => remove(quest.id)}>
+                                        <Button className="game-button game-button--danger game-button--sm" size="1" color="red" variant="soft" onClick={() => remove(quest.id)}>
                                             Удалить
                                         </Button>
                                     </Flex>

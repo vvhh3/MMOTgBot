@@ -1,0 +1,126 @@
+/* Жидкое стекло для казино только в витрине /ui. */
+.ui-showcase #casino .ui-casino-backdrop {
+    --casino-surface: linear-gradient(145deg, #ffffffed, #ffffff70);
+    --casino-field: #ffffff66;
+    --casino-cell: linear-gradient(150deg, #ffffffe6, #ffffff80);
+    --casino-border: #ffffffcc;
+    --casino-cell-border: #ffffffcc;
+    --casino-ink: #2b2a27;
+    --casino-muted: #756b5c;
+    --casino-symbol: #c2410c;
+    --casino-accent-ink: #c2410c;
+    --casino-button: linear-gradient(145deg, #ef8a6fe6, #e8603cf2);
+    --casino-safe-fill: #f0fdf4;
+    --casino-safe-ink: #166534;
+    --casino-safe-border: #86efac;
+    --casino-bomb-fill: #fef2f2;
+    --casino-bomb-ink: #b91c1c;
+    --casino-bomb-border: #fca5a5;
+    --casino-shadow: inset 0 1px 0 #fff9, 0 8px 24px #3b304f26;
+    --casino-blur: 12px;
+
+    box-sizing: border-box;
+    min-width: 0;
+    width: 100%;
+    max-width: 420px;
+    margin-inline: auto;
+    padding: 10px;
+    border-radius: 22px;
+    background: linear-gradient(#ffffff55, #ffffff26), url("/mapMat.png") center / cover;
+}
+
+.ui-showcase #casino .ui-casino-game-switch {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+    margin: 12px 12px 0;
+    padding: 4px;
+    border: 1px solid var(--casino-border);
+    border-radius: 12px;
+    background: var(--casino-field);
+}
+
+.ui-showcase #casino .ui-casino-game-switch > button {
+    min-width: 0;
+    min-height: 32px;
+    padding: 4px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: var(--casino-muted);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.ui-showcase #casino .ui-casino-game-switch > button[aria-pressed="true"] {
+    border-color: #e8603c66;
+    background: #e8603c14;
+    color: var(--casino-accent-ink);
+}
+
+.ui-showcase #casino .ui-casino-game { display: flex; flex-direction: column; gap: 12px; padding: 14px; }
+.ui-showcase #casino .ui-casino-balance { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 8px; color: var(--casino-muted); font-size: 11px; }
+.ui-showcase #casino .ui-casino-balance > strong { color: var(--casino-ink); font-size: 14px; }
+.ui-showcase #casino .ui-casino-stats { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; font-size: 10px; }
+.ui-showcase #casino .ui-casino-stats > span { white-space: nowrap; }
+.ui-showcase #casino .ui-casino-stats strong { font-size: 12px; }
+.ui-showcase #casino .ui-casino-multiplier { padding: 4px 7px; border-radius: 999px; background: #e8603c18; color: var(--casino-symbol); font-size: 11px; font-weight: 700; }
+
+.ui-showcase #casino .ui-casino-mines { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.ui-showcase #casino .ui-casino-cell-samples { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; padding: 14px; }
+
+.ui-showcase #casino .ui-casino-ladder { display: flex; flex-direction: column-reverse; gap: 6px; }
+.ui-showcase #casino .ui-casino-ladder-row { display: grid; grid-template-columns: 14px repeat(3, minmax(0, 1fr)); align-items: center; gap: 6px; }
+.ui-showcase #casino .ui-casino-ladder-row .ui-casino-cell { height: 34px; aspect-ratio: auto; }
+.ui-showcase #casino .ui-casino-ladder--gallery { flex-direction: column; gap: 8px; padding: 14px; }
+.ui-showcase #casino .ui-casino-row-number { color: var(--casino-muted); font-size: 10px; }
+.ui-showcase #casino .ui-casino-ladder-row[data-current="true"] .ui-casino-cell { border-color: #e8603c; }
+.ui-showcase #casino .ui-casino-ladder-row[data-current="true"] .ui-casino-row-number { color: var(--casino-accent-ink); font-weight: 700; }
+
+.ui-showcase #casino .ui-casino-hands { display: flex; flex-direction: column; gap: 10px; }
+.ui-showcase #casino .ui-casino-hand { padding: 10px; }
+.ui-showcase #casino .ui-casino-hand-label { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 10px; font-size: 11px; }
+.ui-showcase #casino .ui-casino-hand-label > strong { color: var(--casino-muted); font-size: 10px; }
+.ui-showcase #casino .ui-casino-cards { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+
+.ui-showcase #casino .ui-casino-cards > [aria-label] {
+    box-sizing: border-box;
+    width: var(--casino-card-width, 48px);
+    height: var(--casino-card-height, 72px);
+    padding: var(--casino-card-padding, 5px);
+    font-size: var(--casino-card-font-size, 11px);
+    line-height: var(--casino-card-line-height, 13px);
+}
+
+.ui-showcase #casino .ui-casino-cards > [aria-label] > .self-center { font-size: var(--casino-card-suit-size, 24px); line-height: var(--casino-card-suit-size, 24px); }
+
+.ui-showcase #casino .ui-casino-cards > [aria-label="Закрытая карта"] {
+    color: var(--casino-symbol);
+    font-size: var(--casino-card-back-font-size, 20px);
+}
+
+.ui-showcase #casino .ui-casino-cards--gallery {
+    --casino-card-width: 64px;
+    --casino-card-height: 96px;
+    --casino-card-padding: 8px;
+    --casino-card-font-size: 14px;
+    --casino-card-line-height: 16px;
+    --casino-card-suit-size: 30px;
+    --casino-card-back-font-size: 24px;
+
+    gap: 12px;
+    padding: 14px;
+}
+
+.ui-showcase #casino .ui-casino-controls { display: flex; flex-direction: column; gap: 10px; padding-top: 12px; border-top: 1px solid var(--casino-border); }
+.ui-showcase #casino .ui-casino-bet-label { display: flex; flex-direction: column; gap: 6px; font-size: 11px; font-weight: 600; }
+.ui-showcase #casino .ui-casino-quick-bets { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.ui-showcase #casino .ui-casino-risk { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin-top: 6px; }
+.ui-showcase #casino .ui-casino-setting { color: var(--casino-muted); font-size: 11px; line-height: 16px; }
+.ui-showcase #casino .ui-casino-setting > input { display: block; width: 100%; margin-top: 6px; accent-color: #e8603c; }
+.ui-showcase #casino .ui-casino-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.ui-showcase #casino .ui-casino-layout button:focus-visible { outline: 2px solid #e8603c; outline-offset: 2px; }
+.ui-showcase #casino .ui-casino-help { color: var(--casino-muted); font-size: 11px; line-height: 17px; }
+.ui-showcase #casino .ui-casino-result { padding: 10px; border-radius: 10px; font-size: 12px; font-weight: 700; text-align: center; }
+.ui-showcase #casino .ui-casino-result[data-result="won"] { background: var(--casino-safe-fill); color: var(--casino-safe-ink); }
+.ui-showcase #casino .ui-casino-result[data-result="lost"] { background: var(--casino-bomb-fill); color: var(--casino-bomb-ink); }

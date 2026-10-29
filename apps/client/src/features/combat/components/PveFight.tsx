@@ -214,7 +214,8 @@ export default function PveFight({
                 maxImageWidth: 180,
             }}
             opponent={{
-                name: tutorial ? state.mob.name : `${state.mob.name} · ур. ${state.mob.level}${state.mob.rank ? ` · ${MOB_RANK_LABELS[state.mob.rank]}` : ''}`,
+                name: tutorial ? state.mob.name : `${state.mob.name}${state.mob.rank ? ` · ${MOB_RANK_LABELS[state.mob.rank]}` : ''}`,
+                level: tutorial ? undefined : state.mob.level,
                 hp: playback.hp[1],
                 statuses: playback.statuses[1],
                 maxHp: state.mobMaxHp,

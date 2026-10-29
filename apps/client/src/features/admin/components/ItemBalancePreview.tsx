@@ -26,7 +26,7 @@ export default function ItemBalancePreview({ item, onPreset }: ItemBalancePrevie
         <Flex direction="column" gap="3" className="rounded-lg border p-3">
             <Heading size="3">Предпросмотр предмета</Heading>
             <Text size="1" color="gray">Требуется уровень {getItemMinLevel(item)}. Сильная атака и защитный приём зависят от редкости. Смена редкости сама не перезаписывает введённые характеристики.</Text>
-            {['weapon', 'armor', 'potion'].includes(item.type) && <Button type="button" variant="soft" onClick={onPreset}>Базовые характеристики и цены по редкости</Button>}
+            {['weapon', 'armor', 'potion'].includes(item.type) && <Button className="game-button" type="button" variant="soft" onClick={onPreset}>Базовые характеристики и цены по редкости</Button>}
             {warnings.length > 0 && <Callout.Root color="orange"><div className="text-sm"><strong>Проверьте настройки:</strong><ul className="mt-1 list-disc space-y-1 pl-4">{warnings.map(warning => <li key={warning}>{warning}</li>)}</ul></div></Callout.Root>}
             <ItemDetails item={{ ...item, minLevel: getItemMinLevel(item) }} />
         </Flex>

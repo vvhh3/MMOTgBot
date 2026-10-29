@@ -6,6 +6,7 @@ import EnterAnimation from "../../../shared/ui/animations/EnterAnimation";
 import { TypeModal } from "../../../shared/ui/modal/types";
 import { getSkins } from "../lib/skins";
 import FactionBadge from "./FactionBadge";
+import LevelBadge from "../../../shared/ui/LevelBadge";
 import map from '/mapMat.png';
 
 type ProfileProps = {
@@ -25,10 +26,10 @@ export default function Profile({ player,locationState,setShowModal,setTypeShowI
                 </Link>
                 <img className='h-50' src={getSkins(player?.avatar)} />
             </div>
-            <Grid columns="2" gap="3" style={{ padding: "20px", flexShrink: 0 }}>
+            <Grid columns="2" gap="3" className="shrink-0 p-5">
                 <EnterAnimation>
                     <ButtonAnimation className="w-full h-full" >
-                        <Card variant="surface"  >
+                        <Card className="game-card" variant="surface"  >
                             <Text as="div" size="2" weight="bold">
                                 Здоровье
                             </Text>
@@ -43,15 +44,13 @@ export default function Profile({ player,locationState,setShowModal,setTypeShowI
                             </Text>
                         </Card>
                     </ButtonAnimation>
-                    
+
                 </EnterAnimation>
                 <EnterAnimation>
                     <ButtonAnimation className="w-full h-full" >
-                        <Card className="w-full h-full" variant="classic">
+                        <Card className="game-card w-full h-full" variant="classic">
                             <div onClick={()=>{setShowModal(true),setTypeShowIsModal(TypeModal.SkillPoints)}}>
-                                <Text as="div" size="2" weight="bold">
-                                    Уровень {player?.level}
-                                </Text>
+                                <LevelBadge level={player?.level ?? 0} />
                                 <Box maxWidth="300px">
                                     <Progress
                                         color='orange'
@@ -70,12 +69,12 @@ export default function Profile({ player,locationState,setShowModal,setTypeShowI
                             </div>
                         </Card>
                     </ButtonAnimation>
-                </EnterAnimation> 
+                </EnterAnimation>
                 <EnterAnimation >
                     <ButtonAnimation className="w-full h-full" >
                         <Link to="/Map">
-                            <Card size="2">
-                                <Inset clip="padding-box" side="top" pb="current" style={{ borderBottom: "solid 2px" }} >
+                            <Card className="game-card" size="2">
+                                <Inset clip="padding-box" side="top" pb="current" >
                                     <img
                                         src={map}
                                         alt="Bold typography"
@@ -93,7 +92,7 @@ export default function Profile({ player,locationState,setShowModal,setTypeShowI
                                     />
                                 </Inset>
                                 <Text as="div" size="2" weight="bold">
-                                    {location ? 
+                                    {location ?
                                         location?.name
                                     :
                                         "Выберите локацию"
@@ -107,9 +106,9 @@ export default function Profile({ player,locationState,setShowModal,setTypeShowI
                     </ButtonAnimation>
                 </EnterAnimation>
                 <EnterAnimation>
-                    <ButtonAnimation className="w-full h-full" >
-                        <Link to="/Inventory">
-                            <Card variant="classic" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%" }}>
+                    <ButtonAnimation className="w-full h-full " >
+                        <Link to="/Inventory" className="block h-full">
+                            <Card className="game-card flex! h-full flex-col justify-between" variant="classic">
                                 <Grid>
                                     <Text as="div" size="2" weight="bold">
                                         Инвентарь
@@ -121,7 +120,7 @@ export default function Profile({ player,locationState,setShowModal,setTypeShowI
                                 <Grid rows="1" columns="2">
                                     <div className='flex items-end'>
                                         <p>{player?.money}</p>
-                                        <svg className="h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"><circle cx="12" cy="12" r="10" stroke="#ff7b00" strokeWidth="2"></circle><path d="M15 9.94728C14.5 9.3 13.8 8.5 12 8.5C10.2 8.5 9 9.51393 9 9.94728C9 10.3806 9.06786 10.9277 10 11.5C10.7522 11.9618 12.6684 12.0439 13.5 12.5C14.679 13.1467 14.8497 13.8202 14.8497 14.0522C14.8497 14.6837 13.4175 15.4852 12 15.5C10.536 15.5153 9.5 14.7 9 14.0522" stroke="#ff7b00" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path><path d="M12 7V17" stroke="#ff7b00" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path></g></svg>                            
+                                        <svg className="h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"><circle cx="12" cy="12" r="10" stroke="#ff7b00" strokeWidth="2"></circle><path d="M15 9.94728C14.5 9.3 13.8 8.5 12 8.5C10.2 8.5 9 9.51393 9 9.94728C9 10.3806 9.06786 10.9277 10 11.5C10.7522 11.9618 12.6684 12.0439 13.5 12.5C14.679 13.1467 14.8497 13.8202 14.8497 14.0522C14.8497 14.6837 13.4175 15.4852 12 15.5C10.536 15.5153 9.5 14.7 9 14.0522" stroke="#ff7b00" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path><path d="M12 7V17" stroke="#ff7b00" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path></g></svg>
                                     </div>
                                     <div className='flex items-end flex-col'>
                                         <svg style={{height: 70, backgroundSize: "cover", backgroundPosition: "center", backgroundRepeat: "no-repeat"}} fill="#000000" viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg" id="memory-bag-personal"><g id="SVGRepo_bgCarrier" strokeWidth="0"></g><g id="SVGRepo_tracerCarrier" strokeLinecap="round" strokeLinejoin="round"></g><g id="SVGRepo_iconCarrier"><path d="M17 15H9V17H7V15H5V19H17V15M17 9H16V8H15V7H7V8H6V9H5V13H17V9M13 11H9V10H10V9H12V10H13V11M3 8H4V6H6V5H7V2H8V1H14V2H15V5H16V6H18V8H19V20H18V21H4V20H3V8M9 3V5H13V3H9Z"></path></g></svg>

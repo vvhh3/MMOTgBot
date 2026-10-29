@@ -10,7 +10,7 @@ export default function BattleStatusBadges({ statuses, fighterName }: BattleStat
     if (statuses.length === 0) return null;
 
     return (
-        <ul className="mt-2 flex flex-wrap gap-1" aria-label={`Эффекты: ${fighterName}`}>
+        <ul className="battle-status-list mt-2 flex flex-wrap gap-1" aria-label={`Эффекты: ${fighterName}`}>
             {statuses.map((status, index) => {
                 const duration = status.remainingRounds === null
                     ? status.kind === 'psychic_charge' ? 'до промаха или снятия эффекта' : 'до следующей атаки'
@@ -18,15 +18,21 @@ export default function BattleStatusBadges({ statuses, fighterName }: BattleStat
                 const detail = status.kind === 'shield'
                     ? `${status.value} HP · ${duration}`
                     : `${status.stacks ? `×${status.stacks} · ` : ''}${duration}`;
+                const displayValue = status.kind === 'shield' ? status.value
+                    : status.stacks ? `×${status.stacks}`
+                    : status.remainingRounds !== null ? status.remainingRounds : undefined;
 
                 return (
                     <li key={`${status.kind}-${index}`} className="max-w-full">
                         <Popover.Root>
                             <Popover.Trigger>
-                                <button type="button" className="max-w-full" aria-label={`${status.name}: ${detail}. ${status.description}`}>
-                                    <Badge size="1" variant="soft" className="max-w-full whitespace-normal text-left" color={status.positive ? 'green' : status.kind === 'wet' ? 'blue' : 'orange'}>
-                                        <span aria-hidden="true">{status.icon}</span>
-                                        {status.name}{status.kind === 'shield' ? ` · ${status.value}` : status.stacks ? ` · ×${status.stacks}` : status.remainingRounds !== null ? ` · ${status.remainingRounds}` : ''}
+                                <button type="button" className="battle-status-trigger max-w-full" aria-label={`${status.name}: ${detail}. ${status.description}`}>
+                                    <Badge size="1" variant="soft" className="battle-status-badge max-w-full whitespace-normal text-left" data-kind={status.kind} data-positive={status.positive} color={status.positive ? 'green' : status.kind === 'wet' ? 'blue' : 'orange'}>
+                                        <span className="battle-status-icon" aria-hidden="true">{status.icon}</span>
+                                        <span className="battle-status-label">
+                                            <span className="battle-status-name">{status.name}</span>
+                                            {displayValue !== undefined && <span className="battle-status-value" data-unit={status.kind === 'shield' ? ' HP' : status.stacks ? undefined : ' р.'}><span className="battle-status-separator"> · </span>{displayValue}</span>}
+                                        </span>
                                     </Badge>
                                 </button>
                             </Popover.Trigger>

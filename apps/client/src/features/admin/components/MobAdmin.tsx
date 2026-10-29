@@ -112,7 +112,7 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
 
     return (
         <Flex direction="column" gap="4">
-            <Card size="3">
+            <Card className="game-card" size="3">
                 <form onSubmit={(event) => { event.preventDefault(); void save(); }}>
                 <fieldset disabled={busy} className="flex min-w-0 flex-col gap-4">
                     <Flex align="center" gap="2">
@@ -120,7 +120,7 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
                             {editingId !== null ? `Редактирование моба #${draft.id}` : "Новый моб"}
                         </Heading>
                         {editingId !== null && (
-                            <Button type="button" variant="ghost" size="1" color="gray" onClick={resetDraft}>
+                            <Button className="game-button game-button--danger game-button--sm" type="button" variant="ghost" size="1" color="gray" onClick={resetDraft}>
                                 Отменить
                             </Button>
                         )}
@@ -207,7 +207,7 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
                             onChange={(v) => setDraft({ ...draft, coinReward: v })} />
                     </Grid>
                     <Text size="1" color="gray">Характеристики и награды задаются для базового уровня. При подстройке они растут по классу. Встречи пока доступны только на Площади.</Text>
-                    <Button type="button" variant="soft" onClick={applyPreset}>Применить рекомендуемые параметры класса</Button>
+                    <Button className="game-button" type="button" variant="soft" onClick={applyPreset}>Применить рекомендуемые параметры класса</Button>
                     <Text size="1" color="gray">Кнопка обновит характеристики, приёмы и вес встречи. Названия и выбранная добыча сохранятся.</Text>
                     <MobCombatEditor profile={profile} onChange={(combatProfile) => setDraft({ ...draft, combatProfile })} />
                     <MobLootEditor loot={draft.loot} catalog={catalog} rank={profile.rank} level={previewStats.level}
@@ -217,11 +217,11 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
 
                     <Flex gap="3" justify="end">
                         {editingId !== null && (
-                            <Button type="button" variant="soft" color="gray" onClick={resetDraft}>
+                            <Button className="game-button game-button--danger" type="button" variant="soft" color="gray" onClick={resetDraft}>
                                 Отмена
                             </Button>
                         )}
-                        <Button type="submit" disabled={busy || !!profile.guard && profile.guard.fullBlockChance + profile.guard.partialBlockChance > 100}>
+                        <Button className="game-button" type="submit" disabled={busy || !!profile.guard && profile.guard.fullBlockChance + profile.guard.partialBlockChance > 100}>
                             {editingId !== null ? "Сохранить" : "Создать"}
                         </Button>
                     </Flex>
@@ -229,8 +229,8 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
                 </form>
             </Card>
 
-            <Card size="3">
-                <Table.Root variant="surface">
+            <Card className="game-card" size="3">
+                <Table.Root className="game-table" variant="ghost">
                     <Table.Header>
                         <Table.Row>
                             <Table.ColumnHeaderCell justify="center">id</Table.ColumnHeaderCell>
@@ -272,7 +272,7 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
                                 ))}</Table.Cell>
                                 <Table.Cell justify="end">
                                     <Flex gap="2" justify="end">
-                                        <Button disabled={busy} size="1" variant="soft" onClick={() => {
+                                        <Button className="game-button game-button--sm" disabled={busy} size="1" variant="soft" onClick={() => {
                                             setDraft(mob)
                                             setEditingId(mob.id)
                                             setError(null)
@@ -280,7 +280,7 @@ export const MobAdmin = ({ token }: MobAdminProps) => {
                                         }}>
                                             Изменить
                                         </Button>
-                                        <Button disabled={busy} size="1" color="red" variant="soft" onClick={() => remove(mob.id)}>
+                                        <Button className="game-button game-button--danger game-button--sm" disabled={busy} size="1" color="red" variant="soft" onClick={() => remove(mob.id)}>
                                             Удалить
                                         </Button>
                                     </Flex>

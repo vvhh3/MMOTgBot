@@ -42,20 +42,20 @@ export default function LowerModal({
         ref={screenRef}
         role="dialog"
         aria-label={title}
-        className="lower-panel pointer-events-auto relative flex max-h-full w-full max-w-[600px] flex-col overflow-hidden rounded-[28px] p-3"
+        className="modal-surface lower-panel pointer-events-auto relative flex max-h-full w-full max-w-[600px] flex-col overflow-hidden rounded-[28px] p-3"
         initial={reducedMotion ? false : { opacity: 0, y: 24, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={reducedMotion ? { duration: 0 } : { type: "spring", stiffness: 350, damping: 30, mass: 0.8 }}
       >
         <div aria-hidden="true" className="mx-auto mb-2 h-1 w-9 shrink-0 rounded-full bg-[#756B5C]/20" />
         <div className="flex shrink-0 items-center justify-between gap-3 pl-1">
-        <Text size="2" weight="bold" >
+        <Text size="2" weight="bold" className="modal-title">
           {title}
         </Text>
         <button
           onClick={onClose}
           aria-label="Закрыть окно"
-          className="top-glass-button w-11 text-xl leading-none"
+          className="modal-close-button"
         >
           ×
         </button>

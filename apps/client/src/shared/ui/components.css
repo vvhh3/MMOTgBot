@@ -1,0 +1,165 @@
+:root {
+    --game-accent: #e8603c;
+    --game-ink: #2b2a27;
+    --game-muted: #756b5c;
+    --game-border: #000;
+    --game-card-border: var(--game-border);
+    --game-card-fill: #fff;
+    --game-card-shadow: 0 6px 20px #9a341210;
+    --game-glass-fill: linear-gradient(145deg, #ffffffed, #ffffff70);
+    --game-glass-border: #ffffffcc;
+    --game-glass-shadow: inset 0 1px 0 #fff9, 0 8px 24px #3b304f26;
+}
+
+/* Общие поверхности. Раскладка и внешние отступы задаются Tailwind. */
+.game-card, .notification-card {
+    --card-padding: 16px;
+    --base-card-border-width: 1px;
+    --base-card-border-radius: 20px;
+    border: 1px solid var(--game-card-border);
+    border-radius: 20px;
+    background: var(--game-card-fill);
+    color: var(--game-ink);
+    box-shadow: var(--game-card-shadow);
+}
+.game-card.rt-Card::before, .modal-surface.rt-Card::before { background: transparent; backdrop-filter: none; }
+.game-card.rt-Card::after { box-shadow: none; }
+.game-card--white, .lower-panel .game-card, .notification-card {
+    --game-card-border: var(--game-border);
+    --game-card-fill: #fff;
+    --game-card-shadow: 0 3px 12px #2b2a2708;
+}
+.game-card--glass {
+    --game-card-border: var(--game-border);
+    --game-card-fill: var(--game-glass-fill);
+    --game-card-shadow: var(--game-glass-shadow);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+}
+
+.game-button {
+    --button-fill: var(--game-accent);
+    --button-ink: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-sizing: border-box;
+    min-width: 0;
+    min-height: 44px;
+    height: auto;
+    padding: 12px 16px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    background: var(--button-fill);
+    color: var(--button-ink);
+    box-shadow: none;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.25;
+    text-align: center;
+    text-shadow: none;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    cursor: pointer;
+    filter: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: opacity 150ms ease, transform 150ms ease;
+}
+.game-button--sm { min-height: 36px; padding: 8px 12px; font-size: 12px; }
+.game-button--xs { min-height: 32px; padding: 7px 12px; border-radius: 10px; font-size: 11px; }
+.game-button--lg { min-height: 52px; padding: 14px 22px; font-size: 16px; }
+.game-button--danger { --button-fill: #dc2626; }
+.game-button--online { --button-fill: #15803d; }
+.game-button--offline, .game-button--neutral { --button-fill: #fff; --button-ink: #594f43; border-color: #d1d5db; }
+.game-button--outline { --button-fill: transparent; --button-ink: #c2410c; border-color: var(--game-accent); }
+.game-button--glass { --button-fill: linear-gradient(145deg, #ef8a6fe6, #e8603cf2); }
+.game-button--icon { width: 44px; padding: 0; flex-shrink: 0; border-radius: 50%; font-size: 28px; }
+.game-button--step { width: 36px; min-height: 36px; padding: 0; flex-shrink: 0; border-radius: 50%; font-size: 22px; }
+.game-button.rt-Button:where(.rt-variant-ghost) { margin: 0; }
+.game-button:focus-visible, .modal-close-button:focus-visible { outline: 2px solid var(--game-accent); outline-offset: 3px; }
+.game-button:active:not(:disabled), .modal-close-button:active { transform: scale(.98); }
+.game-button:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+.modal-close-button:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+.game-button--offline:disabled { opacity: 1; }
+.game-button[aria-busy="true"] { cursor: progress; }
+
+.modal-surface {
+    padding: 16px;
+    border: 1px solid var(--game-border);
+    border-radius: 28px;
+    background: linear-gradient(160deg, #fffffff5, #ffffffdb);
+    color: var(--game-ink);
+    box-shadow: 0 12px 36px #392c1a29, inset 0 1px 0 #fffffff2, inset 0 -1px 0 #7e694c1a;
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(24px) saturate(180%);
+}
+.modal-title { font-size: 16px; font-weight: 700; line-height: 24px; }
+.modal-surface--center > div > .modal-title { min-height: 44px; padding-right: 44px; }
+.modal-close-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    border: 1px solid #ffffffbf;
+    border-radius: 999px;
+    background: linear-gradient(145deg, #ffffffb8, #ffffff33);
+    color: #000;
+    box-shadow: inset 0 1px 1px #ffffffe6, 0 2px 6px #5741280f;
+    font-family: inherit;
+    font-size: 24px;
+    font-weight: 400;
+    line-height: 1;
+    cursor: pointer;
+    transition: transform 150ms ease;
+}
+
+.level-badge, .game-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    padding: 3px 8px;
+    border: 1px solid #fed7aa;
+    border-radius: 999px;
+    background: #fff0e9;
+    color: #9a3412;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 18px;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+.level-badge { border: 0; background: #fff; color: #594f43; line-height: 16px; }
+.game-badge { min-height: 28px; padding: 4px 8px; }
+.game-badge > svg { flex-shrink: 0; color: var(--game-accent); }
+.level-badge > svg { flex-shrink: 0; color: var(--game-accent); }
+.level-badge > span { font-size: 10px; }
+.level-badge > strong { font-size: 12px; font-weight: 800; }
+.game-badge[data-tone="offline"] { border-color: #d6d3d1; background: #fff; color: #594f43; }
+.game-badge[data-tone="ready"] { border-color: #bbf7d0; background: #f0fdf4; color: #166534; }
+.game-badge[data-tone="busy"] { border-color: #fecaca; background: #fef2f2; color: #b91c1c; }
+.game-badge-dot { width: 6px; height: 6px; flex-shrink: 0; border-radius: 50%; background: currentColor; }
+
+.game-input {
+    min-width: 0;
+    min-height: 40px;
+    padding: 8px 10px;
+    border: 1px solid var(--game-glass-border);
+    border-radius: 10px;
+    background: #ffffff66;
+    color: var(--game-ink);
+    font: inherit;
+    outline: none;
+}
+.game-input:focus { border-color: var(--game-accent); box-shadow: 0 0 0 2px #e8603c26; }
+
+@media (prefers-reduced-motion: reduce) {
+    .game-button, .modal-close-button { transition: none; }
+    .game-button:active, .modal-close-button:active { transform: none; }
+}

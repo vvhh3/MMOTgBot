@@ -1,0 +1,4 @@
+/* Только фон и ширина демонстрации. Сама таблица использует shared/ui/table.css. */
+.ui-showcase #feedback .ui-table-option { max-width: 760px; margin-inline: auto; }
+.ui-showcase #feedback .ui-table-stage { padding: 12px; border-radius: 20px; background: linear-gradient(#ffffff55, #ffffff26), url("/mapMat.png") center / cover; }
+.ui-showcase #feedback .ui-table .rt-TableRootTable { min-width: 320px; }

@@ -161,7 +161,7 @@ export default function GameMap({ token,player,onLocationState,onPlayer }:MapePr
     <div ref={containerRef}
       className="relative w-full h-full min-h-0 overflow-hidden">
 
-      
+
 
       {ready && (
         <TransformWrapper
@@ -229,9 +229,10 @@ export default function GameMap({ token,player,onLocationState,onPlayer }:MapePr
 
       {selectedLocation && (
         <EnterAnimation       className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-[20px] rounded-[20px] z-[1000] w-[min(340px,calc(100vw-24px))] max-h-[calc(100dvh-32px)] overflow-y-auto">
-            <Card
+            <Card className="modal-surface relative"
             role="dialog"
             aria-label={selectedLocation.name}>
+            <button className="modal-close-button absolute right-3 top-3 z-10" aria-label="Закрыть локацию" disabled={moving} onClick={closeLocation}>×</button>
             <Inset>
               <img src={getLocationImage(selectedLocation.homeImg)} alt={selectedLocation.name} style={{ padding: "10px", borderRadius: "16px", filter: selectedAccess === "available" ? undefined : "grayscale(1)" }}
               />
@@ -260,17 +261,9 @@ export default function GameMap({ token,player,onLocationState,onPlayer }:MapePr
             <div className="flex flex-row gap-2">
 
               <button
-                onClick={closeLocation}
-                disabled={moving}
-                className=" mt-4 bg-red-400 text-white px-4 py-2 rounded">
-                Закрыть
-              </button>
-
-
-              <button
                 onClick={() => travelTo(selectedLocation)}
                 disabled={moving || loading || !player || selectedAccess !== "available"}
-                className="mt-4 rounded bg-green-600 px-4 py-2 text-white disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600">
+                className="game-button mt-4 px-4 py-2 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600">
                 {moving ? "Переход..." : selectedAccess === "coming_soon" ? "Скоро появится" : selectedAccess === "level_required" ? `С ${selectedLocation.minLevel} уровня` : "Перейти"}
               </button>
 
@@ -278,7 +271,7 @@ export default function GameMap({ token,player,onLocationState,onPlayer }:MapePr
 
           </Card>
         </EnterAnimation>
-        
+
 
       )}
 

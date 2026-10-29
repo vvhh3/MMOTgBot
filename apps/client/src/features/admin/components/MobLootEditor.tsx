@@ -55,13 +55,13 @@ export default function MobLootEditor({ loot,catalog,rank,level,onChange }: Prop
                             <MobNumberField label="Шанс, %" min={0} max={100} step="any" value={entry.chancePercent}
                                 onChange={(chancePercent) => onChange(loot.map((row,i) => i === index ? { ...row, chancePercent } : row))} />
                         </div>
-                        <Button type="button" color="red" variant="soft" onClick={() => onChange(loot.filter((_,i) => i !== index))}>Удалить</Button>
+                        <Button className="game-button game-button--danger" type="button" color="red" variant="soft" onClick={() => onChange(loot.filter((_,i) => i !== index))}>Удалить</Button>
                     </div>
                 );
             })}
             <Flex gap="2" wrap="wrap">
-                <Button type="button" variant="soft" disabled={filtered.length === 0} onClick={add}>Добавить предмет</Button>
-                <Button type="button" variant="outline" disabled={loot.length === 0} onClick={recommend}>Подобрать шансы по классу</Button>
+                <Button className="game-button" type="button" variant="soft" disabled={filtered.length === 0} onClick={add}>Добавить предмет</Button>
+                <Button className="game-button" type="button" variant="outline" disabled={loot.length === 0} onClick={recommend}>Подобрать шансы по классу</Button>
             </Flex>
         </Flex>
     );

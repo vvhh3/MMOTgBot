@@ -3,6 +3,7 @@ import {
     type ItemDto,type ItemRarity,type MobCombatProfile,type MobDto,
 } from '@mmobot/shared';
 import { Callout,Flex,Heading,Select,Table,Text } from '@radix-ui/themes';
+import LevelBadge from '../../../shared/ui/LevelBadge';
 
 type Props = {
     mob: MobDto;
@@ -71,7 +72,7 @@ export default function MobBalancePreview({ mob,profile,catalog,playerLevel,onLe
                 </Callout.Root>
             )}
             <div className="overflow-x-auto">
-                <Table.Root variant="surface">
+                <Table.Root className="game-table" variant="ghost">
                     <Table.Header><Table.Row>
                         <Table.ColumnHeaderCell>Игрок</Table.ColumnHeaderCell><Table.ColumnHeaderCell>Моб</Table.ColumnHeaderCell>
                         <Table.ColumnHeaderCell>HP</Table.ColumnHeaderCell><Table.ColumnHeaderCell>Сила</Table.ColumnHeaderCell>
@@ -81,7 +82,7 @@ export default function MobBalancePreview({ mob,profile,catalog,playerLevel,onLe
                     <Table.Body>{Array.from({ length: 8 }, (_,i) => {
                         const row = calculateMobStats(mob, i + 1, profile);
                         return <Table.Row key={i} className={playerLevel === i + 1 ? 'bg-orange-50' : undefined}>
-                            <Table.Cell>{i + 1}</Table.Cell><Table.Cell>{row.level}</Table.Cell><Table.Cell>{row.maxHealth}</Table.Cell>
+                            <Table.Cell><LevelBadge level={i + 1} /></Table.Cell><Table.Cell><LevelBadge level={row.level} /></Table.Cell><Table.Cell>{row.maxHealth}</Table.Cell>
                             <Table.Cell>{row.strength}</Table.Cell><Table.Cell>{row.defense}</Table.Cell>
                             <Table.Cell>{row.pointsReward}</Table.Cell><Table.Cell>{row.coinReward}</Table.Cell>
                         </Table.Row>;

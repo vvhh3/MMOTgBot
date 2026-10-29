@@ -63,7 +63,7 @@ export default function TutorialGuide({ token, player, onPlayer, onCombatState }
     : "Дворник: «Новенький? Мусорный пакет решил стать главным по району. Разберёшься — отдам Кирпич с дипломом».";
 
   return <AnimatePresence>
-    {visible && <motion.section ref={panel} key="tutorial" className={`tutorial-guide ${complete ? "tutorial-guide-complete" : ""}`}
+    {visible && <motion.section ref={panel} key="tutorial" className={`game-card tutorial-guide ${complete ? "tutorial-guide-complete" : ""}`}
       initial={{ opacity: 0, y: reduced ? 0 : 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, height: reduced ? undefined : 0, marginTop: 0, marginBottom: 0 }}
       transition={{ duration: reduced ? 0 : 0.25 }}>
       <div className="mb-3 flex items-center justify-between gap-3">
@@ -92,7 +92,7 @@ export default function TutorialGuide({ token, player, onPlayer, onCombatState }
           {step === "welcome" && <p className="mt-2 text-xs text-gray-500">Короткий личный бой на Площади. Награда гарантирована.</p>}
           {error && <p role="alert" className="mt-3 text-sm text-red-600">{error}</p>}
           {step === "equip" && inInventory ? <p className="mt-3 text-sm font-semibold text-orange-700">Найди подсвеченное оружие ниже ↓</p>
-            : <motion.button type="button" disabled={busy || !token} className="mt-4 min-h-11 w-full rounded-xl bg-[#E8603C] px-4 py-3 text-sm font-bold text-white disabled:opacity-50"
+            : <motion.button type="button" disabled={busy || !token} className="game-button mt-4 w-full"
               whileTap={reduced ? undefined : { scale: 0.98 }}
               onClick={() => step === "equip" ? navigate("/Inventory") : void run(complete ? "finish" : "start")}>
               {busy ? "Подождите…" : complete ? "В город за приключениями" : step === "equip" ? "Открыть инвентарь" : step === "battle" ? "Продолжить поручение" : "Разобраться с пакетом"}

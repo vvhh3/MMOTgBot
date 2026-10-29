@@ -69,7 +69,7 @@ export default function Inventory({ token, player, inventory,onPlayer,onInventor
                                 className={`border aspect-square min-w-0 p-1 flex flex-col justify-between overflow-hidden ${!combat && player?.tutorialStep === "equip" && entry?.item?.type === "weapon" ? "tutorial-target" : ""} ${entry?.equiped ? "border-[#E85D2F] border-2 bg-orange-50" : "border-[#898888]"}`}>
                                 {entry?.item && (
                                     <>
-                                        {entry.item.icon ? 
+                                        {entry.item.icon ?
                                         <div className="h-7 w-7 [&_svg]:h-full [&_svg]:w-full" dangerouslySetInnerHTML={{__html: entry.item.icon}}></div>
                                         : <p className="truncate text-lg">{entry.item.name}  </p>
                                         }
@@ -87,7 +87,7 @@ export default function Inventory({ token, player, inventory,onPlayer,onInventor
     return (
         <div className="min-h-full">
             <div className="p-5">
-                <Card>
+                <Card className="game-card">
                     <div className="flex flex-col">
                         <div className="flex flex-row ">
                             <div className="flex w-25 mr-1.5">
@@ -101,7 +101,7 @@ export default function Inventory({ token, player, inventory,onPlayer,onInventor
                             <div className="flex-1 min-w-0 flex flex-col">
                                 <div className="flex justify-end w-full">
                                     {error}
-                                    <Badge color="orange">очков: {player?.statPoints}</Badge>
+                                    <Badge className="game-badge" color="orange">очков: {player?.statPoints}</Badge>
                                 </div>
                                 <div className="flex flex-col">
                                     <div className="flex flex-row ">

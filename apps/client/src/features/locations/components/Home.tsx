@@ -59,7 +59,7 @@ export default function Home({
 
   const location = locationState?.location;
 
-  
+
   return (
     <div className="flex flex-col justify-center items-center ">
       <div
@@ -90,7 +90,7 @@ export default function Home({
           </div>
         </PartySlots>
       </div>
-      {location ? 
+      {location ?
         <Grid
           columns="2"
           rows="2"
@@ -104,7 +104,7 @@ export default function Home({
         <EnterAnimation className="w-full flex justify-center items-center">
           <Box className="w-[70%] p-2.5">
             <Link to="/Map">
-                <Card size="2" >
+                <Card className="game-card" size="2" >
                     <Inset  side="top" pb="current" style={{ borderBottom: "solid 2px",paddingBottom:"0px" }} >
                         <img
                             src={map}

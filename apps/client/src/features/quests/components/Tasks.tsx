@@ -82,13 +82,13 @@ export default function Tasks({ token, onPlayer }: TasksProps) {
         </Tabs.List>
         <Box pt="3">
           <Tabs.Content value="active">
-            <Grid columns="1" rows="1" gap="3" style={{ padding: "20px", paddingTop: "0px", display: "flex", flexDirection: "column" }}>
+            <Grid columns="1" rows="1" gap="3" className="flex flex-col px-5 pb-5">
               {active.length === 0 && <Text color="gray">Сегодня квестов нет</Text>}
               {active.map((q) => <QuestCard key={q.id} quest={q} claiming={claimingId === q.id || !token} onClaim={onClaim} />)}
             </Grid>
           </Tabs.Content>
           <Tabs.Content value="claimed">
-            <Grid columns="1" rows="1" gap="3" style={{ padding: "20px", paddingTop: "0px", display: "flex", flexDirection: "column" }}>
+            <Grid columns="1" rows="1" gap="3" className="flex flex-col px-5 pb-5">
               {claimed.length === 0 && <Text color="gray">Выполненных квестов нет</Text>}
               {claimed.map((q) => <QuestCard key={q.id} quest={q} claiming={claimingId === q.id || !token} onClaim={onClaim} />)}
             </Grid>
@@ -109,13 +109,13 @@ export function QuestCard({ quest, claiming, onClaim }: {
     const completed = quest.status === "completed";
     return (
       <EnterAnimation>
-        <Card ref={cardRef}>
+        <Card ref={cardRef} className="game-card quest-card">
         <div className="flex flex-col gap-1.5">
-          <div className="flex flex-row justify-between">
+          <div className="quest-card-header flex items-start justify-between gap-2.5">
             <Text as="div" size="3" weight="bold">
               {quest.quest.title}
             </Text>
-            <div className="pl-1 pr-1 bg-[#E8603C] text-[#ffff] h-5.25 min-w-20 text-[8px] flex justify-center items-center font-extrabold rounded-[10px]">
+            <div data-difficulty={quest.quest.difficulty} className="quest-difficulty">
               <p>{DIFFICULTY_LABEL[quest.quest.difficulty]}</p>
             </div>
           </div>
@@ -126,14 +126,14 @@ export function QuestCard({ quest, claiming, onClaim }: {
             <Text as="div" color="gray" size="1">
               {OBJECTIVE_LABEL[quest.quest.objectiveType]} {quest.progress}/{quest.quest.targetCount} · +{quest.quest.targetXp} опыта · +{quest.quest.targetPoints} очков · +{quest.quest.targetCoins} монет
             </Text>
-            
+
           </div>
           <Box>
             <Progress color={completed ? "green" : "orange"} value={percent} />
           </Box>
           <div className="w-full flex justify-end">
             {completed && (
-              <Button style={{ borderRadius: "10px", backgroundColor: '#E8603C',fontSize: "8px",fontWeight:  "800"}} size="1" disabled={claiming} onClick={() => { if (cardRef.current) void onClaim(quest.id, cardRef.current); }}>
+              <Button className="game-button game-button--xs quest-claim-button"  size="1" disabled={claiming} onClick={() => { if (cardRef.current) void onClaim(quest.id, cardRef.current); }}>
                 Забрать награду
               </Button>
             )}
@@ -141,7 +141,7 @@ export function QuestCard({ quest, claiming, onClaim }: {
         </div>
       </Card>
       </EnterAnimation>
-      
+
     );
   };
 

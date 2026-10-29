@@ -63,14 +63,14 @@ export default function TradeNotification({
         <button
           disabled={pending || !token}
           onClick={handleAccept}
-          className="top-glass-button notification-accept flex-1 px-4 text-[11px]"
+          className="game-button flex-1 px-4 text-[11px]"
         >
           Принять
         </button>
         <button
           disabled={pending || !token}
           onClick={handleDecline}
-          className="top-glass-button flex-1 px-4 text-[11px]"
+          className="game-button game-button--danger flex-1 px-4 text-[11px]"
         >
           Отменить
         </button>

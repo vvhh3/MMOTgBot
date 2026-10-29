@@ -43,7 +43,7 @@ export default function CenterModalSelectOfItem({
             style={{ borderColor: RARITY_COLORS[entry.item!.rarity] }}
             title={RARITY_LABELS[entry.item!.rarity]}
             onClick={() => handleSelect(entry.id)}
-            className="flex flex-col items-center justify-between border rounded-lg p-2 h-20 hover:border-[#E85D2F] hover:bg-orange-50 transition-colors"
+            className="game-button flex flex-col items-center justify-between border p-2 h-20 hover:border-[#E85D2F] hover:bg-orange-50 transition-colors"
           >
             <p className="text-xs text-center leading-tight line-clamp-2">
               {entry.item!.name}

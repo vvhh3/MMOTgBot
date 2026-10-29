@@ -1,0 +1,45 @@
+/* Жидкое стекло для макетов боя на /ui; сетки действий и приёмов остаются 2×2. */
+.ui-showcase #combat .ui-combat-layout {
+    --combat-panel: linear-gradient(145deg, #ffffffd9, #ffffff70);
+    --combat-cell: linear-gradient(155deg, #ffffffe6, #ffffff80);
+    --combat-border: var(--game-border);
+    --combat-ink: #2b2a27;
+    --combat-muted: #756b5c;
+    --combat-shadow: inset 0 1px 0 #fff9, 0 6px 18px #3b304f1a;
+    --combat-radius: 18px;
+    --combat-blur: 10px;
+    --preview-card-fill: var(--combat-panel);
+    --preview-card-border: var(--combat-border);
+    --preview-card-shadow: var(--combat-shadow);
+
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+}
+
+.ui-showcase #combat .ui-combat-layout .ui-sample-battle {
+    box-sizing: border-box;
+    width: 100%;
+    border: 1px solid var(--combat-border);
+    border-radius: calc(var(--combat-radius) + 4px);
+    box-shadow: var(--combat-shadow);
+}
+
+.ui-showcase #combat .ui-combat-layout .battle-scene {
+    height: 540px !important;
+    max-height: 540px;
+}
+
+.ui-showcase #combat .ui-combat-layout .battle-fighter-image { height: 150px; }
+
+.ui-showcase #combat .ui-combat-layout :is(.battle-controls, .ui-combat-standalone-card) {
+    height: 164px;
+}
+
+.ui-showcase #combat .ui-combat-controls-demo {
+    padding: 12px;
+    border: 1px solid var(--combat-border);
+    border-radius: calc(var(--combat-radius) + 4px);
+    background: linear-gradient(#3b304f1a, #3b304f33), url("/mapMat.png") center / cover;
+}

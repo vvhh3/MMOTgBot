@@ -45,7 +45,7 @@ export default function ItemPassiveEditor({ item, onChange }: ItemPassiveEditorP
                     <Callout.Root color={definition.available === false ? 'gray' : 'orange'}>
                         <Callout.Text>{definition.describe(parameters)}</Callout.Text>
                     </Callout.Root>
-                    {definition.available !== false && <Button type="button" size="1" variant="soft" onClick={() => onChange({ passiveId: item.passiveId, passiveParams: getDefaultPassiveParams(item.passiveId!) })}>Рекомендуемые параметры способности</Button>}
+                    {definition.available !== false && <Button className="game-button game-button--sm" type="button" size="1" variant="soft" onClick={() => onChange({ passiveId: item.passiveId, passiveParams: getDefaultPassiveParams(item.passiveId!) })}>Рекомендуемые параметры способности</Button>}
                 </>
             )}
         </Flex>

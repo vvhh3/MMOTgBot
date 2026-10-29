@@ -11,20 +11,20 @@ type MovePanelProps = {
 
 export default function MovePanel({ state, disabled, onMove, onBack, tutorial = false }: MovePanelProps) {
     return (
-        <Grid columns="2" rows="2" gap="2" className="h-full min-h-0 overflow-y-auto" aria-label="Выбор приёма">
+        <Grid columns="2" rows="2" gap="2" className="battle-moves-grid h-full min-h-0 overflow-y-auto" aria-label="Выбор приёма">
             {state.moves.map((move) => {
                 const cooldown = Math.max(0, move.availableFromRound - state.round);
                 const moveDisabled = disabled || state.actionSubmitted || cooldown > 0;
 
                 return (
-                    <Card key={move.id} className={tutorial ? "tutorial-target" : undefined}>
+                    <Card key={move.id} className={`move-option-card${tutorial ? " tutorial-target" : ""}`} data-kind={move.kind} data-cooldown={cooldown > 0 || undefined}>
                         <button
-                            className="flex h-full w-full flex-col items-center justify-center rounded-lg disabled:opacity-50"
+                            className="move-option-button flex h-full w-full flex-col items-center justify-center rounded-lg disabled:opacity-50"
                             disabled={moveDisabled}
                             onClick={() => onMove(move.id)}
                         >
-                            <Text size="2" className="whitespace-normal break-words">{move.name}</Text>
-                            <Text size="1" color="gray">
+                            <Text size="2" className="move-option-name whitespace-normal break-words">{move.name}</Text>
+                            <Text size="1" color="gray" className="move-option-detail">
                                 {cooldown > 0
                                     ? `Через ${cooldown} раунд(а)`
                                     : move.kind === 'defend'
@@ -36,11 +36,11 @@ export default function MovePanel({ state, disabled, onMove, onBack, tutorial = 
                 );
             })}
             {Array.from({ length: Math.max(0, 3 - state.moves.length) }, (_, index) => (
-                <Card key={`empty-${index}`} aria-hidden="true" />
+                <Card key={`empty-${index}`} className="move-option-card move-option-empty" aria-hidden="true" />
             ))}
-            <Card>
+            <Card className="move-back-card">
                 <button
-                    className="flex h-full w-full items-center justify-center disabled:opacity-50"
+                    className="move-back-button flex h-full w-full items-center justify-center disabled:opacity-50"
                     disabled={disabled}
                     onClick={onBack}
                 >

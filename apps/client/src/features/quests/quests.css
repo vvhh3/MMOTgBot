@@ -1,0 +1,51 @@
+/* Метки сложности заданий. */
+.quest-difficulty {
+    --quest-difficulty-color: #c2410c;
+    --quest-difficulty-fill: #fff7ed;
+    --quest-difficulty-border: #fed7aa;
+    --quest-difficulty-bar-2: currentColor;
+    --quest-difficulty-bar-3: #fed7aa;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    min-width: 0;
+    height: auto;
+    padding: 4px 8px;
+    border: 1px solid var(--quest-difficulty-border);
+    border-radius: 999px;
+    background: var(--quest-difficulty-fill);
+    color: var(--quest-difficulty-color);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 14px;
+    white-space: nowrap;
+}
+
+.quest-difficulty[data-difficulty="easy"] {
+    --quest-difficulty-color: #166534;
+    --quest-difficulty-fill: #f0fdf4;
+    --quest-difficulty-border: #bbf7d0;
+    --quest-difficulty-bar-2: #bbf7d0;
+    --quest-difficulty-bar-3: #bbf7d0;
+}
+
+.quest-difficulty[data-difficulty="hard"] {
+    --quest-difficulty-color: #b91c1c;
+    --quest-difficulty-fill: #fef2f2;
+    --quest-difficulty-border: #fecaca;
+    --quest-difficulty-bar-3: currentColor;
+}
+
+.quest-difficulty::before {
+    content: "";
+    width: 16px;
+    height: 12px;
+    flex-shrink: 0;
+    background:
+        linear-gradient(currentColor, currentColor) left bottom / 4px 4px no-repeat,
+        linear-gradient(var(--quest-difficulty-bar-2), var(--quest-difficulty-bar-2)) center bottom / 4px 8px no-repeat,
+        linear-gradient(var(--quest-difficulty-bar-3), var(--quest-difficulty-bar-3)) right bottom / 4px 12px no-repeat;
+}
+

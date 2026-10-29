@@ -1,213 +1,137 @@
-import type { FriendDto,FriendRequestDto,FriendsOverviewResponse,PlayerDto } from "@mmobot/shared";
-import { Avatar,Badge,Card,Flex,Grid,Text } from "@radix-ui/themes";
-import { useEffect,useState } from "react";
-import { getFriends,removeFriend,respondFriendRequest,searchFriends,sendFriendRequest } from "../api";
+import type { FriendDto, FriendRequestDto, FriendsOverviewResponse, PlayerDto } from "@mmobot/shared";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { getFriends, removeFriend, respondFriendRequest, searchFriends, sendFriendRequest } from "../api";
+import FriendsPanel from "./FriendsPanel";
 
 type TeamProps = {
-  token: string | null
-  player: PlayerDto | null
-  liveOverview?: FriendsOverviewResponse | null
-}
+  token: string | null;
+  player: PlayerDto | null;
+  liveOverview?: FriendsOverviewResponse | null;
+};
 
-export default function Team({ token, player,liveOverview }: TeamProps) {
-  const [overview, setOverview] = useState<{ friends: FriendDto[]; requests: FriendRequestDto[] }>({ friends: [], requests: [] })
-  const [query, setQuery] = useState("")
-  const [results, setResults] = useState<FriendDto[]>([])
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-  const reload = () => {
-    if (!token) return
-    getFriends(token)
-      .then((data) => setOverview(data))
-      .catch((e) => setError(e.message))
-  }
+const emptyOverview: FriendsOverviewResponse = { friends: [], requests: [] };
+
+export default function Team({ token, player, liveOverview }: TeamProps) {
+  const [overview, setOverview] = useState(liveOverview ?? emptyOverview);
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<FriendDto[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [notice, setNotice] = useState("");
+  const [loading, setLoading] = useState(!liveOverview && !!token);
+  const [searching, setSearching] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const overviewVersion = useRef(0);
+  const searchVersion = useRef(0);
+  const sessionVersion = useRef(0);
+  const actionPending = useRef(false);
+
+  const reload = useCallback(async () => {
+    const version = ++overviewVersion.current;
+    if (!token) { setOverview(emptyOverview); setLoading(false); return; }
+    setLoading(true);
+    try {
+      const data = await getFriends(token);
+      if (version === overviewVersion.current) setOverview(data);
+    } catch (e) {
+      if (version === overviewVersion.current) setError(e instanceof Error ? e.message : "Не удалось загрузить друзей");
+    } finally {
+      if (version === overviewVersion.current) setLoading(false);
+    }
+  }, [token]);
 
   useEffect(() => {
-    reload()
-  }, [token])
+    if (!liveOverview) return;
+    overviewVersion.current++;
+    setOverview(liveOverview);
+    setLoading(false);
+  }, [liveOverview]);
 
   useEffect(() => {
-    if(liveOverview) setOverview(liveOverview)
-  },[liveOverview])
+    setQuery(""); setResults(null); setError(null); setSearchError(null); setNotice(""); setSearching(false);
+    actionPending.current = false; setBusy(false);
+    void reload();
+    return () => { overviewVersion.current++; searchVersion.current++; sessionVersion.current++; };
+  }, [reload]);
+
+  const changeQuery = (value: string) => {
+    searchVersion.current++;
+    setQuery(value); setResults(null); setSearchError(null); setSearching(false);
+  };
 
   const doSearch = async () => {
-    if (!token || !query.trim()) return
-    setLoading(true)
-    setError(null)
+    if (!token) return;
+    const version = ++searchVersion.current;
+    const code = query.trim().replace(/^#/, "");
+    setResults(null); setSearchError(null); setSearching(false);
+    if (!/^\d+$/.test(code)) { setSearchError("Введите цифровой код друга."); return; }
+    if (Number(code) === player?.friendId) { setSearchError("Это ваш код. Введите код друга."); return; }
+    setSearching(true);
     try {
-      const data = await searchFriends(token, query.trim())
-      setResults(data.players)
+      const data = await searchFriends(token, code);
+      if (version === searchVersion.current) setResults(data.players);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Ошибка поиска")
+      if (version === searchVersion.current) setSearchError(e instanceof Error ? e.message : "Ошибка поиска");
     } finally {
-      setLoading(false)
+      if (version === searchVersion.current) setSearching(false);
     }
-  }
+  };
 
-  const addFriend = async (friendId: number) => {
-    if (!token) return
+  const perform = async (action: () => Promise<unknown>, message: string, onSuccess?: () => void) => {
+    if (!token || actionPending.current) return;
+    const session = sessionVersion.current;
+    actionPending.current = true;
+    setBusy(true); setError(null); setNotice("");
     try {
-      await sendFriendRequest(token, friendId)
-      setResults([])
-      setQuery("")
-      reload()
+      await action();
+      if (session !== sessionVersion.current) return;
+      onSuccess?.();
+      setNotice(message);
+      await reload();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Не удалось отправить заявку")
+      if (session === sessionVersion.current) setError(e instanceof Error ? e.message : "Не удалось выполнить действие");
+    } finally {
+      if (session === sessionVersion.current) { actionPending.current = false; setBusy(false); }
     }
-  }
+  };
 
-  const accept = async (id: number) => {
-    if (!token) return
-    await respondFriendRequest(token, id, true).catch((e) => setError(e.message))
-    reload()
-  }
-  const decline = async (id: number) => {
-    if (!token) return
-    await respondFriendRequest(token, id, false).catch((e) => setError(e.message))
-    reload()
-  }
-  const remove = async (id: number) => {
-    if (!token) return
-    await removeFriend(token, id).catch((e) => setError(e.message))
-    reload()
-  }
+  const add = (person: FriendDto) => {
+    if (!token) return;
+    void perform(() => sendFriendRequest(token, person.friendId), "Заявка отправлена", () => changeQuery(""));
+  };
+  const respond = (request: FriendRequestDto, accept: boolean) => {
+    if (!token) return;
+    void perform(() => respondFriendRequest(token, request.id, accept), accept ? `${request.name} теперь в друзьях` : "Заявка отклонена");
+  };
+  const remove = (person: FriendDto) => {
+    if (!token) return;
+    void perform(() => removeFriend(token, person.id), `${person.name} удалён из друзей`);
+  };
+  const cancel = (request: FriendRequestDto) => {
+    if (!token) return;
+    void perform(() => removeFriend(token, request.playerId), "Заявка отменена");
+  };
+  const copyCode = async () => {
+    if (player?.friendId == null) return;
+    try { await navigator.clipboard.writeText(String(player.friendId)); setNotice("Код дружбы скопирован"); }
+    catch { setNotice(`Ваш код дружбы: ${player.friendId}`); }
+  };
 
-  const incoming = overview.requests.filter((r) => r.direction === "incoming")
-  const outgoing = overview.requests.filter((r) => r.direction === "outgoing")
-
-  return (
-    <div className="flex flex-col h-full">
-      <div className="flex justify-center items-end px-2.5 gap-1 pt-4 h-17.5 w-full">
-        <div className="flex flex-col w-[50%] max-w-[600px] min-w-[270px]">
-          <Text size="1">
-              Ваш id дружбы: {player?.friendId}
-          </Text>
-          <div className="relative w-full max-w-150">
-            <svg width="16" height="16" viewBox="0 0 24 24"  fill="none" xmlns="http://www.w3.org/2000/svg"
-              className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
-              <path d="M14.9536 14.9458L21 21M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <input
-              placeholder="Введите код друга..."
-              className="w-full border-2 rounded-lg p-1 pr-8 border-black focus:outline-none duration-300 focus:border-[#E85D2F]"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}/>
-          </div>
-        </div>
-    
-        <button className="h-9 w-25 p-1 flex justify-center items-center text-white  bg-[#E85D2F] rounded-lg" onClick={doSearch} disabled={loading}>
-          Найти
-        </button>
-      
-      </div>
-
-      {error && <Text color="red" size="1" className="px-4 pt-2">{error}</Text>}
-
-      {results.length > 0 && (
-        <div className="px-3 pt-3">
-          <Text size="2" weight="bold">Результаты поиска</Text>
-          <Grid columns="1" gap="2" className="mt-2">
-            {results.map((p) => (
-              <Card key={p.id} style={{ padding: "8px" }}>
-                <Flex justify="between" align="center">
-                  <Flex gap="1" align="center" >
-                    <Avatar radius="full" fallback={p.name[0] ?? "A"} color="green" size="2" />
-                    <div className="flex flex-col">
-                      <Text size="2">{p.name}</Text>
-                      <span className="text-orange-500 text-[13px] font-bold" >Lv{p.level}</span>
-                    </div>
-                  </Flex>
-                  <button className="h-9 w-27 px-2 p-1 flex justify-center items-center text-white  bg-[#E85D2F] rounded-lg" onClick={() => addFriend(p.friendId)}>Добавить</button>
-                </Flex>
-              </Card>
-            ))}
-          </Grid>
-        </div>
-      )}
-
-      <div className="px-2  flex justify-center flex-col items-center">
-        {incoming.length > 0 && (
-          <div className="w-full max-w-200">
-            <Text size="2" weight="bold">Входящие заявки</Text>
-            <Grid columns="1" gap="2" className="mt-2">
-              {incoming.map((r) => (
-                <Card key={r.id} style={{ padding: "8px" }}>
-                  <Flex justify="between" direction="column" gap="2" align="stretch">
-                    <Flex gap="3" align="center">
-                      <Avatar radius="full" fallback={r.name[0] ?? "A"} color="green" size="2" />
-                      <div className="flex flex-col">
-                        <Text size="2">{r.name}</Text>
-                      <span className="text-orange-500 text-[13px] font-bold" >Lv{r.level}</span>
-                      </div>
-                    </Flex>
-                    <Flex gap="2" width="100%">
-                      <button className="h-9 flex-1 p-1 flex justify-center items-center text-white  bg-green-600 rounded-lg"  onClick={() => accept(r.id)}>Принять</button>
-                      <button className="h-9 flex-1 p-1 flex justify-center items-center text-white  bg-red-600 rounded-lg"  onClick={() => decline(r.id)}>Отклонить</button>
-                    </Flex>
-                  </Flex>
-                </Card>
-              ))}
-            </Grid>
-          </div>
-        )}
-
-        {outgoing.length > 0 && (
-          <div className="w-full max-w-200">
-            <Text size="2" weight="bold" className="block mt-4">Исходящие заявки</Text>
-            <Grid columns="1" gap="2" className="mt-2">
-              {outgoing.map((r) => (
-                <Card key={r.id} style={{ padding: "8px" }}>
-                  <Flex justify="between" gap="2" align="center">
-                    <Flex gap="3" align="center">
-                      <Avatar radius="full" fallback={r.name[0] ?? "A"} color="green" size="2" />
-                      <Text size="2">{r.name}</Text>
-                    </Flex>
-                    <button className="h-9 w-full px-2 flex justify-center items-center text-white  bg-[#E85D2F] rounded-lg" onClick={() => remove(r.id)}>Отменить</button>
-                  </Flex>
-                </Card>
-              ))}
-            </Grid>
-          </div>
-        )}
-        <div className="w-full max-w-200">
-        <Grid columns="1" gap="2" className="mt-2">
-          {/* Поправить тут проверку онлайн */}
-          <div className="flex flex-col gap-1 justify-center w-full  ">
-            <Text size="2" weight="bold" className="block mt-4">Друзья ({overview.friends.length})</Text>
-            {overview.friends .length === 0 && (
-              <div className="w-[60%] max-w-160 flex justify-center flex-col">
-                <Text size="1" color="gray">Пока нет друзей. Найдите игрока по коду выше</Text>
-              </div>
-            )}
-            <div className="flex justify-center items-center flex-col gap-1 w-full">
-              {overview.friends .map((f) => (
-                <Card key={f.id} className="w-full  flex" style={{ padding: "8px" }}> 
-                  <Flex justify="between" align="center">
-                    <Flex gap="3" align="center">
-                      <div className="relative inline-block">
-                        <Avatar radius="full" fallback={f.name[0] ?? "A"} color="green" size="2" />
-                        <span className={`absolute right-0 bottom-0 block h-2.5 w-2.5 rounded-full ring-2 ring-white ${f.online ? "bg-green-500" : "bg-gray-400"}`} />
-                      </div>
-                      <div className="flex flex-col">
-                        <Flex gap="3" align="center">
-                          <p className="text-[12px] font-bold max-w-39">{f.name}</p>
-                          <Badge color="orange">Lv.{f.level}</Badge>
-                        </Flex>
-                        <Text size="1" color={f.online ? "green" : "gray"}>{f.online ? "В сети" : "Не в сети"}</Text>
-                      </div>
-                    </Flex>
-                    <button className="h-9 w-25 mx-1 p-1 flex justify-center items-center text-white  bg-red-600 rounded-lg" onClick={() => remove(f.id)}>Удалить</button>
-                  </Flex>
-                </Card>
-              ))}
-            </div>
-            
-          </div>
-          
-        </Grid>
-        </div>
-        
-      </div>
-    </div>
-  )
+  return <div className="mx-auto w-full max-w-[600px] px-3 pb-3">
+    <FriendsPanel
+      friendCode={player?.friendId ?? null}
+      overview={overview}
+      loading={loading}
+      busy={busy}
+      disabled={!token}
+      error={error}
+      notice={notice}
+      search={{ query, results, loading: searching, error: searchError, onChange: changeQuery, onSubmit: () => void doSearch() }}
+      onCopy={() => void copyCode()}
+      onAdd={add}
+      onRespond={respond}
+      onRemove={remove}
+      onCancel={cancel}
+    />
+  </div>;
 }

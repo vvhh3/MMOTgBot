@@ -1,0 +1,255 @@
+/* Общий стиль боя; сетки и расположение действий остаются в компонентах. */
+:root {
+ --combat-panel: linear-gradient(145deg, #ffffffd9, #ffffff70);
+ --combat-cell: linear-gradient(155deg, #ffffffe6, #ffffff80);
+ --combat-border: var(--game-border);
+ --combat-ink: #2b2a27;
+ --combat-muted: #756b5c;
+ --combat-shadow: inset 0 1px 0 #fff9, 0 6px 18px #3b304f1a;
+ --combat-radius: 18px;
+ --combat-blur: 10px;
+}
+.battle-round-indicator {
+    flex-direction: column;
+    gap: 6px;
+    padding-block: 10px;
+}
+
+.battle-round-number {
+    flex-direction: column;
+    gap: 2px;
+    box-sizing: border-box;
+    width: 64px;
+    height: 64px;
+    border: 1px solid var(--game-card-border);
+    border-radius: 18px;
+    background: var(--game-card-fill);
+    box-shadow: var(--game-card-shadow);
+}
+
+.battle-round-number::before {
+    content: "Раунд";
+    color: #9a3412;
+    font-size: 9px;
+    font-weight: 600;
+    line-height: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.battle-round-number > strong {
+    color: var(--game-accent);
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 26px;
+    font-variant-numeric: tabular-nums;
+}
+
+.battle-round-indicator .battle-last-seconds {
+    padding: 4px 10px;
+    border: 1px solid var(--game-card-border);
+    border-radius: 999px;
+    background: #fff7ed;
+    color: #9a3412;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 16px;
+    white-space: nowrap;
+}
+
+.battle-round-indicator .battle-last-seconds[data-urgent="true"] {
+    border-color: #fecaca;
+    background: #fef2f2;
+    color: #b91c1c;
+}
+
+:is(
+    .battle-fighter-card,
+    .battle-controls-card,
+    .battle-action-cell,
+    .move-option-card,
+    .move-back-card
+) {
+    min-width: 0;
+    padding: 8px;
+    border: 1px solid var(--combat-border);
+    border-radius: var(--combat-radius);
+    background: var(--combat-panel);
+    color: var(--combat-ink);
+    box-shadow: var(--combat-shadow);
+    -webkit-backdrop-filter: blur(var(--combat-blur));
+    backdrop-filter: blur(var(--combat-blur));
+}
+
+ .battle-scene .rt-Card::before {
+    background: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+ .battle-scene .rt-Card::after { box-shadow: none; }
+
+
+.battle-controls-card {
+    box-sizing: border-box;
+    padding: 8px;
+}
+
+:is(.battle-action-cell, .move-option-card, .move-back-card) {
+    padding: 0;
+    background: var(--combat-cell);
+    box-shadow: none;
+}
+
+.battle-action-cell[data-action="leave"] { color: #b91c1c; }
+
+:is(.battle-action-empty, .move-option-empty) {
+    border-style: dashed;
+    background: #ffffff40;
+}
+
+:is(.battle-action-button, .move-option-button, .move-back-button) {
+    box-sizing: border-box;
+    min-height: 0;
+    gap: 3px;
+    padding: 8px;
+    border-radius: inherit;
+    text-align: center;
+    cursor: pointer;
+}
+
+:is(.battle-action-button, .move-back-button) > .rt-Text {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 18px;
+}
+
+:is(.battle-action-button, .move-option-button, .move-back-button, .battle-console-next):focus-visible {
+    outline: 2px solid #e8603c;
+    outline-offset: -3px;
+}
+
+:is(.battle-action-button, .move-option-button, .move-back-button):hover:where(:not(:disabled)) {
+    background-color: #00000006;
+}
+
+:is(.battle-action-button, .move-option-button, .move-back-button):disabled {
+    cursor: not-allowed;
+}
+
+.move-option-name {
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 16px;
+}
+
+.move-option-detail {
+    color: var(--combat-muted);
+    font-size: 10px;
+    line-height: 14px;
+}
+
+.move-option-card[data-kind="defend"] .move-option-detail {
+    color: #166534;
+}
+
+.move-option-card[data-cooldown="true"] {
+    border-color: #d6d3d1;
+    background: #f5f5f4b3;
+}
+
+
+.battle-console { gap: 6px; }
+
+.battle-console-next {
+    min-height: 0;
+    padding: 6px;
+    border-radius: calc(var(--combat-radius) - 4px);
+    text-align: left;
+    cursor: pointer;
+}
+
+.battle-console-message {
+    align-self: stretch;
+    color: var(--combat-ink);
+    font-size: 13px;
+    line-height: 19px;
+}
+
+.battle-console-next-label {
+    color: var(--combat-muted);
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 16px;
+}
+
+.battle-console-skip {
+    border-radius: 4px;
+    color: var(--combat-muted);
+    font-size: 11px;
+    line-height: 16px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.battle-console-skip:focus-visible {
+    outline: 2px solid #e8603c;
+    outline-offset: 2px;
+}
+
+.battle-status-trigger {
+    display: block;
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+.battle-status-trigger:focus-visible {
+    outline: 2px solid var(--game-accent);
+    outline-offset: 3px;
+}
+
+.battle-status-badge {
+    --effect-ink: #b91c1c;
+    --effect-fill: #fef2f2;
+    --effect-border: #fecaca;
+
+    gap: 6px;
+    padding: 5px 8px;
+    border: 1px solid var(--effect-border);
+    border-radius: 999px;
+    background: var(--effect-fill);
+    color: var(--effect-ink);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 16px;
+}
+
+.battle-status-badge[data-positive="true"] {
+    --effect-ink: #166534;
+    --effect-fill: #f0fdf4;
+    --effect-border: #bbf7d0;
+}
+
+.battle-status-badge[data-kind="wet"] {
+    --effect-ink: #1d4ed8;
+    --effect-fill: #eff6ff;
+    --effect-border: #bfdbfe;
+}
+
+.battle-status-icon {
+    min-width: 16px;
+    flex-shrink: 0;
+    font-size: 16px;
+    line-height: 20px;
+    text-align: center;
+}
+
+.battle-status-label { min-width: 0; }
+.battle-status-name { overflow-wrap: anywhere; }
+
+.battle-status-value {
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
